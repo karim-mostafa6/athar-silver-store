@@ -3,8 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
 
 export const GenderSplitShowcase: React.FC = () => {
+  const { storeSettings } = useStore();
+
   return (
     <section className="w-full bg-[#faf8f5] py-12 sm:py-16 border-b border-[#e8ded0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,8 +30,8 @@ export const GenderSplitShowcase: React.FC = () => {
           >
             {/* Background Editorial Photo */}
             <img
-              src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1200&q=85"
-              alt="Women's Silver Jewelry Collection"
+              src={storeSettings.splitWomenImage}
+              alt={storeSettings.splitWomenTitle}
               className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
               loading="lazy"
             />
@@ -44,9 +47,12 @@ export const GenderSplitShowcase: React.FC = () => {
               <h3 className="text-3xl sm:text-4xl font-light font-alexandria tracking-tight text-[#faf8f5]">
                 Women&apos;s
                 <span className="block text-sm font-normal text-white/80 mt-1">
-                  التشكيلة النسائية
+                  {storeSettings.splitWomenTitle}
                 </span>
               </h3>
+              <p className="text-xs text-white/75 line-clamp-1 max-w-xs">
+                {storeSettings.splitWomenSubtitle}
+              </p>
 
               <div className="pt-2">
                 <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/70 text-white text-xs font-bold uppercase tracking-[0.15em] group-hover:bg-white group-hover:text-[#1c1815] transition-all duration-300 shadow-sm">
@@ -64,8 +70,8 @@ export const GenderSplitShowcase: React.FC = () => {
           >
             {/* Background Editorial Photo */}
             <img
-              src="https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=1200&q=85"
-              alt="Men's Silver Jewelry Collection"
+              src={storeSettings.splitMenImage}
+              alt={storeSettings.splitMenTitle}
               className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
               loading="lazy"
             />
@@ -81,9 +87,12 @@ export const GenderSplitShowcase: React.FC = () => {
               <h3 className="text-3xl sm:text-4xl font-light font-alexandria tracking-tight text-[#faf8f5]">
                 Men&apos;s
                 <span className="block text-sm font-normal text-white/80 mt-1">
-                  التشكيلة الرجالية
+                  {storeSettings.splitMenTitle}
                 </span>
               </h3>
+              <p className="text-xs text-white/75 line-clamp-1 max-w-xs">
+                {storeSettings.splitMenSubtitle}
+              </p>
 
               <div className="pt-2">
                 <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/70 text-white text-xs font-bold uppercase tracking-[0.15em] group-hover:bg-white group-hover:text-[#1c1815] transition-all duration-300 shadow-sm">

@@ -14,6 +14,24 @@ export interface StoreSettings {
   shippingAlex: number;
   shippingDeltaCanal: number;
   shippingUpperEgypt: number;
+  // Deep Store Customization (Shopify-like Theme)
+  heroTitle: string;
+  heroSubtitle: string;
+  heroBadge: string;
+  heroButtonText: string;
+  heroImageUrl: string;
+  splitWomenTitle: string;
+  splitWomenSubtitle: string;
+  splitWomenImage: string;
+  splitMenTitle: string;
+  splitMenSubtitle: string;
+  splitMenImage: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactAddress: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  tiktokUrl: string;
 }
 
 export interface OrderItem {
@@ -105,6 +123,23 @@ const DEFAULT_SETTINGS: StoreSettings = {
   shippingAlex: 55,
   shippingDeltaCanal: 65,
   shippingUpperEgypt: 80,
+  heroTitle: "فضة إسترليني عيار 925 بصياغة خالدة",
+  heroSubtitle: "قطع استثنائية صُممت لتعكس أصالة الذوق الرفيع وتترك أثراً لا يُمحى في كل مناسبة",
+  heroBadge: "تشكيلة 2026 الحصرية • فضة إيطالية 925 معتمدة",
+  heroButtonText: "اكتشف التشكيلة الكاملة",
+  heroImageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1920&q=85",
+  splitWomenTitle: "التشكيلة النسائية",
+  splitWomenSubtitle: "مجوهرات رقيقة تبرز أنوثتك وتترك أثراً استثنائياً",
+  splitWomenImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1200&q=85",
+  splitMenTitle: "التشكيلة الرجالية",
+  splitMenSubtitle: "صياغة ثقيلة وتصاميم عصرية تعكس الهيبة والأصالة",
+  splitMenImage: "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=1200&q=85",
+  contactEmail: "support@atharsilver.com",
+  contactPhone: "+20 100 000 0000",
+  contactAddress: "القاهرة، جمهورية مصر العربية (شحن لجميع المحافظات)",
+  instagramUrl: "https://instagram.com",
+  facebookUrl: "https://facebook.com",
+  tiktokUrl: "https://tiktok.com",
 };
 
 const SAMPLE_ORDERS: Order[] = [

@@ -7,6 +7,14 @@ export interface Product {
   purity: string; // e.g. "فضة إسترليني عيار 925"
   price: number;
   originalPrice?: number;
+  costPrice?: number; // تكلفة القطعة لحساب هامش الربح
+  sku?: string; // كود الباركود / التتبع
+  stockQuantity?: number; // عدد القطع المتوفرة بالمخزن
+  stoneType?: string; // نوع الحجر (زركون، عقيق، صدف...)
+  platingOptions?: string[]; // خيارات الطلاء المتوفرة
+  customBadge?: string; // شارة ترويجية مخصصة
+  metaTitle?: string;
+  metaDescription?: string;
   rating: number;
   reviewsCount: number;
   images: string[];

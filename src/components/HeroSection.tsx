@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ArrowDown, Sparkles } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
 
 interface HeroSectionProps {
   onExploreClick: () => void;
@@ -13,14 +14,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onExploreClick,
   onOpenSizeGuide,
 }) => {
+  const { storeSettings } = useStore();
+
   return (
     <div>
       {/* Full-Width Luxury Editorial Banner - ATHAR Signature Brand */}
       <section className="relative w-full h-[520px] sm:h-[620px] lg:h-[680px] overflow-hidden bg-[#1c1815] select-none">
         {/* Background Editorial Image */}
         <img
-          src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=90"
-          alt="ATHAR 925 Sterling Silver Signature Collection"
+          src={storeSettings.heroImageUrl}
+          alt={storeSettings.heroTitle}
           className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.78] contrast-[1.05]"
         />
 
@@ -30,7 +33,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Top Edition Tag */}
         <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-10 hidden sm:block">
           <div className="text-white/80 font-mono text-[11px] tracking-[0.3em] uppercase">
-            ATHAR SIGNATURE • 2026 EDITION
+            {storeSettings.heroBadge}
           </div>
         </div>
 
@@ -43,12 +46,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <span className="w-6 h-px bg-white/40" />
           </div>
 
-          {/* Main Title - Original Prestigious ATHAR Identity */}
+          {/* Main Title */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-[#faf8f5] tracking-tight font-alexandria max-w-3xl leading-tight">
-            أناقةٌ تدوم.. وأَثَـرٌ لا يُمحى
+            {storeSettings.heroTitle}
           </h1>
           <p className="text-sm sm:text-base text-white/85 font-light mt-2 max-w-xl">
-            مجوهرات فضة إسترليني عيار 925 بصياغة إيطالية معتمدة تروي قصة تميزك
+            {storeSettings.heroSubtitle}
           </p>
 
           {/* Minimalist Pill Action Buttons */}
@@ -57,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               onClick={onExploreClick}
               className="px-9 py-3.5 rounded-full bg-white text-[#1c1815] text-xs sm:text-sm font-bold uppercase tracking-[0.15em] hover:bg-[#f2ece1] transition-all duration-300 shadow-xl active:scale-95 flex items-center gap-2"
             >
-              <span>تسوق التشكيلة • EXPLORE COLLECTION</span>
+              <span>{storeSettings.heroButtonText || "تسوق التشكيلة • EXPLORE COLLECTION"}</span>
               <ArrowDown className="w-3.5 h-3.5" />
             </button>
 
@@ -69,60 +72,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <span>دليل المقاسات</span>
             </button>
           </div>
-
-          {/* Editorial Carousel Indicator Dots */}
-          <div className="flex items-center gap-2 mt-8">
-            <div className="w-8 h-0.5 bg-white rounded-full" />
-            <div className="w-8 h-0.5 bg-white/30 rounded-full" />
-            <div className="w-8 h-0.5 bg-white/30 rounded-full" />
-          </div>
         </div>
       </section>
 
-      {/* 4-Column Minimal Stats Bar */}
-      <section className="border-b border-[#e8ded0] bg-[#faf8f5] py-8 sm:py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-[#e8ded0]">
-          {/* Stat 1 */}
-          <div className="pt-2 md:pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria tracking-tight">
-              +200K
-            </div>
-            <div className="text-xs text-[#705e4d] mt-1 font-medium">
-              عميل فخور في مصر
-            </div>
+      {/* Trust Strip */}
+      <div className="bg-[#f2ece1] border-b border-[#e2d5c2] py-4 text-center text-xs text-[#524436]">
+        <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-6 sm:gap-12">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8c7865]" />
+            <span className="font-medium">فضة إسترليني معتمدة عيار 925 ومختومة رسمياً</span>
           </div>
-
-          {/* Stat 2 */}
-          <div className="pt-2 md:pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria tracking-tight">
-              +8K
-            </div>
-            <div className="text-xs text-[#705e4d] mt-1 font-medium">
-              تقييم 5 نجوم موثق
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8c7865]" />
+            <span className="font-medium">معاينة ومطابقة عند الاستلام قبل الدفع</span>
           </div>
-
-          {/* Stat 3 */}
-          <div className="pt-2 md:pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria tracking-tight">
-              14 يوماً
-            </div>
-            <div className="text-xs text-[#705e4d] mt-1 font-medium">
-              استبدال واسترجاع مضمون
-            </div>
-          </div>
-
-          {/* Stat 4 */}
-          <div className="pt-2 md:pt-0">
-            <div className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria tracking-tight">
-              ضمان معتمد
-            </div>
-            <div className="text-xs text-[#705e4d] mt-1 font-medium">
-              فضة 925 نقية مدى الحياة
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8c7865]" />
+            <span className="font-medium">استبدال واسترجاع سلس خلال 14 يوماً</span>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };
