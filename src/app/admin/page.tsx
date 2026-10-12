@@ -2089,17 +2089,25 @@ export default function AdminPage() {
                 </div>
 
                 {/* ======================================================== */}
-                {/* 4. HERO BANNER SECTION */}
+                {/* 4. HERO BANNER SECTION (Deep Customization) */}
                 {/* ======================================================== */}
-                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
-                    <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-600" />
-                      <span>4. بنر البداية الرئيسي (Hero Banner)</span>
-                    </h3>
-                    <span className="text-[11px] text-[#8c7865]">واجهة المتجر الكبرى</span>
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span>4. بنر البداية الرئيسي (Hero Banner & Buttons)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تحكم كامل في نصوص وأزرار واجهة المتجر، المؤثرات الحركية، وتعتيم وارتفاع الصورة
+                      </p>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 self-start sm:self-auto">
+                      واجهة المتجر الكبرى
+                    </span>
                   </div>
 
+                  {/* Texts Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-[#1c1815] block">العنوان الرئيسي للهيرو</label>
@@ -2107,7 +2115,7 @@ export default function AdminPage() {
                         type="text"
                         value={settingsForm.heroTitle}
                         onChange={(e) => setSettingsForm({ ...settingsForm, heroTitle: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm font-bold focus:outline-none focus:border-amber-600"
                       />
                     </div>
 
@@ -2122,14 +2130,193 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1c1815] block">النص الوصفي الفرعي</label>
-                    <textarea
-                      rows={2}
-                      value={settingsForm.heroSubtitle}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, heroSubtitle: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">
+                        السطر التقديمي (Tagline فوق العنوان)
+                      </label>
+                      <input
+                        type="text"
+                        value={settingsForm.heroTagline || "بصمةٌ تُميّز حضورك • 925 STERLING SILVER"}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, heroTagline: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">النص الوصفي الفرعي</label>
+                      <textarea
+                        rows={2}
+                        value={settingsForm.heroSubtitle}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, heroSubtitle: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Hero Buttons Customizer */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                    <span className="text-xs font-bold text-[#1c1815] block">
+                      🔘 تخصيص أزرار الهيرو الرئيسية (Hero Action Buttons):
+                    </span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Button 1: Primary */}
+                      <div className="p-3.5 rounded-xl bg-[#faf8f5] border border-[#ebdcca] space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#1c1815]">الزر الرئيسي الأول (الأبيض البارز)</span>
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.heroButtonShow !== false}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, heroButtonShow: e.target.checked })
+                              }
+                              className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                            />
+                            <span>معروض</span>
+                          </label>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-[10px] text-[#8c7865] block font-bold">النص المكتوب على الزر:</label>
+                            <input
+                              type="text"
+                              value={settingsForm.heroButtonText || "اكتشف التشكيلة الكاملة"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, heroButtonText: e.target.value })}
+                              className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#d8c8b4] text-xs font-bold"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-[#8c7865] block font-bold">رابط التوجيه (المسار):</label>
+                            <input
+                              type="text"
+                              value={settingsForm.heroButtonLink || "#products"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, heroButtonLink: e.target.value })}
+                              placeholder="#products أو /collection/all"
+                              className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#d8c8b4] text-xs font-mono dir-ltr text-left"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Button 2: Secondary */}
+                      <div className="p-3.5 rounded-xl bg-[#faf8f5] border border-[#ebdcca] space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#1c1815]">الزر الثانوي الثاني (الزجاجي الفاخر)</span>
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.heroSecondaryButtonShow !== false}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, heroSecondaryButtonShow: e.target.checked })
+                              }
+                              className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                            />
+                            <span>معروض</span>
+                          </label>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-[10px] text-[#8c7865] block font-bold">النص المكتوب على الزر:</label>
+                            <input
+                              type="text"
+                              value={settingsForm.heroSecondaryButtonText || "دليل المقاسات"}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, heroSecondaryButtonText: e.target.value })
+                              }
+                              className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#d8c8b4] text-xs font-bold"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-[#8c7865] block font-bold">نوع الإجراء عند النقر:</label>
+                            <select
+                              value={settingsForm.heroSecondaryButtonAction || "sizeguide"}
+                              onChange={(e) =>
+                                setSettingsForm({
+                                  ...settingsForm,
+                                  heroSecondaryButtonAction: e.target.value as "sizeguide" | "link" | "whatsapp",
+                                })
+                              }
+                              className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#d8c8b4] text-xs font-bold"
+                            >
+                              <option value="sizeguide">📏 فتح نافذة دليل المقاسات التفاعلية</option>
+                              <option value="whatsapp">💬 فتح محادثة الواتساب المباشرة للطلب</option>
+                              <option value="link">🔗 فتح رابط صفحة مخصصة</option>
+                            </select>
+                          </div>
+                          {settingsForm.heroSecondaryButtonAction === "link" && (
+                            <div>
+                              <label className="text-[10px] text-[#8c7865] block font-bold">الرابط المخصص:</label>
+                              <input
+                                type="text"
+                                value={settingsForm.heroSecondaryButtonLink || ""}
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, heroSecondaryButtonLink: e.target.value })
+                                }
+                                placeholder="/collection/rings أو رابط خارجي"
+                                className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#d8c8b4] text-xs font-mono dir-ltr text-left"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visual Style, Animation & Height Controls */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-white border border-[#ebdcca]">
+                    {/* Ken Burns */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">الحركة السينمائية للصورة:</label>
+                      <label className="flex items-center gap-2 p-2 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.heroKenBurns !== false}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, heroKenBurns: e.target.checked })}
+                          className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                        />
+                        <span className="text-xs text-[#1c1815]">حركة زوم سينمائي بطيء (Ken Burns)</span>
+                      </label>
+                    </div>
+
+                    {/* Overlay Darkness */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">درجة تعتيم خلفية الصورة:</label>
+                      <select
+                        value={settingsForm.heroOverlayDarkness || "medium"}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            heroOverlayDarkness: e.target.value as "light" | "medium" | "dark",
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold"
+                      >
+                        <option value="light">خفيف (إبراز تفاصيل الصورة أكثر)</option>
+                        <option value="medium">متوسط (متوازن ومريح للقراءة - موصى به)</option>
+                        <option value="dark">داكن (تركيز فائق على وضوح النصوص)</option>
+                      </select>
+                    </div>
+
+                    {/* Height */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">ارتفاع بنر الهيرو:</label>
+                      <select
+                        value={settingsForm.heroHeight || "normal"}
+                        onChange={(e) =>
+                          setSettingsForm({
+                            ...settingsForm,
+                            heroHeight: e.target.value as "compact" | "normal" | "large",
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold"
+                      >
+                        <option value="compact">مدمج (520px)</option>
+                        <option value="normal">قياسي (640px - الافتراضي الفاخر)</option>
+                        <option value="large">كبير وشامل (84vh - تجربة مجلات الموضة)</option>
+                      </select>
+                    </div>
                   </div>
 
                   {/* Hero Background Image Upload */}
@@ -2176,13 +2363,202 @@ export default function AdminPage() {
                 </div>
 
                 {/* ======================================================== */}
-                {/* 5. DUAL SPLIT 50/50 SHOWCASE (Women's & Men's) */}
+                {/* 5. HERO TRUST STRIP & VALUE PROPOSITION BAR */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span>5. شريط الضمانات والمميزات أسفل الهيرو (Trust Badges Strip)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        الشريط المباشر أسفل بنر الهيرو الذي يبني ثقة العميل (عيار 925، المعاينة، والاسترجاع)
+                      </p>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3.5 py-1.5 rounded-xl border border-[#d8c8b4] shadow-sm select-none">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.showTrustBar !== false}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, showTrustBar: e.target.checked })}
+                        className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                      />
+                      <span className="text-xs font-bold text-[#1c1815]">
+                        {settingsForm.showTrustBar !== false ? "الشريط مفعّل ومرئي 🟢" : "الشريط مخفي ⚪"}
+                      </span>
+                    </label>
+                  </div>
+
+                  {settingsForm.showTrustBar !== false && (
+                    <div className="space-y-4">
+                      {/* Background Color Selector */}
+                      <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <span className="text-xs font-bold text-[#1c1815]">لون وخلفية شريط الضمانات:</span>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSettingsForm({ ...settingsForm, trustBarBg: "default" })}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                              (settingsForm.trustBarBg || "default") === "default"
+                                ? "bg-[#f2ece1] border-amber-600 text-[#1c1815]"
+                                : "bg-white border-[#d8c8b4] text-[#8c7865]"
+                            }`}
+                          >
+                            ☕ بيج كلاسيك راقي
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSettingsForm({ ...settingsForm, trustBarBg: "dark" })}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                              settingsForm.trustBarBg === "dark"
+                                ? "bg-[#1c1815] border-amber-500 text-white"
+                                : "bg-white border-[#d8c8b4] text-[#8c7865]"
+                            }`}
+                          >
+                            🖤 أسود ملكي فخم
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSettingsForm({ ...settingsForm, trustBarBg: "white" })}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                              settingsForm.trustBarBg === "white"
+                                ? "bg-white border-amber-600 text-[#1c1815] shadow-sm"
+                                : "bg-[#faf8f5] border-[#d8c8b4] text-[#8c7865]"
+                            }`}
+                          >
+                            ⚪ أبيض ناصع
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Trust Items Inputs */}
+                      <div className="space-y-3">
+                        {/* Item 1 */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
+                          <label className="text-xs font-bold text-[#1c1815] block">
+                            الميزة الأولى (الشهادة والعيار):
+                          </label>
+                          <div className="flex gap-2">
+                            <select
+                              value={settingsForm.trustItem1Icon || "shield"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, trustItem1Icon: e.target.value })}
+                              className="px-2 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold shrink-0"
+                            >
+                              <option value="shield">🛡️ درع الضمان</option>
+                              <option value="check">✓ علامة التوثيق</option>
+                              <option value="eye">👁️ معاينة</option>
+                            </select>
+                            <input
+                              type="text"
+                              value={settingsForm.trustItem1 || "فضة إسترليني معتمدة عيار 925 ومختومة رسمياً"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, trustItem1: e.target.value })}
+                              className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Item 2 */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
+                          <label className="text-xs font-bold text-[#1c1815] block">
+                            الميزة الثانية (المعاينة عند الاستلام):
+                          </label>
+                          <div className="flex gap-2">
+                            <select
+                              value={settingsForm.trustItem2Icon || "eye"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2Icon: e.target.value })}
+                              className="px-2 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold shrink-0"
+                            >
+                              <option value="eye">👁️ معاينة</option>
+                              <option value="shield">🛡️ درع</option>
+                              <option value="check">✓ توثيق</option>
+                              <option value="truck">🚚 شحن</option>
+                            </select>
+                            <input
+                              type="text"
+                              value={settingsForm.trustItem2 || "معاينة ومطابقة عند الاستلام قبل الدفع"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2: e.target.value })}
+                              className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Item 3 */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
+                          <label className="text-xs font-bold text-[#1c1815] block">
+                            الميزة الثالثة (سياسة الاسترجاع والاستبدال):
+                          </label>
+                          <div className="flex gap-2">
+                            <select
+                              value={settingsForm.trustItem3Icon || "refresh"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, trustItem3Icon: e.target.value })}
+                              className="px-2 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold shrink-0"
+                            >
+                              <option value="refresh">🔄 استبدال واسترجاع</option>
+                              <option value="shield">🛡️ أمان</option>
+                              <option value="check">✓ تأكيد</option>
+                            </select>
+                            <input
+                              type="text"
+                              value={settingsForm.trustItem3 || "استبدال واسترجاع سلس خلال 14 يوماً"}
+                              onChange={(e) => setSettingsForm({ ...settingsForm, trustItem3: e.target.value })}
+                              className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Item 4 (Optional) */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-[#1c1815] block">
+                              الميزة الرابعة الإضافية (اختيارية):
+                            </label>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={!!settingsForm.trustItem4Show}
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, trustItem4Show: e.target.checked })
+                                }
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span>إظهار الميزة الرابعة</span>
+                            </label>
+                          </div>
+                          {settingsForm.trustItem4Show && (
+                            <div className="flex gap-2 pt-1">
+                              <select
+                                value={settingsForm.trustItem4Icon || "gift"}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, trustItem4Icon: e.target.value })}
+                                className="px-2 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold shrink-0"
+                              >
+                                <option value="gift">🎁 هدية فاخرة</option>
+                                <option value="truck">🚚 توصيل مجاني</option>
+                                <option value="shield">🛡️ ضمان</option>
+                              </select>
+                              <input
+                                type="text"
+                                value={settingsForm.trustItem4 || "تغليف هدايا ملكي وعلبة فاخرة مجاناً"}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, trustItem4: e.target.value })}
+                                placeholder="مثال: تغليف هدايا ملكي وعلبة فاخرة مجاناً"
+                                className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ======================================================== */}
+                {/* 6. DUAL SPLIT 50/50 SHOWCASE (Women's & Men's) */}
                 {/* ======================================================== */}
                 <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
                   <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
                     <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
                       <Layers className="w-4 h-4 text-rose-700" />
-                      <span>5. البنر المزدوج 50/50 (Women&apos;s & Men&apos;s Showcases)</span>
+                      <span>6. البنر المزدوج 50/50 (Women&apos;s & Men&apos;s Showcases)</span>
                     </h3>
                     <span className="text-[11px] text-[#8c7865]">بنرات التشكيلات الكبرى</span>
                   </div>
@@ -2287,13 +2663,13 @@ export default function AdminPage() {
                 </div>
 
                 {/* ======================================================== */}
-                {/* 6. SOCIAL MEDIA & CONTACT INFO SECTION */}
+                {/* 7. SOCIAL MEDIA & CONTACT INFO SECTION */}
                 {/* ======================================================== */}
                 <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
                   <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
                     <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
                       <Globe className="w-4 h-4 text-blue-600" />
-                      <span>6. روابط التواصل الاجتماعي والفوتر (Social & Contact)</span>
+                      <span>7. روابط التواصل الاجتماعي والفوتر (Social & Contact)</span>
                     </h3>
                     <span className="text-[11px] text-[#8c7865]">تظهر في أسفل كل الصفحات</span>
                   </div>

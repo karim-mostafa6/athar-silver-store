@@ -124,6 +124,69 @@ body {
   animation: heartPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* Luxury Ken Burns Slow Motion Zoom */
+@keyframes kenBurnsSlow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.animate-ken-burns {
+  animation: kenBurnsSlow 26s ease-in-out infinite alternate;
+}
+
+/* Luxury Metallic Button Sheen */
+@keyframes metallicShine {
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  100% { transform: translateX(250%) skewX(-25deg); }
+}
+
+.btn-metallic-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-metallic-shine::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 100%
+  );
+  transform: translateX(-150%) skewX(-25deg);
+  pointer-events: none;
+}
+
+.btn-metallic-shine:hover::before {
+  animation: metallicShine 0.9s ease-in-out;
+}
+
+/* Floating Particle Sparkle */
+@keyframes sparkleGlow {
+  0%, 100% { opacity: 0.3; transform: scale(0.9) translateY(0); }
+  50% { opacity: 0.95; transform: scale(1.15) translateY(-5px); }
+}
+
+.animate-sparkle-glow {
+  animation: sparkleGlow 3.5s ease-in-out infinite;
+}
+
+/* Smooth Floating Action */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: floatY 4s ease-in-out infinite;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

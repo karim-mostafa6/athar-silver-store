@@ -36,8 +36,32 @@ export interface StoreSettings {
   heroTitle: string;
   heroSubtitle: string;
   heroBadge: string;
+  heroTagline?: string;
   heroButtonText: string;
+  heroButtonLink?: string;
+  heroButtonShow?: boolean;
+  heroSecondaryButtonText?: string;
+  heroSecondaryButtonAction?: "sizeguide" | "link" | "whatsapp";
+  heroSecondaryButtonLink?: string;
+  heroSecondaryButtonShow?: boolean;
+  heroOverlayDarkness?: "light" | "medium" | "dark";
+  heroHeight?: "compact" | "normal" | "large";
+  heroContentAlign?: "center" | "right";
+  heroKenBurns?: boolean;
   heroImageUrl: string;
+
+  // Trust Strip / Value Proposition Bar
+  showTrustBar?: boolean;
+  trustBarBg?: "default" | "dark" | "white";
+  trustItem1?: string;
+  trustItem1Icon?: string;
+  trustItem2?: string;
+  trustItem2Icon?: string;
+  trustItem3?: string;
+  trustItem3Icon?: string;
+  trustItem4?: string;
+  trustItem4Icon?: string;
+  trustItem4Show?: boolean;
   splitWomenTitle: string;
   splitWomenSubtitle: string;
   splitWomenImage: string;
@@ -181,8 +205,32 @@ const DEFAULT_SETTINGS: StoreSettings = {
   heroTitle: "فضة إسترليني عيار 925 بصياغة خالدة",
   heroSubtitle: "قطع استثنائية صُممت لتعكس أصالة الذوق الرفيع وتترك أثراً لا يُمحى في كل مناسبة",
   heroBadge: "تشكيلة 2026 الحصرية • فضة إيطالية 925 معتمدة",
+  heroTagline: "بصمةٌ تُميّز حضورك • 925 STERLING SILVER",
   heroButtonText: "اكتشف التشكيلة الكاملة",
+  heroButtonLink: "#products",
+  heroButtonShow: true,
+  heroSecondaryButtonText: "دليل المقاسات",
+  heroSecondaryButtonAction: "sizeguide",
+  heroSecondaryButtonLink: "",
+  heroSecondaryButtonShow: true,
+  heroOverlayDarkness: "medium",
+  heroHeight: "normal",
+  heroContentAlign: "center",
+  heroKenBurns: true,
   heroImageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1920&q=85",
+
+  // Trust Strip Defaults
+  showTrustBar: true,
+  trustBarBg: "default",
+  trustItem1: "فضة إسترليني معتمدة عيار 925 ومختومة رسمياً",
+  trustItem1Icon: "shield",
+  trustItem2: "معاينة ومطابقة عند الاستلام قبل الدفع",
+  trustItem2Icon: "eye",
+  trustItem3: "استبدال واسترجاع سلس خلال 14 يوماً",
+  trustItem3Icon: "refresh",
+  trustItem4: "تغليف هدايا ملكي وعلبة فاخرة مجاناً",
+  trustItem4Icon: "gift",
+  trustItem4Show: false,
   splitWomenTitle: "التشكيلة النسائية",
   splitWomenSubtitle: "مجوهرات رقيقة تبرز أنوثتك وتترك أثراً استثنائياً",
   splitWomenImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1200&q=85",
