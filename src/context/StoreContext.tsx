@@ -126,6 +126,11 @@ export interface StoreSettings {
   paymobIntegrationId?: string;
   paymobIframeId?: string;
   paymobMode?: "test" | "live";
+
+  // Official Outgoing Email (Gmail SMTP)
+  senderEmail: string;
+  senderEmailName?: string;
+  gmailAppPassword?: string;
 }
 
 export interface OrderItem {
@@ -276,8 +281,11 @@ const DEFAULT_SETTINGS: StoreSettings = {
   splitMenTitle: "التشكيلة الرجالية",
   splitMenSubtitle: "صياغة ثقيلة وتصاميم عصرية تعكس الهيبة والأصالة",
   splitMenImage: "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=1200&q=85",
-  contactEmail: "support@atharsilver.com",
-  contactPhone: "+20 100 000 0000",
+  contactEmail: "theathar.eg@gmail.com",
+  senderEmail: "theathar.eg@gmail.com",
+  senderEmailName: "أَثَـر للفضة 925",
+  gmailAppPassword: "",
+  contactPhone: "+20 114 383 7730",
   contactAddress: "القاهرة، جمهورية مصر العربية (شحن لجميع المحافظات)",
   instagramUrl: "https://instagram.com",
   facebookUrl: "https://facebook.com",

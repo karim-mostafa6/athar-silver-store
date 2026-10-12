@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 interface EmailRequestBody {
   orderId: string;
@@ -14,14 +15,32 @@ interface EmailRequestBody {
     price: number;
     selectedSize?: string;
   }>;
-  status?: "new_order" | "confirmed_phone" | "shipped" | "completed" | "cancelled";
+  status?: "new_order" | "confirmed_phone" | "shipped" | "completed" | "cancelled" | "status_update";
   notes?: string;
+  senderEmail?: string;
+  senderName?: string;
+  gmailAppPassword?: string;
+  isTest?: boolean;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: EmailRequestBody = await request.json();
-    const { orderId, customerName, email, phone, governorate = "", address = "", total, items = [], status = "new_order" } = body;
+    const {
+      orderId,
+      customerName,
+      email,
+      phone,
+      governorate = "",
+      address = "",
+      total = 0,
+      items = [],
+      status = "new_order",
+      senderEmail: bodySenderEmail,
+      senderName: bodySenderName,
+      gmailAppPassword: bodyAppPassword,
+      isTest = false,
+    } = body;
 
     if (!email || !email.includes("@")) {
       return NextResponse.json(
@@ -29,6 +48,16 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const officialSenderEmail =
+      process.env.GMAIL_USER || bodySenderEmail || "theathar.eg@gmail.com";
+    const officialSenderName =
+      process.env.GMAIL_SENDER_NAME || bodySenderName || "أَثَـر للفضة 925";
+    const effectiveAppPassword = (
+      process.env.GMAIL_APP_PASSWORD ||
+      bodyAppPassword ||
+      ""
+    ).replace(/\s+/g, "");
 
     const itemsRows = items
       .map(
@@ -41,23 +70,30 @@ export async function POST(request: NextRequest) {
       )
       .join("");
 
-    const statusTitle =
-      status === "confirmed_phone"
-        ? "تم تأكيد طلبك هاتفياً بنجاح 📞"
-        : status === "shipped"
-        ? "تم شحن طلبك وفي الطريق إليك 🚚"
-        : status === "completed"
-        ? "تم تسليم الطلب بنجاح ✓"
-        : status === "cancelled"
-        ? "تم إلغاء الطلب ❌"
-        : "تم استلام طلبك بنجاح وجاري المراجعة 💎";
+    const statusTitle = isTest
+      ? "رسالة تجريبية لاختبار البريد الإلكتروني ✉️"
+      : status === "confirmed_phone"
+      ? "تم تأكيد طلبك هاتفياً بنجاح 📞"
+      : status === "shipped"
+      ? "تم شحن طلبك وفي الطريق إليك 🚚"
+      : status === "completed"
+      ? "تم تسليم الطلب بنجاح ✓"
+      : status === "cancelled"
+      ? "تم إلغاء الطلب ❌"
+      : "فاتورة تأكيد استلام طلبك من متجر أَثَر 💎";
 
-    const subject = `أَثَر للفضة 925 | ${statusTitle} - طلب #${orderId}`;
+    const subject = isTest
+      ? `أَثَر للفضة 925 | تجربة إرسال ناجحة من الحساب الرسمي (${officialSenderEmail})`
+      : `أَثَر للفضة 925 | ${statusTitle} - طلب #${orderId}`;
 
     const htmlContent = `
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
-    <head><meta charset="utf-8"/></head>
+    <head>
+      <meta charset="utf-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>${subject}</title>
+    </head>
     <body style="font-family: Arial, Tahoma, sans-serif; background-color: #faf8f5; margin: 0; padding: 20px; direction: rtl; text-align: right; color: #1c1815;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #ebdcca; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
         <!-- Header -->
@@ -73,14 +109,17 @@ export async function POST(request: NextRequest) {
           <td style="padding: 25px 20px;">
             <div style="background-color: #f7f3ec; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-right: 4px solid #b89868;">
               <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1c1815;">${statusTitle}</h2>
-              <p style="margin: 0; font-size: 13px; color: #5a4c3e;">أهلاً بك يا <strong>${customerName}</strong>، يسعدنا إشعارك بحالة وفاتورة طلبك رقم <strong>#${orderId}</strong>.</p>
+              <p style="margin: 0; font-size: 13px; color: #5a4c3e;">أهلاً بك يا <strong>${customerName}</strong>، يسعدنا إشعارك بتفاصيل وفاتورة طلبك رقم <strong>#${orderId}</strong>.</p>
             </div>
 
             <h3 style="font-size: 14px; color: #8c7865; margin: 0 0 10px 0; text-transform: uppercase;">تفاصيل العميل والشحن:</h3>
             <p style="margin: 3px 0; font-size: 13px;">📞 <strong>الهاتف:</strong> ${phone}</p>
-            <p style="margin: 3px 0; font-size: 13px;">📍 <strong>العنوان:</strong> ${governorate} - ${address}</p>
-            <p style="margin: 3px 0 20px 0; font-size: 13px;">📱 <strong>التأكيد والمتابعة:</strong> سيتواصل معك فريق خدمة العملاء هاتفياً قبل موعد الشحن.</p>
+            ${governorate ? `<p style="margin: 3px 0; font-size: 13px;">📍 <strong>المحافظة والعنوان:</strong> ${governorate} - ${address}</p>` : ""}
+            <p style="margin: 3px 0 20px 0; font-size: 13px;">📱 <strong>التأكيد والمتابعة:</strong> سيتواصل معك فريق خدمة العملاء هاتفياً قبل موعد خروج الشحنة.</p>
 
+            ${
+              items.length > 0
+                ? `
             <h3 style="font-size: 14px; color: #8c7865; margin: 0 0 10px 0;">القطع المطلوبة:</h3>
             <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; margin-bottom: 20px; font-size: 13px;">
               <thead>
@@ -94,15 +133,25 @@ export async function POST(request: NextRequest) {
                 ${itemsRows}
               </tbody>
             </table>
+            `
+                : ""
+            }
 
+            ${
+              total > 0
+                ? `
             <div style="background-color: #1c1815; color: #ffffff; padding: 15px; border-radius: 12px; text-align: left; font-size: 16px; margin-bottom: 25px;">
               <span style="float: right; color: #ded1be; font-size: 14px; margin-top: 2px;">الإجمالي للدفع:</span>
               <strong>${total.toLocaleString("ar-EG")} ج.م</strong>
             </div>
+            `
+                : ""
+            }
 
             <div style="text-align: center; font-size: 12px; color: #8c7865; border-top: 1px solid #eee; padding-top: 15px;">
+              <p style="margin: 3px 0;">البريد الرسمي للمتجر: <strong>${officialSenderEmail}</strong></p>
               <p style="margin: 3px 0;">لأي استفسار، تواصل مع خدمة العملاء هاتفياً على الرقم: <strong>01143837730</strong></p>
-              <p style="margin: 3px 0;">شكراً لثقتك في براند أَثَر للفضة 925 💎</p>
+              <p style="margin: 3px 0; font-weight: bold;">شكراً لثقتك في براند أَثَر للفضة 925 💎</p>
             </div>
           </td>
         </tr>
@@ -111,12 +160,58 @@ export async function POST(request: NextRequest) {
     </html>
     `;
 
-    // Production email dispatch logging
-    console.log(`[Email Order Dispatch] Sent "${subject}" (${htmlContent.length} chars) to ${email} for Order #${orderId}`);
+    let deliveryStatus = "simulated";
+    let messageId: string | undefined = undefined;
+
+    // Send real email via Gmail SMTP if App Password is provided
+    if (effectiveAppPassword) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          port: 465,
+          secure: true,
+          auth: {
+            user: officialSenderEmail,
+            pass: effectiveAppPassword,
+          },
+        });
+
+        const info = await transporter.sendMail({
+          from: `"${officialSenderName}" <${officialSenderEmail}>`,
+          to: email,
+          replyTo: officialSenderEmail,
+          subject,
+          html: htmlContent,
+        });
+
+        deliveryStatus = "sent_via_gmail_smtp";
+        messageId = info.messageId;
+        console.log(`[Gmail SMTP Success] MessageId: ${info.messageId} sent to ${email} via ${officialSenderEmail}`);
+      } catch (smtpErr: unknown) {
+        console.error("[Gmail SMTP Error]:", smtpErr);
+        const errMessage = smtpErr instanceof Error ? smtpErr.message : "فشل الاتصال بخادم Gmail";
+        return NextResponse.json(
+          {
+            success: false,
+            error: `فشل الإرسال عبر Gmail (${officialSenderEmail}): ${errMessage}. تأكد من صحة كلمة مرور التطبيقات (App Password).`,
+            senderEmail: officialSenderEmail,
+          },
+          { status: 500 }
+        );
+      }
+    } else {
+      console.log(`[Email Order Dispatch] Prepared "${subject}" to ${email} from ${officialSenderEmail} (Awaiting Gmail App Password)`);
+    }
 
     return NextResponse.json({
       success: true,
-      message: "تم تجهيز وإرسال تفاصيل وفاتورة الطلب إلى بريدك الإلكتروني بنجاح",
+      message:
+        deliveryStatus === "sent_via_gmail_smtp"
+          ? `تم إرسال الفاتورة بنجاح من الحساب الرسمي (${officialSenderEmail}) إلى بريد العميل!`
+          : `تم تجهيز الفاتورة بنجاح للإرسال من (${officialSenderEmail}). يرجى إدخال كلمة مرور التطبيقات (App Password) في لوحة التحكم للاتصال الفوري بـ Gmail.`,
+      deliveryStatus,
+      messageId,
+      sender: officialSenderEmail,
       recipient: email,
       orderId,
       subject,

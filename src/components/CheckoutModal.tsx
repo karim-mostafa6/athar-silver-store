@@ -250,6 +250,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             selectedSize: i.selectedSize,
           })),
           status: "new_order",
+          senderEmail: storeSettings.senderEmail || "theathar.eg@gmail.com",
+          senderName: storeSettings.senderEmailName || "أَثَـر للفضة 925",
+          gmailAppPassword: storeSettings.gmailAppPassword,
         }),
       }).catch((err) => console.warn("Email send notification:", err));
     }

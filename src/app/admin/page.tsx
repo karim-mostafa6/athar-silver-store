@@ -592,6 +592,7 @@ export default function AdminPage() {
   };
 
   // Resend Invoice Email Helper
+  // Resend Invoice Email Helper
   const handleResendInvoiceEmail = async (order: Order) => {
     if (!order.email) {
       alert("الطلب لا يحتوي على بريد إلكتروني مسجل للعميل");
@@ -617,6 +618,9 @@ export default function AdminPage() {
           paymentMethod: order.paymentMethod,
           status: order.status,
           type: "status_update",
+          senderEmail: storeSettings.senderEmail || "theathar.eg@gmail.com",
+          senderName: storeSettings.senderEmailName || "أَثَـر للفضة 925",
+          gmailAppPassword: storeSettings.gmailAppPassword,
         }),
       });
       const data = await res.json();
@@ -629,6 +633,61 @@ export default function AdminPage() {
       alert("حدث خطأ في شبكة الاتصال أثناء محاولة إرسال البريد");
     } finally {
       setIsSendingInvoiceEmail(false);
+    }
+  };
+
+  // Test Email Sender State & Handler
+  const [testEmailAddress, setTestEmailAddress] = useState<string>("theathar.eg@gmail.com");
+  const [testEmailStatus, setTestEmailStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [testEmailFeedback, setTestEmailFeedback] = useState<string>("");
+  const [showAppPassword, setShowAppPassword] = useState<boolean>(false);
+
+  const handleSendTestEmail = async () => {
+    if (!testEmailAddress.trim() || !testEmailAddress.includes("@")) {
+      alert("يرجى إدخال عنوان بريد إلكتروني صحيح لتجربة الإرسال إليه");
+      return;
+    }
+    setTestEmailStatus("loading");
+    setTestEmailFeedback("");
+    try {
+      const res = await fetch("/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: "ATH-TEST-01",
+          customerName: "تجربة براند أَثَر",
+          email: testEmailAddress.trim(),
+          phone: "01143837730",
+          governorate: "القاهرة",
+          address: "المقر الإداري لبراند أَثَر للفضة 925",
+          total: 1250,
+          items: [
+            {
+              arabicName: "خاتم ملكي عيار 925 مرصع بزركون نقي",
+              quantity: 1,
+              price: 1250,
+              selectedSize: "مقاس 18",
+            },
+          ],
+          status: "confirmed_phone",
+          senderEmail: settingsForm.senderEmail || "theathar.eg@gmail.com",
+          senderName: settingsForm.senderEmailName || "أَثَـر للفضة 925",
+          gmailAppPassword: settingsForm.gmailAppPassword,
+          isTest: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestEmailStatus("success");
+        setTestEmailFeedback(data.message || "تم إرسال البريد التجريبي بنجاح!");
+        addToast("إرسال ناجح ✉️", `تم إرسال بريد تجريبي إلى ${testEmailAddress}`, "info");
+      } else {
+        setTestEmailStatus("error");
+        setTestEmailFeedback(data.error || "فشل إرسال البريد التجريبي");
+      }
+    } catch {
+      setTestEmailStatus("error");
+      setTestEmailFeedback("حدث خطأ في الاتصال بالخادم أثناء إرسال البريد التجريبي");
     }
   };
 
@@ -3716,6 +3775,172 @@ export default function AdminPage() {
                           className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Official Gmail SMTP Settings & Invoice Dispatcher */}
+                  <div className="p-5 rounded-2xl bg-white border border-[#ebdcca] space-y-5 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#f4ece0] pb-3 gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center font-bold text-sm">
+                          ✉️
+                        </div>
+                        <div>
+                          <span className="text-xs sm:text-sm font-bold text-[#1c1815] block">
+                            إعدادات البريد الإلكتروني الرسمي للمتجر (Gmail SMTP Dispatcher):
+                          </span>
+                          <span className="text-[11px] text-[#8c7865]">
+                            إرسال فواتير الشراء وتحديثات الطلبات رسمياً من إيميل المتجر: theathar.eg@gmail.com
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+                        {settingsForm.gmailAppPassword ? "الربط مفعّل 🟢" : "جاهز للإعداد ⚪"}
+                      </span>
+                    </div>
+
+                    {/* How It Works Guide */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-[#faf8f5] to-amber-50/50 border border-amber-300/80 text-amber-950 text-xs space-y-2">
+                      <div className="flex items-center gap-2 font-bold text-amber-900">
+                        <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>💡 خطوات ربط إيميلك الرسمي (theathar.eg@gmail.com) في 30 ثانية فقط:</span>
+                      </div>
+                      <div className="text-[11px] text-amber-950/90 leading-relaxed pr-6 space-y-1">
+                        <p>1. افتح صفحة أمان حساب Google للإيميل: <a href="https://myaccount.google.com/security" target="_blank" rel="noreferrer" className="font-bold underline text-amber-900">myaccount.google.com/security</a></p>
+                        <p>2. تأكد من تفعيل خاصية <strong>التحقق بخطوتين (2-Step Verification)</strong>.</p>
+                        <p>3. ابحث في الصفحة عن <strong>كلمات مرور التطبيقات (App Passwords)</strong> وأنشئ كلمة مرور جديدة باسم <strong>Athar Store</strong>.</p>
+                        <p>4. انسخ الكود المكون من 16 حرفاً وضعه في خانة <strong>كلمة مرور التطبيقات</strong> بالأسفل، واضغط <strong>حفظ الإعدادات</strong>.</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          البريد الإلكتروني الرسمي للمتجر (Sender Email):
+                        </label>
+                        <input
+                          type="email"
+                          value={settingsForm.senderEmail || "theathar.eg@gmail.com"}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, senderEmail: e.target.value })
+                          }
+                          placeholder="theathar.eg@gmail.com"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono font-bold text-[#1c1815] dir-ltr text-right"
+                        />
+                        <span className="text-[10px] text-[#8c7865] block">
+                          * البريد المعتمد الذي ستصل منه الفواتير الرسمية للعملاء.
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          اسم المرسل الظاهر للعميل (Display Name):
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.senderEmailName || "أَثَـر للفضة 925"}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, senderEmailName: e.target.value })
+                          }
+                          placeholder="أَثَـر للفضة 925"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
+                        />
+                        <span className="text-[10px] text-[#8c7865] block">
+                          * الاسم الذي سيراه العميل في صندوق البريد الوارد.
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">
+                        كلمة مرور التطبيقات من Google (Gmail App Password):
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showAppPassword ? "text" : "password"}
+                          value={settingsForm.gmailAppPassword || ""}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, gmailAppPassword: e.target.value })
+                          }
+                          placeholder="16 حرفاً من حساب جوجل (مثال: abcd efgh ijkl mnop)"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono font-bold text-[#1c1815] dir-ltr text-right pl-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowAppPassword(!showAppPassword)}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#8c7865] hover:text-[#1c1815]"
+                        >
+                          {showAppPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-[#8c7865] block">
+                        * تُستخدم فقط للإرسال الآمن عبر خوادم Google SMTP وتُحفظ مشفرة في متجرك.
+                      </span>
+                    </div>
+
+                    {/* LIVE INTERACTIVE TEST EMAIL DISPATCHER */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-[#faf8f5] to-[#f4ece0] border border-[#ded1be] space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#1c1815] flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-amber-700" />
+                          <span>اختبار إرسال بريد إلكتروني حي الآن (Live Email Tester):</span>
+                        </span>
+                        <span className="text-[10px] text-[#8c7865] font-mono">
+                          المرسل: {settingsForm.senderEmail || "theathar.eg@gmail.com"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="email"
+                          value={testEmailAddress}
+                          onChange={(e) => setTestEmailAddress(e.target.value)}
+                          placeholder="اكتب البريد الذي تود استلام التجربة عليه (مثال: theathar.eg@gmail.com)"
+                          className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#d8c8b4] bg-white text-xs font-mono font-bold text-[#1c1815] dir-ltr text-right"
+                        />
+                        <button
+                          type="button"
+                          disabled={testEmailStatus === "loading"}
+                          onClick={handleSendTestEmail}
+                          className="px-5 py-2.5 rounded-xl bg-[#1c1815] hover:bg-[#a68a56] disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm shrink-0 active:scale-95"
+                        >
+                          {testEmailStatus === "loading" ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                              <span>جاري إرسال التجربة...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="w-3.5 h-3.5 text-amber-400" />
+                              <span>إرسال بريد تجريبي الآن 🚀</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {testEmailFeedback && (
+                        <div
+                          className={`p-3 rounded-xl text-xs space-y-1.5 animate-in fade-in duration-150 ${
+                            testEmailStatus === "success"
+                              ? "bg-emerald-50 border border-emerald-300 text-emerald-900"
+                              : "bg-rose-50 border border-rose-300 text-rose-900"
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 font-bold">
+                            {testEmailStatus === "success" ? (
+                              <>
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                <span>{testEmailFeedback}</span>
+                              </>
+                            ) : (
+                              <>
+                                <AlertCircle className="w-4 h-4 text-rose-600" />
+                                <span>{testEmailFeedback}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
