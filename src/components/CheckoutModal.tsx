@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { CartItem, GOVERNORATES } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
 import {
   X,
   CheckCircle2,
-  MessageCircle,
   CreditCard,
   Banknote,
   ShieldCheck,
@@ -16,8 +15,10 @@ import {
   AlertCircle,
   Lock,
   Trash2,
-  ExternalLink,
   Loader2,
+  Mail,
+  PhoneCall,
+  RefreshCw,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -38,11 +39,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   appliedPromo,
   onOrderSuccess,
 }) => {
-  const { addOrder, storeSettings } = useStore();
+  const { addOrder, storeSettings, clearCart } = useStore();
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
-    whatsapp: "",
+    email: "",
     governorate: "القاهرة",
     address: "",
     notes: "",
@@ -70,9 +71,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderId, setOrderId] = useState("");
-  const [isLinkCopied, setIsLinkCopied] = useState(false);
-  const [autoWhatsappStatus, setAutoWhatsappStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
-  const [autoWhatsappSenderNumber, setAutoWhatsappSenderNumber] = useState("01143837730");
+  const [isOrderIdCopied, setIsOrderIdCopied] = useState(false);
+  const [countdown, setCountdown] = useState(8);
+
+  useEffect(() => {
+    if (!orderConfirmed) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          window.location.reload();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [orderConfirmed]);
 
   if (!isOpen) return null;
 
@@ -182,7 +197,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     const newOrderId = addOrder({
       customerName: formData.fullName,
       phone: formData.phone,
-      whatsapp: formData.whatsapp,
+      email: formData.email.trim() || undefined,
       governorate: formData.governorate,
       address: formData.address,
       notes: formData.notes,
@@ -214,57 +229,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           : undefined,
     });
     setOrderId(newOrderId);
-    setAutoWhatsappStatus("sending");
 
-    // Automatically dispatch WhatsApp confirmation message from 01143837730 in background
-    fetch("/api/whatsapp/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: newOrderId,
-        customerName: formData.fullName,
-        phone: formData.phone,
-        whatsapp: formData.whatsapp || formData.phone,
-        governorate: formData.governorate,
-        address: formData.address,
-        total: grandTotal,
-        paymentMethod: formData.paymentMethod,
-        senderWalletNumber: formData.paymentMethod === "wallet" ? senderWalletNumber : undefined,
-        notes: formData.notes,
-        isGift: formData.isGift,
-        giftMessage: formData.giftMessage,
-        items: cartItems.map((i) => ({
-          arabicName: i.product.arabicName,
-          quantity: i.quantity,
-          price: i.product.price,
-          selectedSize: i.selectedSize,
-        })),
-        provider: storeSettings.whatsappBotProvider,
-        instanceId:
-          storeSettings.whatsappBotProvider === "ultramsg"
-            ? storeSettings.whatsappUltraMsgInstanceId
-            : storeSettings.whatsappBotProvider === "greenapi"
-            ? storeSettings.whatsappGreenApiInstanceId
-            : storeSettings.whatsappCloudPhoneId,
-        token:
-          storeSettings.whatsappBotProvider === "ultramsg"
-            ? storeSettings.whatsappUltraMsgToken
-            : storeSettings.whatsappBotProvider === "greenapi"
-            ? storeSettings.whatsappGreenApiApiToken
-            : storeSettings.whatsappCloudToken,
-      }),
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        setAutoWhatsappStatus("sent");
-        if (data.senderNumber) {
-          setAutoWhatsappSenderNumber(data.senderNumber);
-        }
-      })
-      .catch((err) => {
-        console.warn("Background automated WhatsApp dispatch notification:", err);
-        setAutoWhatsappStatus("sent");
-      });
+    // If customer entered email, send order confirmation & invoice
+    if (formData.email.trim() && formData.email.includes("@")) {
+      fetch("/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: newOrderId,
+          customerName: formData.fullName,
+          email: formData.email.trim(),
+          phone: formData.phone,
+          governorate: formData.governorate,
+          address: formData.address,
+          total: grandTotal,
+          items: cartItems.map((i) => ({
+            arabicName: i.product.arabicName,
+            quantity: i.quantity,
+            price: i.product.price,
+            selectedSize: i.selectedSize,
+          })),
+          status: "new_order",
+        }),
+      }).catch((err) => console.warn("Email send notification:", err));
+    }
+
+    // Clear cart immediately
+    clearCart();
 
     setTimeout(() => {
       setIsSubmitting(false);
@@ -278,79 +269,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       });
 
       onOrderSuccess();
-    }, 900);
+    }, 700);
   };
 
-  const getConfirmationMessage = () => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-    const confirmUrl = `${origin}/confirm-order?id=${orderId}&action=confirm`;
-    const cancelUrl = `${origin}/confirm-order?id=${orderId}&action=cancel`;
-    const portalUrl = `${origin}/confirm-order?id=${orderId}`;
-
-    const itemsSummary = cartItems
-      .map(
-        (i) =>
-          `• ${i.product.arabicName} ${i.selectedSize ? `(مقاس ${i.selectedSize})` : ""} × ${i.quantity} = ${
-            i.product.price * i.quantity
-          } ج.م`
-      )
-      .join("\n");
-
-    const paymentName =
-      formData.paymentMethod === "cod"
-        ? "الدفع عند الاستلام (معاينة قبل الدفع)"
-        : formData.paymentMethod === "wallet"
-        ? `تحويل إنستاباي / فودافون كاش (رقم المحول: ${senderWalletNumber || "غير مدون"})`
-        : `بطاقة بنكية عبر Paymob`;
-
-    return `✨ *طلب شراء جديد من براند أَثَر للفضة 925* ✨
-رقم الطلب: *#${orderId}*
-
-👤 العميل: ${formData.fullName}
-📞 الهاتف: ${formData.phone}
-📍 العنوان: ${formData.governorate} - ${formData.address}
-💳 طريقة الدفع: ${paymentName}
-${receiptImage ? `📸 تم إرفاق صورة إيصال التحويل مع الطلب` : ""}
-
-🛍️ *المنتجات المطلوبة:*
-${itemsSummary}
-
-💰 *الإجمالي النهائي للدفع: ${grandTotal} ج.م*
-${formData.isGift ? `🎁 تغليف كهدية فاخرة: "${formData.giftMessage}"` : ""}
-${formData.notes ? `📝 ملاحظات: ${formData.notes}` : ""}
-
------------------------------------------
-📲 *لتأكيد الطلب أو إلغائه بنقرة واحدة:*
-
-✅ *لتأكيد استلام الطلب وبدء الشحن:*
-${confirmUrl}
-
-❌ *لإلغاء الطلب إذا غيرت رأيك:*
-${cancelUrl}
-
-🔗 *رابط بوابة متابعة وتأكيد طلبك:*
-${portalUrl}
-
-📞 *ملاحظة هامة:* سيتواصل معك فريق خدمة العملاء هاتفياً قبل خروج الشحنة لتأكيد موعد التسليم المناسب لك.`;
+  const handleCopyOrderId = () => {
+    navigator.clipboard.writeText(orderId);
+    setIsOrderIdCopied(true);
+    setTimeout(() => setIsOrderIdCopied(false), 2500);
   };
 
-  const handleSendToCustomerWhatsApp = () => {
-    const message = getConfirmationMessage();
-    const cleanPhone = formData.phone.replace(/^0+/, "");
-    window.open(`https://wa.me/20${cleanPhone}?text=${encodeURIComponent(message)}`, "_blank");
-  };
-
-  const handleSendToStoreWhatsApp = () => {
-    const message = getConfirmationMessage();
-    window.open(`https://wa.me/${storeSettings.whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank");
-  };
-
-  const handleCopyConfirmationLink = () => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-    const portalUrl = `${origin}/confirm-order?id=${orderId}`;
-    navigator.clipboard.writeText(portalUrl);
-    setIsLinkCopied(true);
-    setTimeout(() => setIsLinkCopied(false), 2500);
+  const handleFinishAndRefresh = () => {
+    window.location.reload();
   };
 
   return (
@@ -367,25 +296,83 @@ ${portalUrl}
 
         {orderConfirmed ? (
           /* Confirmation Success Screen */
-          <div className="text-center py-6 space-y-6">
+          <div className="text-center py-6 space-y-5">
             <div className="w-20 h-20 rounded-full bg-emerald-100 border-2 border-emerald-500/40 text-emerald-700 flex items-center justify-center mx-auto shadow-md">
               <CheckCircle2 className="w-10 h-10" />
             </div>
 
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-emerald-700 tracking-wider">تم تأكيد الطلب بنجاح</span>
+            <div className="space-y-1.5">
+              <span className="text-xs font-bold text-emerald-700 tracking-wider">تم تسجيل واستلام طلبك بنجاح ✓</span>
               <h3 className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria">
-                شكراً لاختيارك براند أَثَر!
+                شكراً لاختيارك براند أَثَر! 💎
               </h3>
               <p className="text-xs sm:text-sm text-[#5a4c3e] max-w-md mx-auto">
-                رقم طلبك هو <strong className="text-[#1c1815] font-mono bg-white px-2.5 py-1 rounded-lg border border-[#ded1be] shadow-sm">{orderId}</strong>. سيتواصل معك فريق خدمة العملاء لتأكيد تفاصيل وموعد الشحن.
+                تم حفظ وتجهيز طلبك على السيستم وسيتواصل معك فريق خدمة العملاء هاتفياً.
               </p>
             </div>
 
-            {/* Quick Order Bill Summary Card */}
+            {/* Prominent Official Order Number Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border-2 border-emerald-400 shadow-lg max-w-md mx-auto space-y-2 text-center">
+              <span className="text-[11px] font-bold text-[#8c7865] block">
+                رقم طلبك الرسمي (يرجى حفظه لمتابعة شحنتك):
+              </span>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-[#1c1815] tracking-wider dir-ltr">
+                  #{orderId}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyOrderId}
+                  className="px-3 py-1.5 rounded-xl bg-[#faf8f5] hover:bg-[#ede3d3] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
+                  title="نسخ رقم الطلب"
+                >
+                  {isOrderIdCopied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700">تم النسخ ✓</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-[#8c7865]" />
+                      <span>نسخ الرقم</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Phone Confirmation Reassurance */}
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-[#faf8f5] border border-amber-300 text-xs text-[#5a4c3e] flex items-center gap-3 max-w-md mx-auto text-right shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center shrink-0">
+                <PhoneCall className="w-4 h-4" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-bold text-[#1c1815] block">تأكيد الطلب هاتفياً 📞</span>
+                <p className="text-[11px] leading-relaxed text-[#756453]">
+                  سيتواصل معك ممثل خدمة العملاء هاتفياً على الرقم (<strong>{formData.phone}</strong>) لتأكيد تفاصيل القطع والعنوان وموعد الاستلام المناسب لك قبل خروج الشحنة.
+                </p>
+              </div>
+            </div>
+
+            {/* Email Notification Status */}
+            {formData.email && (
+              <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex items-center gap-3 max-w-md mx-auto text-right shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center shrink-0">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="font-bold block">تم إرسال الفاتورة لبريدك الإلكتروني 📧</span>
+                  <p className="text-[11px] text-blue-800 leading-relaxed">
+                    تم إرسال ملخص الطلب وفاتورة الشراء إلى: <strong>{formData.email}</strong>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Order Bill Summary */}
             <div className="p-4 rounded-2xl bg-white border border-[#e5dacb] text-right max-w-md mx-auto space-y-2 text-xs shadow-sm">
               <div className="flex justify-between border-b border-[#eee4d6] pb-2">
-                <span className="text-[#756453]">الاسم:</span>
+                <span className="text-[#756453]">العميل:</span>
                 <span className="font-bold text-[#1c1815]">{formData.fullName}</span>
               </div>
               <div className="flex justify-between border-b border-[#eee4d6] pb-2">
@@ -394,9 +381,9 @@ ${portalUrl}
               </div>
               <div className="flex justify-between border-b border-[#eee4d6] pb-2">
                 <span className="text-[#756453]">الإجمالي للدفع:</span>
-                <span className="font-black text-emerald-800 font-alexandria text-sm">{grandTotal} ج.م</span>
+                <span className="font-black text-emerald-800 font-alexandria text-sm">{grandTotal.toLocaleString("ar-EG")} ج.م</span>
               </div>
-              <div className="flex justify-between border-b border-[#eee4d6] pb-2">
+              <div className="flex justify-between">
                 <span className="text-[#756453]">طريقة الدفع:</span>
                 <span className="text-[#1c1815] font-bold">
                   {formData.paymentMethod === "cod"
@@ -406,123 +393,27 @@ ${portalUrl}
                     : "بطاقة بنكية (Paymob)"}
                 </span>
               </div>
-              {formData.paymentMethod === "wallet" && (
-                <>
-                  {senderWalletNumber && (
-                    <div className="flex justify-between border-b border-[#eee4d6] pb-2">
-                      <span className="text-[#756453]">رقم المحول منه:</span>
-                      <span className="font-mono font-bold text-[#1c1815] dir-ltr">{senderWalletNumber}</span>
-                    </div>
-                  )}
-                  {receiptImage && (
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-[#756453]">إيصال التحويل:</span>
-                      <span className="text-emerald-700 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>تم إرفاق الإيصال بنجاح</span>
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
-              {formData.paymentMethod === "card" && (
-                <div className="flex justify-between pt-1">
-                  <span className="text-[#756453]">حالة البطاقة:</span>
-                  <span className="text-emerald-700 font-bold flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>مؤمنة عبر شبكة Paymob</span>
-                  </span>
-                </div>
-              )}
             </div>
 
-            {/* WhatsApp Automated Confirmation Box */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-[#faf8f5] to-emerald-500/5 border border-emerald-300 text-right max-w-md mx-auto space-y-3 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                  <MessageCircle className="w-4 h-4 text-emerald-600" />
-                  <span>إرسال تلقائي عبر واتساب (Auto-Pilot) 📲</span>
-                </div>
-                <span className="text-[10px] font-mono font-bold bg-white px-2 py-0.5 rounded-full border border-emerald-200 text-emerald-700">
-                  من: {autoWhatsappSenderNumber}
-                </span>
+            {/* Auto-Refresh Countdown & Buttons */}
+            <div className="p-3.5 rounded-2xl bg-[#faf8f5] border border-[#d8c8b4] text-xs flex flex-col sm:flex-row items-center justify-between gap-2 max-w-md mx-auto">
+              <div className="flex items-center gap-2 text-[#756453]">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                <span>سيتم تحديث الصفحة والعودة للمتجر تلقائياً خلال:</span>
               </div>
-
-              {autoWhatsappStatus === "sending" ? (
-                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-emerald-200 text-emerald-900 text-xs">
-                  <Loader2 className="w-4 h-4 animate-spin text-emerald-600 shrink-0" />
-                  <span>جاري إرسال رسالة التأكيد التلقائية فورياً من الرقم <strong>{autoWhatsappSenderNumber}</strong> إلى هاتفك...</span>
-                </div>
-              ) : (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-emerald-800">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>تم إرسال رسالة التأكيد تلقائياً إلى واتسابك بنجاح ✓</span>
-                  </div>
-                  <p className="text-[11px] text-emerald-900/80 leading-relaxed pr-5">
-                    وصلتك رسالة رسمية من براند أَثَر (الرقم: <strong>{autoWhatsappSenderNumber}</strong>) تحتوي على ملخص طلبك ورابط التأكيد الفوري بنقرة واحدة!
-                  </p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <a
-                  href={`/confirm-order?id=${orderId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
-                  <span>معاينة بوابة العميل 👁️</span>
-                </a>
-
-                <button
-                  type="button"
-                  onClick={handleCopyConfirmationLink}
-                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  {isLinkCopied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-emerald-700">تم النسخ ✓</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-[#8c7865]" />
-                      <span>نسخ رابط العميل</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Optional manual fallback */}
-              <button
-                type="button"
-                onClick={handleSendToCustomerWhatsApp}
-                className="w-full py-2 px-3 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#5c4a3b] flex items-center justify-center gap-1.5 transition-all"
-              >
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                <span>إعادة فتح الرسالة يدوياً على تطبيق واتساب (اختياري)</span>
-              </button>
+              <span className="font-mono font-black text-amber-900 bg-white px-2.5 py-1 rounded-lg border border-[#ebdcca] shadow-sm">
+                00:0{countdown}
+              </span>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-2.5 justify-center max-w-md mx-auto pt-1">
               <button
                 type="button"
-                onClick={handleSendToStoreWhatsApp}
-                className="py-2.5 px-4 rounded-xl bg-[#faf8f5] hover:bg-[#f2ece1] border border-[#d8c8b4] text-xs font-bold text-[#6e5d4e] transition-colors flex items-center justify-center gap-1.5"
+                onClick={handleFinishAndRefresh}
+                className="w-full py-3 px-5 rounded-xl bg-[#1c1815] hover:bg-[#342c25] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
               >
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                <span>إرسال نسخة لواتساب المتجر</span>
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="py-2.5 px-5 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-[#ded1be] font-bold text-xs transition-colors"
-              >
-                العودة للمتجر
+                <RefreshCw className="w-4 h-4 text-amber-400" />
+                <span>تحديث الصفحة والعودة للمتجر الآن</span>
               </button>
             </div>
           </div>
@@ -591,13 +482,13 @@ ${portalUrl}
 
                 <div>
                   <label className="block text-xs font-bold text-[#1c1815] mb-1">
-                    رقم واتساب للتواصل (اختياري)
+                    البريد الإلكتروني (اختياري) 📧
                   </label>
                   <input
-                    type="tel"
-                    placeholder="إذا كان مختلفاً عن رقم الهاتف"
-                    value={formData.whatsapp}
-                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                    type="email"
+                    placeholder="لاستلام فاتورة وتحديثات الشحن فورياً"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full bg-white border border-[#ded1be] rounded-xl px-3.5 py-2.5 text-xs text-[#1c1815] placeholder-[#8f806f] focus:outline-none focus:border-[#7d6953] shadow-inner"
                   />
                 </div>
@@ -1017,7 +908,10 @@ ${portalUrl}
                 className="w-full py-4 px-6 rounded-xl bg-[#1c1815] text-[#faf8f5] font-black text-sm shadow-xl shadow-[#1c1815]/15 hover:bg-[#2e2620] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
-                  <span>جاري تأكيد الطلب...</span>
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                    <span>جاري تأكيد الطلب...</span>
+                  </span>
                 ) : (
                   <>
                     <CheckCircle2 className="w-5 h-5 text-[#d8c8b4]" />

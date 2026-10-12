@@ -126,20 +126,6 @@ export interface StoreSettings {
   paymobIntegrationId?: string;
   paymobIframeId?: string;
   paymobMode?: "test" | "live";
-
-  // WhatsApp Order Confirmation & Bot Automation
-  whatsappSenderNumber?: string;
-  whatsappAutoConfirm?: boolean;
-  whatsappAutoSendOnOrder?: boolean;
-  whatsappBotProvider?: "ultramsg" | "greenapi" | "cloud_api" | "direct_link" | "simulation";
-  whatsappUltraMsgInstanceId?: string;
-  whatsappUltraMsgToken?: string;
-  whatsappGreenApiInstanceId?: string;
-  whatsappGreenApiApiToken?: string;
-  whatsappCloudToken?: string;
-  whatsappCloudPhoneId?: string;
-  whatsappCloudTemplateName?: string;
-  whatsappCustomMessage?: string;
 }
 
 export interface OrderItem {
@@ -156,6 +142,7 @@ export interface Order {
   id: string;
   customerName: string;
   phone: string;
+  email?: string;
   whatsapp?: string;
   governorate: string;
   address: string;
@@ -177,10 +164,13 @@ export interface Order {
     transactionId?: string;
   };
   createdAt: string;
-  status: "pending" | "confirmed_whatsapp" | "processing" | "shipped" | "completed" | "cancelled";
+  status: "pending" | "confirmed_phone" | "confirmed_whatsapp" | "processing" | "shipped" | "completed" | "cancelled";
   cancellationReason?: string;
   cancelledAt?: string;
   adminNotes?: string;
+  phoneConfirmed?: boolean;
+  phoneConfirmedAt?: string;
+  phoneConfirmationNotes?: string;
   whatsappConfirmed?: boolean;
   whatsappConfirmedAt?: string;
   whatsappCancellation?: boolean;
@@ -202,6 +192,7 @@ interface StoreContextType {
   orders: Order[];
   addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">) => string;
   updateOrderStatus: (orderId: string, status: Order["status"], cancellationReason?: string) => void;
+  confirmOrderViaPhone: (orderId: string, phoneNotes?: string) => void;
   confirmOrderViaWhatsApp: (orderId: string) => void;
   cancelOrderViaWhatsApp: (orderId: string, reason: string) => void;
   cancelOrder: (orderId: string, reason: string, adminNotes?: string) => void;
@@ -346,19 +337,6 @@ const DEFAULT_SETTINGS: StoreSettings = {
   paymobIframeId: "",
   paymobMode: "test",
 
-  // WhatsApp Order Confirmation & Bot Defaults
-  whatsappSenderNumber: "01143837730",
-  whatsappAutoConfirm: true,
-  whatsappAutoSendOnOrder: true,
-  whatsappBotProvider: "ultramsg",
-  whatsappUltraMsgInstanceId: "",
-  whatsappUltraMsgToken: "",
-  whatsappGreenApiInstanceId: "",
-  whatsappGreenApiApiToken: "",
-  whatsappCloudToken: "",
-  whatsappCloudPhoneId: "",
-  whatsappCloudTemplateName: "order_confirmation_v1",
-  whatsappCustomMessage: "",
 };
 
 const SAMPLE_ORDERS: Order[] = [
@@ -707,6 +685,27 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     addToast("ملاحظات الطلب", `تم حفظ الملاحظة للطلب #${orderId}`, "info");
   };
 
+  const confirmOrderViaPhone = (orderId: string, phoneNotes?: string) => {
+    const nowIso = new Date().toISOString();
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "confirmed_phone",
+              phoneConfirmed: true,
+              phoneConfirmedAt: nowIso,
+              phoneConfirmationNotes: phoneNotes,
+              adminNotes: o.adminNotes
+                ? `${o.adminNotes} | [تأكيد هاتفياً]: ${phoneNotes || "تم التواصل مع العميل هاتفياً وتأكيد رغبة الاستلام وميعاد الشحن"}`
+                : `[تأكيد هاتفياً]: ${phoneNotes || "تم التواصل مع العميل هاتفياً وتأكيد رغبة الاستلام وميعاد الشحن"}`,
+            }
+          : o
+      )
+    );
+    addToast("تأكيد هاتفي 📞", `تم تأكيد الطلب #${orderId} هاتفياً بنجاح`, "info");
+  };
+
   const confirmOrderViaWhatsApp = (orderId: string) => {
     const nowIso = new Date().toISOString();
     setOrders((prev) =>
@@ -853,6 +852,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         orders,
         addOrder,
         updateOrderStatus,
+        confirmOrderViaPhone,
         confirmOrderViaWhatsApp,
         cancelOrderViaWhatsApp,
         cancelOrder,
