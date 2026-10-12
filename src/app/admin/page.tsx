@@ -24,6 +24,8 @@ import {
   MessageCircle,
   Layers,
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   X,
   AlertCircle,
   Upload,
@@ -84,6 +86,13 @@ export default function AdminPage() {
   // Header Nav Links Editor State
   const [newNavLabel, setNewNavLabel] = useState<string>("");
   const [newNavHref, setNewNavHref] = useState<string>("");
+  const [newNavBadge, setNewNavBadge] = useState<string>("");
+  const [newNavBadgeColor, setNewNavBadgeColor] = useState<"amber" | "rose" | "purple" | "emerald" | "blue">("amber");
+  const [newNavTargetBlank, setNewNavTargetBlank] = useState<boolean>(false);
+
+  // Marquee Extra Announcements State
+  const [newExtraText, setNewExtraText] = useState<string>("");
+  const [newExtraIcon, setNewExtraIcon] = useState<string>("✨");
 
   // Form State for Product Add/Edit (Shopify-Grade Fields)
   const initialProductForm: Omit<Product, "id"> = {
@@ -247,7 +256,7 @@ export default function AdminPage() {
     }
   };
 
-  // Nav Links Controls
+  // Nav Links Deep Controls
   const toggleNavLinkVisibility = (id: string) => {
     setSettingsForm((prev) => ({
       ...prev,
@@ -264,6 +273,64 @@ export default function AdminPage() {
         link.id === id ? { ...link, label } : link
       ),
     }));
+  };
+
+  const updateNavLinkHref = (id: string, href: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: (prev.navLinks || []).map((link) =>
+        link.id === id ? { ...link, href } : link
+      ),
+    }));
+  };
+
+  const updateNavLinkBadge = (id: string, badge: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: (prev.navLinks || []).map((link) =>
+        link.id === id ? { ...link, badge } : link
+      ),
+    }));
+  };
+
+  const updateNavLinkBadgeColor = (id: string, badgeColor: "amber" | "rose" | "purple" | "emerald" | "blue") => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: (prev.navLinks || []).map((link) =>
+        link.id === id ? { ...link, badgeColor } : link
+      ),
+    }));
+  };
+
+  const toggleNavLinkTargetBlank = (id: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: (prev.navLinks || []).map((link) =>
+        link.id === id ? { ...link, targetBlank: !link.targetBlank } : link
+      ),
+    }));
+  };
+
+  const moveNavLinkUp = (index: number) => {
+    if (index <= 0) return;
+    setSettingsForm((prev) => {
+      const items = [...(prev.navLinks || [])];
+      const temp = items[index];
+      items[index] = items[index - 1];
+      items[index - 1] = temp;
+      return { ...prev, navLinks: items };
+    });
+  };
+
+  const moveNavLinkDown = (index: number) => {
+    setSettingsForm((prev) => {
+      const items = [...(prev.navLinks || [])];
+      if (index >= items.length - 1) return prev;
+      const temp = items[index];
+      items[index] = items[index + 1];
+      items[index + 1] = temp;
+      return { ...prev, navLinks: items };
+    });
   };
 
   const deleteNavLink = (id: string) => {
@@ -283,6 +350,9 @@ export default function AdminPage() {
       label: newNavLabel.trim(),
       href: newNavHref.trim(),
       visible: true,
+      badge: newNavBadge.trim() || undefined,
+      badgeColor: newNavBadge.trim() ? newNavBadgeColor : undefined,
+      targetBlank: newNavTargetBlank,
     };
     setSettingsForm((prev) => ({
       ...prev,
@@ -290,6 +360,8 @@ export default function AdminPage() {
     }));
     setNewNavLabel("");
     setNewNavHref("");
+    setNewNavBadge("");
+    setNewNavTargetBlank(false);
     addToast("تمت الإضافة", "تمت إضافة الرابط الجديد للقائمة بنجاح، اضغط حفظ لتطبيقه", "info");
   };
 
@@ -298,18 +370,54 @@ export default function AdminPage() {
       ...prev,
       navLinks: [
         { id: "all", label: "كافة القطع", href: "/collection/all", visible: true },
-        { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true },
+        { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true, badge: "جديد ✦", badgeColor: "rose" },
         { id: "men", label: "تشكيلة رجالية", href: "/collection/men", visible: true },
-        { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true },
+        { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true, badge: "الأكثر طلباً", badgeColor: "amber" },
         { id: "chains", label: "سلاسل إيطالي", href: "/collection/chains", visible: true },
         { id: "bracelets", label: "أساور وتنس", href: "/collection/bracelets", visible: true },
-        { id: "sets", label: "أطقم ملكية", href: "/collection/sets", visible: true },
+        { id: "sets", label: "أطقم ملكية", href: "/collection/sets", visible: true, badge: "VIP", badgeColor: "purple" },
         { id: "sizeguide", label: "دليل المقاسات", href: "#sizeguide", visible: true },
         { id: "story", label: "عن أَثَر", href: "/#story", visible: true },
         { id: "care", label: "العناية بالفضة", href: "/#care", visible: true },
       ],
     }));
     addToast("استعادة الروابط", "تمت استعادة المجموعات الافتراضية بنجاح", "info");
+  };
+
+  // Marquee Extra Announcements Handlers
+  const handleAddExtraMarquee = () => {
+    if (!newExtraText.trim()) {
+      alert("يرجى كتابة نص الإعلان");
+      return;
+    }
+    const newMsg = {
+      id: `msg-${Date.now()}`,
+      text: newExtraText.trim(),
+      icon: newExtraIcon.trim() || "✨",
+      visible: true,
+    };
+    setSettingsForm((prev) => ({
+      ...prev,
+      marqueeExtraMessages: [...(prev.marqueeExtraMessages || []), newMsg],
+    }));
+    setNewExtraText("");
+    addToast("إضافة إعلان", "تمت إضافة الرسالة الإعلانية بنجاح، اضغط حفظ لتطبيقها", "info");
+  };
+
+  const toggleExtraMarquee = (id: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      marqueeExtraMessages: (prev.marqueeExtraMessages || []).map((m) =>
+        m.id === id ? { ...m, visible: !m.visible } : m
+      ),
+    }));
+  };
+
+  const deleteExtraMarquee = (id: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      marqueeExtraMessages: (prev.marqueeExtraMessages || []).filter((m) => m.id !== id),
+    }));
   };
 
   // Add Manual Image URL
@@ -1190,7 +1298,7 @@ export default function AdminPage() {
                 {/* ======================================================== */}
                 {/* 2. TOP ANNOUNCEMENT MARQUEE TICKER SECTION */}
                 {/* ======================================================== */}
-                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
                     <div>
                       <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
@@ -1198,12 +1306,12 @@ export default function AdminPage() {
                         <span>2. الشريط الإعلاني المتحرك العلوي (Top Marquee Ticker)</span>
                       </h3>
                       <p className="text-[11px] text-[#8c7865] mt-0.5">
-                        الشريط المتحرك أعلى الموقع الذي يعرض عداد الوقت والخصومات ومميزات الشحن
+                        تحكم كامل في نصوص العروض، العداد التنازلي، سرعة الحركة، وألوان وخلفية الشريط
                       </p>
                     </div>
 
                     {/* Master Marquee Toggle */}
-                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-[#d8c8b4] shadow-sm select-none">
+                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3.5 py-1.5 rounded-xl border border-[#d8c8b4] shadow-sm select-none">
                       <input
                         type="checkbox"
                         checked={settingsForm.showMarquee !== false}
@@ -1217,118 +1325,475 @@ export default function AdminPage() {
                   </div>
 
                   {settingsForm.showMarquee !== false && (
-                    <div className="space-y-4">
-                      {/* Marquee Options Checkboxes */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* Countdown Item */}
-                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] space-y-2">
-                          <label className="flex items-center justify-between cursor-pointer select-none">
-                            <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
-                              <span>⏰ عداد العرض التنازلي التفاعلي</span>
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={settingsForm.marqueeShowCountdown !== false}
+                    <div className="space-y-6">
+                      {/* Ticker Appearance & Speed Bar */}
+                      <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
+                        <span className="text-xs font-bold text-[#1c1815] block">
+                          🎨 مظهر وتنسيق وسرعة الشريط المتحرك:
+                        </span>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {/* Theme Selector */}
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-[#8c7865] block">لون وخلفية الشريط:</label>
+                            <select
+                              value={settingsForm.marqueeTheme || "default"}
                               onChange={(e) =>
-                                setSettingsForm({ ...settingsForm, marqueeShowCountdown: e.target.checked })
+                                setSettingsForm({
+                                  ...settingsForm,
+                                  marqueeTheme: e.target.value as StoreSettings["marqueeTheme"],
+                                })
                               }
-                              className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
-                            />
-                          </label>
-                          {settingsForm.marqueeShowCountdown !== false && (
-                            <div className="flex items-center gap-2 pt-1 border-t border-[#f4ece0]">
-                              <span className="text-[11px] text-[#8c7865]">مدة العداد:</span>
+                              className="w-full px-3 py-2 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
+                            >
+                              <option value="default">☕ بيج كلاسيك فاخر (ألوان البراند)</option>
+                              <option value="dark">🖤 أسود ملكي فخم (Dark Luxury)</option>
+                              <option value="gold">👑 ذهبي ملكي متألق (Royal Gold)</option>
+                              <option value="burgundy">🍷 عنابي راقي (Royal Burgundy)</option>
+                            </select>
+                          </div>
+
+                          {/* Speed Selector */}
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-[#8c7865] block">سرعة حركة الشريط:</label>
+                            <select
+                              value={settingsForm.marqueeSpeed || "normal"}
+                              onChange={(e) =>
+                                setSettingsForm({
+                                  ...settingsForm,
+                                  marqueeSpeed: e.target.value as StoreSettings["marqueeSpeed"],
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
+                            >
+                              <option value="slow">🐢 بطيء (قراءة مريحة وهادئة - 38 ثانية)</option>
+                              <option value="normal">⚡ متوسط متوازن (26 ثانية)</option>
+                              <option value="fast">🚀 سريع وديناميكي (16 ثانية)</option>
+                            </select>
+                          </div>
+
+                          {/* Pause on Hover */}
+                          <div className="space-y-1.5 flex flex-col justify-end">
+                            <label className="flex items-center gap-2 p-2 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] cursor-pointer select-none">
                               <input
-                                type="number"
-                                min={1}
-                                max={72}
-                                value={settingsForm.marqueeCountdownHours || 6}
+                                type="checkbox"
+                                checked={settingsForm.marqueePauseOnHover !== false}
                                 onChange={(e) =>
-                                  setSettingsForm({
-                                    ...settingsForm,
-                                    marqueeCountdownHours: Number(e.target.value) || 6,
-                                  })
+                                  setSettingsForm({ ...settingsForm, marqueePauseOnHover: e.target.checked })
                                 }
-                                className="w-16 px-2 py-1 rounded bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-center"
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
                               />
-                              <span className="text-[11px] text-[#8c7865]">ساعات (يعاد تلقائياً)</span>
+                              <span className="text-xs text-[#1c1815] font-medium">
+                                إيقاف الحركة عند وقوف الماوس (Pause on Hover)
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Detailed Individual Announcement Items (Full Text Control) */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-[#1c1815] block">
+                            تخصيص نصوص الرسائل الإعلانية الأساسية:
+                          </label>
+                          <span className="text-[11px] text-[#8c7865]">
+                            يمكنك تعديل أي نص بالكامل أو إخفاؤه
+                          </span>
+                        </div>
+
+                        {/* 1. Countdown Item */}
+                        <div
+                          className={`p-4 rounded-xl border transition-all space-y-3 ${
+                            settingsForm.marqueeShowCountdown !== false
+                              ? "bg-white border-[#ebdcca]"
+                              : "bg-[#f5efe6] border-[#e0d4c4] opacity-70"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none font-bold text-xs text-[#1c1815]">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.marqueeShowCountdown !== false}
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeShowCountdown: e.target.checked })
+                                }
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                              />
+                              <span>⏰ 1. عداد العرض التنازلي التفاعلي (ينتهي العرض الخاص خلال...)</span>
+                            </label>
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                settingsForm.marqueeShowCountdown !== false
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-gray-200 text-gray-700"
+                              }`}
+                            >
+                              {settingsForm.marqueeShowCountdown !== false ? "مفعّل" : "معطّل"}
+                            </span>
+                          </div>
+
+                          {settingsForm.marqueeShowCountdown !== false && (
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-[#f4ece0]">
+                              <div className="sm:col-span-8 space-y-1">
+                                <label className="text-[11px] text-[#8c7865] block">النص المكتوب قبل العداد:</label>
+                                <input
+                                  type="text"
+                                  value={settingsForm.marqueeCountdownLabel || "ينتهي العرض الخاص خلال"}
+                                  onChange={(e) =>
+                                    setSettingsForm({ ...settingsForm, marqueeCountdownLabel: e.target.value })
+                                  }
+                                  placeholder="ينتهي العرض الخاص خلال"
+                                  className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                                />
+                              </div>
+                              <div className="sm:col-span-4 space-y-1">
+                                <label className="text-[11px] text-[#8c7865] block">مدة العداد بالساعات:</label>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={96}
+                                    value={settingsForm.marqueeCountdownHours || 6}
+                                    onChange={(e) =>
+                                      setSettingsForm({
+                                        ...settingsForm,
+                                        marqueeCountdownHours: Number(e.target.value) || 6,
+                                      })
+                                    }
+                                    className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-center text-[#1c1815] focus:bg-white"
+                                  />
+                                  <span className="text-[11px] text-[#8c7865] shrink-0">ساعات</span>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
 
-                        {/* Free Shipping Item */}
-                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
-                            <span>🚚 رسالة الشحن المجاني التلقائي</span>
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={settingsForm.marqueeShowFreeShipping !== false}
-                            onChange={(e) =>
-                              setSettingsForm({ ...settingsForm, marqueeShowFreeShipping: e.target.checked })
-                            }
-                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
-                          />
+                        {/* 2. Free Shipping Item */}
+                        <div
+                          className={`p-4 rounded-xl border transition-all space-y-3 ${
+                            settingsForm.marqueeShowFreeShipping !== false
+                              ? "bg-white border-[#ebdcca]"
+                              : "bg-[#f5efe6] border-[#e0d4c4] opacity-70"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none font-bold text-xs text-[#1c1815]">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.marqueeShowFreeShipping !== false}
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeShowFreeShipping: e.target.checked })
+                                }
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                              />
+                              <span>🚚 2. رسالة الشحن المجاني التلقائي</span>
+                            </label>
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                settingsForm.marqueeShowFreeShipping !== false
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-gray-200 text-gray-700"
+                              }`}
+                            >
+                              {settingsForm.marqueeShowFreeShipping !== false ? "مفعّل" : "معطّل"}
+                            </span>
+                          </div>
+
+                          {settingsForm.marqueeShowFreeShipping !== false && (
+                            <div className="space-y-1 pt-2 border-t border-[#f4ece0]">
+                              <label className="text-[11px] text-[#8c7865] block">نص رسالة الشحن المكتوب بالكامل:</label>
+                              <input
+                                type="text"
+                                value={
+                                  settingsForm.marqueeFreeShippingText !== undefined
+                                    ? settingsForm.marqueeFreeShippingText
+                                    : "شحن مجاني على كافة الطلبات بقيمة 2,500 ج.م أو أكثر لجميع المحافظات"
+                                }
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeFreeShippingText: e.target.value })
+                                }
+                                placeholder="شحن مجاني على كافة الطلبات بقيمة 2,500 ج.م أو أكثر لجميع المحافظات"
+                                className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                              />
+                            </div>
+                          )}
                         </div>
 
-                        {/* Promo Coupon Item */}
-                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
-                            <span>🎟️ رسالة كود الخصم مع زر النسخ السريع</span>
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={settingsForm.marqueeShowPromo !== false}
-                            onChange={(e) =>
-                              setSettingsForm({ ...settingsForm, marqueeShowPromo: e.target.checked })
-                            }
-                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
-                          />
+                        {/* 3. Promo Coupon Item */}
+                        <div
+                          className={`p-4 rounded-xl border transition-all space-y-3 ${
+                            settingsForm.marqueeShowPromo !== false
+                              ? "bg-white border-[#ebdcca]"
+                              : "bg-[#f5efe6] border-[#e0d4c4] opacity-70"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none font-bold text-xs text-[#1c1815]">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.marqueeShowPromo !== false}
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeShowPromo: e.target.checked })
+                                }
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                              />
+                              <span>🎟️ 3. رسالة كوبون الخصم مع زر النسخ السريع للزائر</span>
+                            </label>
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                settingsForm.marqueeShowPromo !== false
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-gray-200 text-gray-700"
+                              }`}
+                            >
+                              {settingsForm.marqueeShowPromo !== false ? "مفعّل" : "معطّل"}
+                            </span>
+                          </div>
+
+                          {settingsForm.marqueeShowPromo !== false && (
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-[#f4ece0]">
+                              <div className="sm:col-span-8 space-y-1">
+                                <label className="text-[11px] text-[#8c7865] block">نص الترحيب بالخصم المكتوب:</label>
+                                <input
+                                  type="text"
+                                  value={
+                                    settingsForm.marqueePromoPrefix !== undefined
+                                      ? settingsForm.marqueePromoPrefix
+                                      : "كوبون ترحيبي 10% خصم إضافي:"
+                                  }
+                                  onChange={(e) =>
+                                    setSettingsForm({ ...settingsForm, marqueePromoPrefix: e.target.value })
+                                  }
+                                  placeholder="كوبون ترحيبي 10% خصم إضافي:"
+                                  className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                                />
+                              </div>
+                              <div className="sm:col-span-4 space-y-1">
+                                <label className="text-[11px] text-[#8c7865] block">كود الخصم المعروض للنسخ:</label>
+                                <input
+                                  type="text"
+                                  value={settingsForm.promoCode || "ATHAR10"}
+                                  onChange={(e) =>
+                                    setSettingsForm({ ...settingsForm, promoCode: e.target.value.toUpperCase() })
+                                  }
+                                  className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono font-bold uppercase text-[#1c1815] focus:bg-white"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Lifetime Warranty Item */}
-                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
-                            <span>🛡️ رسالة ضمان الفضة 925 مدى الحياة</span>
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={settingsForm.marqueeShowWarranty !== false}
-                            onChange={(e) =>
-                              setSettingsForm({ ...settingsForm, marqueeShowWarranty: e.target.checked })
-                            }
-                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
-                          />
+                        {/* 4. Lifetime Warranty Item */}
+                        <div
+                          className={`p-4 rounded-xl border transition-all space-y-3 ${
+                            settingsForm.marqueeShowWarranty !== false
+                              ? "bg-white border-[#ebdcca]"
+                              : "bg-[#f5efe6] border-[#e0d4c4] opacity-70"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none font-bold text-xs text-[#1c1815]">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.marqueeShowWarranty !== false}
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeShowWarranty: e.target.checked })
+                                }
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                              />
+                              <span>🛡️ 4. رسالة ضمان الفضة المعتمدة 925 مدى الحياة</span>
+                            </label>
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                settingsForm.marqueeShowWarranty !== false
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-gray-200 text-gray-700"
+                              }`}
+                            >
+                              {settingsForm.marqueeShowWarranty !== false ? "مفعّل" : "معطّل"}
+                            </span>
+                          </div>
+
+                          {settingsForm.marqueeShowWarranty !== false && (
+                            <div className="space-y-1 pt-2 border-t border-[#f4ece0]">
+                              <label className="text-[11px] text-[#8c7865] block">نص رسالة الضمان بالكامل:</label>
+                              <input
+                                type="text"
+                                value={
+                                  settingsForm.marqueeWarrantyText !== undefined
+                                    ? settingsForm.marqueeWarrantyText
+                                    : "فضة إسترليني إيطالية وتركية عيار 925 مختومة بضمان رسمي مدى الحياة"
+                                }
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeWarrantyText: e.target.value })
+                                }
+                                placeholder="فضة إسترليني إيطالية وتركية عيار 925 مختومة بضمان رسمي مدى الحياة"
+                                className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                              />
+                            </div>
+                          )}
                         </div>
 
-                        {/* Gift Wrap Item */}
-                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between sm:col-span-2">
-                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
-                            <span>🎁 رسالة التغليف الفاخر المجاني وكارت الإهداء</span>
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={settingsForm.marqueeShowGiftWrap !== false}
-                            onChange={(e) =>
-                              setSettingsForm({ ...settingsForm, marqueeShowGiftWrap: e.target.checked })
-                            }
-                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
-                          />
+                        {/* 5. Gift Wrap Item */}
+                        <div
+                          className={`p-4 rounded-xl border transition-all space-y-3 ${
+                            settingsForm.marqueeShowGiftWrap !== false
+                              ? "bg-white border-[#ebdcca]"
+                              : "bg-[#f5efe6] border-[#e0d4c4] opacity-70"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none font-bold text-xs text-[#1c1815]">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.marqueeShowGiftWrap !== false}
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeShowGiftWrap: e.target.checked })
+                                }
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                              />
+                              <span>🎁 5. رسالة التغليف الفاخر المجاني وكارت الإهداء</span>
+                            </label>
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                settingsForm.marqueeShowGiftWrap !== false
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-gray-200 text-gray-700"
+                              }`}
+                            >
+                              {settingsForm.marqueeShowGiftWrap !== false ? "مفعّل" : "معطّل"}
+                            </span>
+                          </div>
+
+                          {settingsForm.marqueeShowGiftWrap !== false && (
+                            <div className="space-y-1 pt-2 border-t border-[#f4ece0]">
+                              <label className="text-[11px] text-[#8c7865] block">نص رسالة التغليف بالكامل:</label>
+                              <input
+                                type="text"
+                                value={
+                                  settingsForm.marqueeGiftWrapText !== undefined
+                                    ? settingsForm.marqueeGiftWrapText
+                                    : "تغليف إهداء مخملي فاخر مجاناً مع كارت معايدة مخصص لكل طلب"
+                                }
+                                onChange={(e) =>
+                                  setSettingsForm({ ...settingsForm, marqueeGiftWrapText: e.target.value })
+                                }
+                                placeholder="تغليف إهداء مخملي فاخر مجاناً مع كارت معايدة مخصص لكل طلب"
+                                className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Custom Marquee Announcement Text */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[#1c1815] block">
-                          رسالة إعلانية مخصصة إضافية تظهر في الشريط:
-                        </label>
-                        <input
-                          type="text"
-                          value={settingsForm.marqueeCustomText || ""}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, marqueeCustomText: e.target.value })}
-                          placeholder="مثال: خصم خاص 15% بمناسبة عيد الفطر المبارك على جميع أطقم الفضة..."
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
-                        />
+                      {/* Unlimited Extra Custom Announcements */}
+                      <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-bold text-[#1c1815] block">
+                              + إضافة رسائل إعلانية وعروض مخصصة إضافية للشريط:
+                            </span>
+                            <span className="text-[11px] text-[#8c7865]">
+                              أضف أي عدد من الإعلانات مع اختيار أيقونة مميزة لكل رسالة
+                            </span>
+                          </div>
+                          <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                            {settingsForm.marqueeExtraMessages?.length || 0} رسالة إضافية
+                          </span>
+                        </div>
+
+                        {/* List of Extra Messages */}
+                        {settingsForm.marqueeExtraMessages && settingsForm.marqueeExtraMessages.length > 0 && (
+                          <div className="space-y-2">
+                            {settingsForm.marqueeExtraMessages.map((msg, idx) => (
+                              <div
+                                key={msg.id || idx}
+                                className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
+                                  msg.visible
+                                    ? "bg-[#faf8f5] border-[#ebdcca]"
+                                    : "bg-gray-100 border-gray-200 opacity-60"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 flex-1">
+                                  <span className="text-base shrink-0">{msg.icon || "✨"}</span>
+                                  <input
+                                    type="text"
+                                    value={msg.text}
+                                    onChange={(e) => {
+                                      const updated = [...(settingsForm.marqueeExtraMessages || [])];
+                                      updated[idx].text = e.target.value;
+                                      setSettingsForm({ ...settingsForm, marqueeExtraMessages: updated });
+                                    }}
+                                    className="flex-1 px-2.5 py-1 rounded-lg bg-white border border-[#d8c8b4] text-xs font-bold"
+                                  />
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleExtraMarquee(msg.id)}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                                      msg.visible
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : "bg-gray-200 text-gray-700"
+                                    }`}
+                                  >
+                                    {msg.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteExtraMarquee(msg.id)}
+                                    className="p-1 text-rose-600 hover:bg-rose-50 rounded"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Form to Add New Extra Announcement */}
+                        <div className="p-3 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                            <div className="sm:col-span-3">
+                              <select
+                                value={newExtraIcon}
+                                onChange={(e) => setNewExtraIcon(e.target.value)}
+                                className="w-full px-2 py-2 rounded-lg bg-white border border-[#d8c8b4] text-xs font-bold"
+                              >
+                                <option value="✨">✨ بريق فاخر</option>
+                                <option value="🏷️">🏷️ تخفيض خاص</option>
+                                <option value="⚡">⚡ عرض خاطف</option>
+                                <option value="💎">💎 فضة 925</option>
+                                <option value="🎁">🎁 هدية مجانية</option>
+                                <option value="🚚">🚚 توصيل فوري</option>
+                                <option value="🔥">🔥 الأكثر طلباً</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-6">
+                              <input
+                                type="text"
+                                value={newExtraText}
+                                onChange={(e) => setNewExtraText(e.target.value)}
+                                placeholder="اكتب نص الإعلان الإضافي الجديد..."
+                                className="w-full px-3 py-2 rounded-lg bg-white border border-[#d8c8b4] text-xs"
+                              />
+                            </div>
+                            <div className="sm:col-span-3">
+                              <button
+                                type="button"
+                                onClick={handleAddExtraMarquee}
+                                className="w-full py-2 rounded-lg bg-[#1c1815] hover:bg-[#342c24] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm"
+                              >
+                                <Plus className="w-3.5 h-3.5 text-amber-300" />
+                                <span>إضافة للشريط</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1337,7 +1802,7 @@ export default function AdminPage() {
                 {/* ======================================================== */}
                 {/* 3. NAVIGATION & COLLECTIONS MENU CUSTOMIZER */}
                 {/* ======================================================== */}
-                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
                     <div>
                       <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
@@ -1345,14 +1810,14 @@ export default function AdminPage() {
                         <span>3. قوائم المجموعات وشريط البحث (Navigation & Collections)</span>
                       </h3>
                       <p className="text-[11px] text-[#8c7865] mt-0.5">
-                        تعديل أسماء الأقسام، إخفاء/إظهار أي مجموعة، وإضافة روابط وأقسام جديدة كلياً
+                        تحكم كامل في تعديل الاسم، المسار، الشارة المميزة، الترتيب (⬆️ / ⬇️)، وإضافة أقسام جديدة
                       </p>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleResetNavLinks}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#ede3d3] border border-[#d8c8b4] text-xs text-[#705e4d] font-bold transition-colors self-start sm:self-auto"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-[#ede3d3] border border-[#d8c8b4] text-xs text-[#705e4d] font-bold transition-colors self-start sm:self-auto shadow-sm"
                       title="استعادة الترتيب والروابط الأصلية للمتجر"
                     >
                       <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
@@ -1361,7 +1826,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Search Bar Placeholder Setting */}
-                  <div className="space-y-1.5">
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
                     <label className="text-xs font-bold text-[#1c1815] block">
                       نص البحث التوضيحي في شريط البحث (Search Placeholder):
                     </label>
@@ -1371,52 +1836,135 @@ export default function AdminPage() {
                         value={settingsForm.searchPlaceholder || ""}
                         onChange={(e) => setSettingsForm({ ...settingsForm, searchPlaceholder: e.target.value })}
                         placeholder="ابحث عن خاتم، سلسلة، عيار 925..."
-                        className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                        className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600 focus:bg-white"
                       />
                       <Search className="w-4 h-4 text-[#8c7865] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
                   </div>
 
-                  {/* Collections Links Table */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                  {/* Collections Links Table (Deep Controls) */}
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                       <label className="text-xs font-bold text-[#1c1815] block">
                         روابط المجموعات والأقسام في الهيدر ({settingsForm.navLinks?.length || 0}):
                       </label>
                       <span className="text-[11px] text-[#8c7865]">
-                        اضغط على أيقونة العين لإخفاء أو إظهار الرابط في المتجر
+                        استخدم الأسهم (⬆️ / ⬇️) لإعادة ترتيب الرابط، وعدّل الاسم والمسار والشارة مباشرة
                       </span>
                     </div>
 
-                    <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
                       {(settingsForm.navLinks || []).map((link, idx) => (
                         <div
                           key={link.id || idx}
-                          className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
+                          className={`p-3.5 rounded-xl border flex flex-col lg:flex-row lg:items-center justify-between gap-3 transition-colors ${
                             link.visible
-                              ? "bg-white border-[#ebdcca]"
-                              : "bg-[#f2ece2] border-[#ded2c2] opacity-70"
+                              ? "bg-white border-[#ebdcca] shadow-sm"
+                              : "bg-[#f2ece2] border-[#ded2c2] opacity-60"
                           }`}
                         >
-                          <div className="flex items-center gap-3 flex-1">
-                            <span className="w-6 h-6 rounded-full bg-[#f4ece0] text-[#705e4d] text-xs font-mono font-bold flex items-center justify-center shrink-0">
+                          {/* Reorder and Index */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex flex-col gap-0.5">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveNavLinkUp(idx)}
+                                className="p-1 rounded bg-[#faf8f5] hover:bg-[#ede3d3] border border-[#d8c8b4] text-[#1c1815] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                title="تحريك لأعلى"
+                              >
+                                <ArrowUp className="w-3 h-3" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === (settingsForm.navLinks?.length || 1) - 1}
+                                onClick={() => moveNavLinkDown(idx)}
+                                className="p-1 rounded bg-[#faf8f5] hover:bg-[#ede3d3] border border-[#d8c8b4] text-[#1c1815] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                title="تحريك لأسفل"
+                              >
+                                <ArrowDown className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <span className="w-7 h-7 rounded-lg bg-[#f4ece0] text-[#705e4d] text-xs font-mono font-bold flex items-center justify-center shrink-0 border border-[#ebdcca]">
                               {idx + 1}
                             </span>
-                            <div className="flex-1 space-y-1">
+                          </div>
+
+                          {/* Inputs: Label, Href, Badge */}
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 flex-1">
+                            {/* Label */}
+                            <div className="sm:col-span-4 space-y-0.5">
+                              <span className="text-[10px] text-[#8c7865] block font-bold">اسم الرابط:</span>
                               <input
                                 type="text"
                                 value={link.label}
                                 onChange={(e) => updateNavLinkLabel(link.id, e.target.value)}
-                                className="w-full px-2.5 py-1 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white focus:outline-none focus:border-amber-600"
+                                className="w-full px-2.5 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white focus:outline-none focus:border-amber-600"
                                 placeholder="اسم الرابط"
                               />
                             </div>
-                            <span className="font-mono text-[11px] text-[#8c7865] bg-[#faf8f5] px-2 py-1 rounded border border-[#ebdcca] shrink-0 dir-ltr hidden md:inline">
-                              {link.href}
-                            </span>
+
+                            {/* Href (Editable URL!) */}
+                            <div className="sm:col-span-4 space-y-0.5">
+                              <span className="text-[10px] text-[#8c7865] block font-bold">المسار (الرابط):</span>
+                              <input
+                                type="text"
+                                value={link.href}
+                                onChange={(e) => updateNavLinkHref(link.id, e.target.value)}
+                                className="w-full px-2.5 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono dir-ltr text-left text-[#1c1815] focus:bg-white focus:outline-none focus:border-amber-600"
+                                placeholder="/collection/..."
+                              />
+                            </div>
+
+                            {/* Badge Tag */}
+                            <div className="sm:col-span-4 space-y-0.5">
+                              <span className="text-[10px] text-[#8c7865] block font-bold">شارة إضافية (Badge):</span>
+                              <div className="flex gap-1.5">
+                                <input
+                                  type="text"
+                                  value={link.badge || ""}
+                                  onChange={(e) => updateNavLinkBadge(link.id, e.target.value)}
+                                  placeholder="مثل: جديد ✦ أو خصم"
+                                  className="w-full px-2 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] focus:bg-white"
+                                />
+                                <select
+                                  value={link.badgeColor || "amber"}
+                                  onChange={(e) =>
+                                    updateNavLinkBadgeColor(
+                                      link.id,
+                                      e.target.value as "amber" | "rose" | "purple" | "emerald" | "blue"
+                                    )
+                                  }
+                                  className="px-1.5 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-[11px] shrink-0 font-bold"
+                                  title="لون الشارة"
+                                >
+                                  <option value="amber">🟡 ذهبي</option>
+                                  <option value="rose">🌸 وردي</option>
+                                  <option value="purple">🟣 بنفسجي</option>
+                                  <option value="emerald">🟢 أخضر</option>
+                                  <option value="blue">🔵 أزرق</option>
+                                </select>
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-2 self-end sm:self-auto">
+                          {/* Action Buttons: Open in Tab, Visibility, Delete */}
+                          <div className="flex items-center gap-1.5 self-end lg:self-center shrink-0">
+                            {/* Target Blank Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => toggleNavLinkTargetBlank(link.id)}
+                              className={`p-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                                link.targetBlank
+                                  ? "bg-amber-100 text-amber-900 border-amber-300"
+                                  : "bg-[#faf8f5] text-[#8c7865] border-[#d8c8b4] hover:bg-white"
+                              }`}
+                              title={link.targetBlank ? "يفتح في نافذة جديدة" : "يفتح في نفس الصفحة"}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Visibility Toggle */}
                             <button
                               type="button"
                               onClick={() => toggleNavLinkVisibility(link.id)}
@@ -1431,10 +1979,11 @@ export default function AdminPage() {
                               <span>{link.visible ? "معروض" : "مخفي"}</span>
                             </button>
 
+                            {/* Delete Button */}
                             <button
                               type="button"
                               onClick={() => deleteNavLink(link.id)}
-                              className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-200"
                               title="حذف هذا الرابط"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1445,40 +1994,96 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Add New Nav Link Form */}
+                  {/* Add New Nav Link Form (Advanced) */}
                   <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
                     <span className="text-xs font-bold text-[#1c1815] block">
                       + إضافة قسم أو رابط جديد لقائمة المتجر:
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                      <div className="sm:col-span-5">
+                      <div className="sm:col-span-4 space-y-1">
+                        <label className="text-[10px] text-[#8c7865] block font-bold">اسم الرابط:</label>
                         <input
                           type="text"
                           value={newNavLabel}
                           onChange={(e) => setNewNavLabel(e.target.value)}
-                          placeholder="اسم الرابط (مثال: هدايا عيد الأم أو ساعات)"
-                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                          placeholder="مثال: هدايا عيد الأم أو تخفيضات"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600 focus:bg-white"
                         />
                       </div>
-                      <div className="sm:col-span-4">
+                      <div className="sm:col-span-4 space-y-1">
+                        <label className="text-[10px] text-[#8c7865] block font-bold">المسار (الرابط):</label>
                         <input
                           type="text"
                           value={newNavHref}
                           onChange={(e) => setNewNavHref(e.target.value)}
-                          placeholder="المسار (مثال: /collection/gifts)"
-                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                          placeholder="مثال: /collection/gifts"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600 focus:bg-white"
                         />
                       </div>
-                      <div className="sm:col-span-3">
+                      <div className="sm:col-span-2 space-y-1">
+                        <label className="text-[10px] text-[#8c7865] block font-bold">شارة مميزة ولونها:</label>
+                        <div className="flex gap-1">
+                          <input
+                            type="text"
+                            value={newNavBadge}
+                            onChange={(e) => setNewNavBadge(e.target.value)}
+                            placeholder="جديد ✦"
+                            className="w-full px-2 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600 focus:bg-white"
+                          />
+                          <select
+                            value={newNavBadgeColor}
+                            onChange={(e) =>
+                              setNewNavBadgeColor(
+                                e.target.value as "amber" | "rose" | "purple" | "emerald" | "blue"
+                              )
+                            }
+                            className="px-1.5 py-1 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold shrink-0"
+                            title="لون الشارة"
+                          >
+                            <option value="amber">🟡</option>
+                            <option value="rose">🌸</option>
+                            <option value="purple">🟣</option>
+                            <option value="emerald">🟢</option>
+                            <option value="blue">🔵</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="sm:col-span-2 flex items-end">
                         <button
                           type="button"
                           onClick={handleAddNavLink}
-                          className="w-full py-2 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                          className="w-full py-2.5 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
                         >
                           <Plus className="w-3.5 h-3.5 text-amber-300" />
                           <span>إضافة للقائمة</span>
                         </button>
                       </div>
+                    </div>
+
+                    {/* Quick Suggestions for Links */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-[#8c7865]">
+                      <span>اقتراحات سريعة للمسار:</span>
+                      {[
+                        { label: "كافة القطع", href: "/collection/all" },
+                        { label: "خواتم", href: "/collection/rings" },
+                        { label: "سلاسل", href: "/collection/chains" },
+                        { label: "أساور", href: "/collection/bracelets" },
+                        { label: "أطقم", href: "/collection/sets" },
+                        { label: "قصة البراند", href: "/#story" },
+                        { label: "العناية بالفضة", href: "/#care" },
+                      ].map((sugg, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            if (!newNavLabel) setNewNavLabel(sugg.label);
+                            setNewNavHref(sugg.href);
+                          }}
+                          className="px-2 py-0.5 rounded-full bg-[#faf8f5] hover:bg-[#ede3d3] border border-[#d8c8b4] text-[#705e4d] font-bold text-[10px] transition-colors"
+                        >
+                          + {sugg.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>

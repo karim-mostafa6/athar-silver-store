@@ -50,11 +50,11 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
   // 1. Countdown item
   if (storeSettings.marqueeShowCountdown !== false) {
     tickerItems.push({
-      icon: <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />,
+      icon: <Clock className="w-3.5 h-3.5 text-amber-500 animate-pulse" />,
       text: (
         <span className="flex items-center gap-1.5 font-bold">
-          <span>ينتهي العرض الخاص خلال</span>
-          <span className="font-mono bg-[#1c1815] text-[#faf8f5] px-2 py-0.5 rounded text-[11px] tracking-wider">
+          <span>{storeSettings.marqueeCountdownLabel || "ينتهي العرض الخاص خلال"}</span>
+          <span className="font-mono bg-[#1c1815] text-[#faf8f5] px-2 py-0.5 rounded text-[11px] tracking-wider border border-[#483d32]">
             {pad(timeLeft.hours)}:{pad(timeLeft.minutes)}:{pad(timeLeft.seconds)}
           </span>
         </span>
@@ -65,10 +65,11 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
   // 2. Free Shipping item
   if (storeSettings.marqueeShowFreeShipping !== false) {
     tickerItems.push({
-      icon: <Truck className="w-3.5 h-3.5 text-[#8a7258]" />,
+      icon: <Truck className="w-3.5 h-3.5 text-amber-500" />,
       text: (
         <span>
-          {storeSettings.announcementText ||
+          {storeSettings.marqueeFreeShippingText ||
+            storeSettings.announcementText ||
             `شحن مجاني على جميع الطلبات بقيمة ${storeSettings.freeShippingThreshold.toLocaleString(
               "ar-EG"
             )} ج.م أو أكثر لجميع المحافظات`}
@@ -83,10 +84,13 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
       icon: <Sparkles className="w-3.5 h-3.5 text-amber-500" />,
       text: (
         <span className="flex items-center gap-1.5">
-          <span>كوبون ترحيبي {storeSettings.promoDiscountPercent}% خصم إضافي:</span>
+          <span>
+            {storeSettings.marqueePromoPrefix ||
+              `كوبون ترحيبي ${storeSettings.promoDiscountPercent}% خصم إضافي:`}
+          </span>
           <button
             onClick={handleCopyCode}
-            className="inline-flex items-center gap-1 bg-[#1c1815] hover:bg-[#382f28] text-white px-2 py-0.5 rounded-full font-mono text-[11px] font-bold transition-transform active:scale-90"
+            className="inline-flex items-center gap-1 bg-[#1c1815] hover:bg-[#382f28] text-white px-2 py-0.5 rounded-full font-mono text-[11px] font-bold transition-transform active:scale-90 border border-amber-500/30 shadow-sm"
             title="انقر لنسخ الكوبون"
           >
             <span>{storeSettings.promoCode}</span>
@@ -100,8 +104,13 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
   // 4. Lifetime warranty item
   if (storeSettings.marqueeShowWarranty !== false) {
     tickerItems.push({
-      icon: <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />,
-      text: <span>فضة إسترليني إيطالية وتركية عيار 925 مختومة بضمان رسمي مدى الحياة</span>,
+      icon: <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />,
+      text: (
+        <span>
+          {storeSettings.marqueeWarrantyText ||
+            "فضة إسترليني إيطالية وتركية عيار 925 مختومة بضمان رسمي مدى الحياة"}
+        </span>
+      ),
     });
   }
 
@@ -109,29 +118,69 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
   if (storeSettings.marqueeShowGiftWrap !== false) {
     tickerItems.push({
       icon: <Gift className="w-3.5 h-3.5 text-rose-500" />,
-      text: <span>تغليف إهداء مخملي فاخر مجاناً مع كارت معايدة مخصص لكل طلب</span>,
+      text: (
+        <span>
+          {storeSettings.marqueeGiftWrapText ||
+            "تغليف إهداء مخملي فاخر مجاناً مع كارت معايدة مخصص لكل طلب"}
+        </span>
+      ),
     });
   }
 
-  // 6. Custom text item
+  // 6. Custom legacy text item
   if (storeSettings.marqueeCustomText && storeSettings.marqueeCustomText.trim()) {
     tickerItems.push({
-      icon: <Sparkles className="w-3.5 h-3.5 text-amber-600" />,
+      icon: <Sparkles className="w-3.5 h-3.5 text-amber-500" />,
       text: <span>{storeSettings.marqueeCustomText}</span>,
+    });
+  }
+
+  // 7. Unlimited Extra Custom Announcements
+  if (storeSettings.marqueeExtraMessages && storeSettings.marqueeExtraMessages.length > 0) {
+    storeSettings.marqueeExtraMessages.forEach((extra) => {
+      if (extra.visible && extra.text.trim()) {
+        tickerItems.push({
+          icon: <span className="text-sm">{extra.icon || "✦"}</span>,
+          text: <span>{extra.text}</span>,
+        });
+      }
     });
   }
 
   if (tickerItems.length === 0) return null;
 
+  // Visual Theme Styling
+  const themeClass =
+    storeSettings.marqueeTheme === "dark"
+      ? "bg-[#14110e] text-[#f5efe6] border-[#2e261f]"
+      : storeSettings.marqueeTheme === "gold"
+      ? "bg-[#7d5f26] text-white border-[#9c7835]"
+      : storeSettings.marqueeTheme === "burgundy"
+      ? "bg-[#451421] text-[#fce7ef] border-[#5d1d2e]"
+      : "bg-[#f4ece0] text-[#4b3e32] border-[#e5dacb]";
+
+  const speedDuration =
+    storeSettings.marqueeSpeed === "slow"
+      ? "38s"
+      : storeSettings.marqueeSpeed === "fast"
+      ? "16s"
+      : "26s";
+
+  const pauseClass =
+    storeSettings.marqueePauseOnHover !== false ? "hover:[animation-play-state:paused]" : "";
+
   return (
-    <div className="w-full bg-[#f4ece0] border-b border-[#e5dacb] overflow-hidden py-2 text-xs text-[#4b3e32] select-none">
-      <div className="animate-marquee flex items-center gap-8 whitespace-nowrap">
+    <div className={`w-full border-b overflow-hidden py-2 text-xs select-none transition-colors ${themeClass}`}>
+      <div
+        className={`animate-marquee flex items-center gap-8 whitespace-nowrap ${pauseClass}`}
+        style={{ animationDuration: speedDuration }}
+      >
         {/* First set */}
         {tickerItems.map((item, idx) => (
           <div key={`t1-${idx}`} className="flex items-center gap-2">
             {item.icon}
             <span>{item.text}</span>
-            <span className="text-[#c7b59e] mx-2">✦</span>
+            <span className="opacity-60 mx-2">✦</span>
           </div>
         ))}
         {/* Duplicate set for seamless looping */}
@@ -139,7 +188,7 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
           <div key={`t2-${idx}`} className="flex items-center gap-2">
             {item.icon}
             <span>{item.text}</span>
-            <span className="text-[#c7b59e] mx-2">✦</span>
+            <span className="opacity-60 mx-2">✦</span>
           </div>
         ))}
       </div>

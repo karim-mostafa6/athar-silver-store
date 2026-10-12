@@ -104,14 +104,33 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Desktop Navigation Links / Collections Menu (Fully Controllable) */}
           <nav className="hidden lg:flex items-center gap-5 xl:gap-6 text-xs font-medium text-[#5c4c3b]">
             {activeNavLinks.map((item) => {
+              const badgeNode = item.badge ? (
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border leading-none ${
+                    item.badgeColor === "rose"
+                      ? "bg-rose-100 text-rose-800 border-rose-300"
+                      : item.badgeColor === "purple"
+                      ? "bg-purple-100 text-purple-800 border-purple-300"
+                      : item.badgeColor === "emerald"
+                      ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                      : item.badgeColor === "blue"
+                      ? "bg-blue-100 text-blue-800 border-blue-300"
+                      : "bg-amber-100 text-amber-900 border-amber-300"
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              ) : null;
+
               if (item.href === "#sizeguide") {
                 return (
                   <button
                     key={item.id}
                     onClick={handleOpenSizeGuide}
-                    className="hover:text-[#1c1815] transition-colors whitespace-nowrap"
+                    className="hover:text-[#1c1815] transition-colors whitespace-nowrap flex items-center gap-1.5"
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {badgeNode}
                   </button>
                 );
               }
@@ -119,9 +138,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Link
                   key={item.id}
                   href={item.href}
-                  className="hover:text-[#1c1815] transition-colors whitespace-nowrap"
+                  target={item.targetBlank ? "_blank" : undefined}
+                  rel={item.targetBlank ? "noreferrer" : undefined}
+                  className="hover:text-[#1c1815] transition-colors whitespace-nowrap flex items-center gap-1.5"
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {badgeNode}
                 </Link>
               );
             })}
@@ -219,6 +241,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="lg:hidden border-t border-[#ebdcca] bg-[#faf8f5] px-6 py-6 space-y-4 text-right shadow-2xl">
           <div className="flex flex-col space-y-3 text-sm font-medium text-[#4d4034]">
             {activeNavLinks.map((item) => {
+              const badgeNode = item.badge ? (
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border leading-none mr-2 ${
+                    item.badgeColor === "rose"
+                      ? "bg-rose-100 text-rose-800 border-rose-300"
+                      : item.badgeColor === "purple"
+                      ? "bg-purple-100 text-purple-800 border-purple-300"
+                      : item.badgeColor === "emerald"
+                      ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                      : item.badgeColor === "blue"
+                      ? "bg-blue-100 text-blue-800 border-blue-300"
+                      : "bg-amber-100 text-amber-900 border-amber-300"
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              ) : null;
+
               if (item.href === "#sizeguide") {
                 return (
                   <button
@@ -227,9 +267,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setMobileMenuOpen(false);
                       handleOpenSizeGuide();
                     }}
-                    className="text-right py-2 hover:text-[#1c1815] border-b border-[#ebdcca]/50"
+                    className="text-right py-2 hover:text-[#1c1815] border-b border-[#ebdcca]/50 flex items-center justify-between"
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {badgeNode}
                   </button>
                 );
               }
@@ -237,10 +278,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Link
                   key={item.id}
                   href={item.href}
+                  target={item.targetBlank ? "_blank" : undefined}
+                  rel={item.targetBlank ? "noreferrer" : undefined}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="py-2 hover:text-[#1c1815] border-b border-[#ebdcca]/50"
+                  className="py-2 hover:text-[#1c1815] border-b border-[#ebdcca]/50 flex items-center justify-between"
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {badgeNode}
                 </Link>
               );
             })}

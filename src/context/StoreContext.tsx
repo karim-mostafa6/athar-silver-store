@@ -10,6 +10,16 @@ export interface NavLinkItem {
   href: string;
   visible: boolean;
   isSpecial?: boolean;
+  badge?: string;
+  badgeColor?: "amber" | "rose" | "emerald" | "blue" | "purple";
+  targetBlank?: boolean;
+}
+
+export interface MarqueeExtraMessage {
+  id: string;
+  text: string;
+  icon?: string;
+  visible: boolean;
 }
 
 export interface StoreSettings {
@@ -51,13 +61,28 @@ export interface StoreSettings {
 
   // Marquee Ticker Customizer
   showMarquee: boolean;
+  marqueeSpeed?: "slow" | "normal" | "fast";
+  marqueeTheme?: "default" | "dark" | "gold" | "burgundy";
+  marqueePauseOnHover?: boolean;
+
   marqueeShowCountdown: boolean;
+  marqueeCountdownLabel?: string;
   marqueeCountdownHours: number;
+
   marqueeShowFreeShipping: boolean;
+  marqueeFreeShippingText?: string;
+
   marqueeShowPromo: boolean;
+  marqueePromoPrefix?: string;
+
   marqueeShowWarranty: boolean;
+  marqueeWarrantyText?: string;
+
   marqueeShowGiftWrap: boolean;
+  marqueeGiftWrapText?: string;
+
   marqueeCustomText: string;
+  marqueeExtraMessages?: MarqueeExtraMessage[];
 
   // Header Nav & Collections Customizer
   navLinks: NavLinkItem[];
@@ -179,22 +204,31 @@ const DEFAULT_SETTINGS: StoreSettings = {
   logoHeight: 34,
   // Marquee Ticker Defaults
   showMarquee: true,
+  marqueeSpeed: "normal",
+  marqueeTheme: "default",
+  marqueePauseOnHover: true,
   marqueeShowCountdown: true,
+  marqueeCountdownLabel: "ينتهي العرض الخاص خلال",
   marqueeCountdownHours: 6,
   marqueeShowFreeShipping: true,
+  marqueeFreeShippingText: "شحن مجاني على كافة الطلبات بقيمة 2,500 ج.م أو أكثر لجميع المحافظات",
   marqueeShowPromo: true,
+  marqueePromoPrefix: "كوبون ترحيبي 10% خصم إضافي:",
   marqueeShowWarranty: true,
+  marqueeWarrantyText: "فضة إسترليني إيطالية وتركية عيار 925 مختومة بضمان رسمي مدى الحياة",
   marqueeShowGiftWrap: true,
-  marqueeCustomText: "شحن مجاني على كافة الطلبات بقيمة 2,500 ج.م أو أكثر لجميع المحافظات",
+  marqueeGiftWrapText: "تغليف إهداء مخملي فاخر مجاناً مع كارت معايدة مخصص لكل طلب",
+  marqueeCustomText: "",
+  marqueeExtraMessages: [],
   // Nav Links & Collections Defaults
   navLinks: [
     { id: "all", label: "كافة القطع", href: "/collection/all", visible: true },
-    { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true },
+    { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true, badge: "جديد ✦", badgeColor: "rose" },
     { id: "men", label: "تشكيلة رجالية", href: "/collection/men", visible: true },
-    { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true },
+    { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true, badge: "الأكثر طلباً", badgeColor: "amber" },
     { id: "chains", label: "سلاسل إيطالي", href: "/collection/chains", visible: true },
     { id: "bracelets", label: "أساور وتنس", href: "/collection/bracelets", visible: true },
-    { id: "sets", label: "أطقم ملكية", href: "/collection/sets", visible: true },
+    { id: "sets", label: "أطقم ملكية", href: "/collection/sets", visible: true, badge: "VIP", badgeColor: "purple" },
     { id: "sizeguide", label: "دليل المقاسات", href: "#sizeguide", visible: true },
     { id: "story", label: "عن أَثَر", href: "/#story", visible: true },
     { id: "care", label: "العناية بالفضة", href: "/#care", visible: true },
