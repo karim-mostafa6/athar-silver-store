@@ -284,7 +284,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   contactEmail: "theathar.eg@gmail.com",
   senderEmail: "theathar.eg@gmail.com",
   senderEmailName: "أَثَـر للفضة 925",
-  gmailAppPassword: "",
+  gmailAppPassword: "ycdnslfhhbuvghnf",
   contactPhone: "+20 114 383 7730",
   contactAddress: "القاهرة، جمهورية مصر العربية (شحن لجميع المحافظات)",
   instagramUrl: "https://instagram.com",
