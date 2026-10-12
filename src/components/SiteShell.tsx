@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { StoreProvider, useStore } from "@/context/StoreContext";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -14,6 +15,19 @@ import { Footer } from "@/components/Footer";
 
 const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const store = useStore();
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin");
+
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#faf8f5] text-[#1c1815] flex flex-col selection:bg-[#dfd2bf] selection:text-[#181513]">
+        {/* Toast Notifications */}
+        <Toast toasts={store.toasts} onDismiss={store.removeToast} />
+        {/* Standalone Admin Portal Content */}
+        <main className="flex-1 w-full">{children}</main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#faf8f5] text-[#1c1815] flex flex-col selection:bg-[#dfd2bf] selection:text-[#181513]">
