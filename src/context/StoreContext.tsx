@@ -164,6 +164,9 @@ export interface Order {
   };
   createdAt: string;
   status: "pending" | "processing" | "shipped" | "completed" | "cancelled";
+  cancellationReason?: string;
+  cancelledAt?: string;
+  adminNotes?: string;
 }
 
 interface StoreContextType {
@@ -181,7 +184,10 @@ interface StoreContextType {
   // Orders
   orders: Order[];
   addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">) => string;
-  updateOrderStatus: (orderId: string, status: Order["status"]) => void;
+  updateOrderStatus: (orderId: string, status: Order["status"], cancellationReason?: string) => void;
+  cancelOrder: (orderId: string, reason: string, adminNotes?: string) => void;
+  restoreOrder: (orderId: string) => void;
+  updateOrderAdminNotes: (orderId: string, adminNotes: string) => void;
   deleteOrder: (orderId: string) => void;
 
   // Cart & Wishlist
@@ -388,6 +394,34 @@ const SAMPLE_ORDERS: Order[] = [
     isGift: true,
     giftMessage: "ألف مبروك التخرج يا غالي",
   },
+  {
+    id: "ATH-741952",
+    customerName: "كريم يوسف",
+    phone: "01099887766",
+    governorate: "الجيزة",
+    address: "الدقي، شارع مصدق، عمارة 8، الدور الثاني",
+    items: [
+      {
+        productId: "ath-01",
+        name: "Classic Cuban Curb Silver Chain",
+        arabicName: "سلسلة كبح كوبية فضة إيطالي ثقيلة 925",
+        quantity: 1,
+        price: 1850,
+        selectedSize: "50 سم",
+        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
+      },
+    ],
+    subtotal: 1850,
+    shippingFee: 45,
+    discount: 0,
+    total: 1895,
+    paymentMethod: "cod",
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    status: "cancelled",
+    cancellationReason: "العميل طلب الإلغاء أثناء مكالمة التأكيد (تأجيل الشراء)",
+    cancelledAt: new Date(Date.now() - 3600000 * 40).toISOString(),
+    adminNotes: "تم الاتصال بالعميل لتأكيد الشحن وأفاد بأنه يرغب بالتأجيل لأول الشهر القادم",
+  },
 ];
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -540,11 +574,60 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return newId;
   };
 
-  const updateOrderStatus = (orderId: string, status: Order["status"]) => {
+  const updateOrderStatus = (orderId: string, status: Order["status"], cancellationReason?: string) => {
     setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status } : o))
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status,
+              cancellationReason: status === "cancelled" ? (cancellationReason || o.cancellationReason) : undefined,
+              cancelledAt: status === "cancelled" ? (o.cancelledAt || new Date().toISOString()) : undefined,
+            }
+          : o
+      )
     );
     addToast("الطلبات", `تم تحديث حالة الطلب #${orderId}`, "info");
+  };
+
+  const cancelOrder = (orderId: string, reason: string, adminNotes?: string) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "cancelled",
+              cancellationReason: reason,
+              cancelledAt: new Date().toISOString(),
+              adminNotes: adminNotes !== undefined ? adminNotes : o.adminNotes,
+            }
+          : o
+      )
+    );
+    addToast("إلغاء الطلب", `تم تسجيل إلغاء الطلب #${orderId} وحفظ السبب`, "info");
+  };
+
+  const restoreOrder = (orderId: string) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "pending",
+              cancellationReason: undefined,
+              cancelledAt: undefined,
+            }
+          : o
+      )
+    );
+    addToast("استعادة الطلب", `تمت استعادة الطلب #${orderId} إلى قيد التأكيد`, "info");
+  };
+
+  const updateOrderAdminNotes = (orderId: string, adminNotes: string) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, adminNotes } : o))
+    );
+    addToast("ملاحظات الطلب", `تم حفظ الملاحظة للطلب #${orderId}`, "info");
   };
 
   const deleteOrder = (orderId: string) => {
@@ -652,6 +735,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         orders,
         addOrder,
         updateOrderStatus,
+        cancelOrder,
+        restoreOrder,
+        updateOrderAdminNotes,
         deleteOrder,
         cartItems,
         wishlist,
