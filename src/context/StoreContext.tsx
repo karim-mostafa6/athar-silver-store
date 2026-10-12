@@ -4,6 +4,14 @@ import React, { createContext, useContext, useState, useEffect, useMemo, ReactNo
 import { Product, CartItem, PRODUCTS } from "@/data/products";
 import { ToastMessage } from "@/components/Toast";
 
+export interface NavLinkItem {
+  id: string;
+  label: string;
+  href: string;
+  visible: boolean;
+  isSpecial?: boolean;
+}
+
 export interface StoreSettings {
   whatsappNumber: string;
   announcementText: string;
@@ -32,6 +40,28 @@ export interface StoreSettings {
   instagramUrl: string;
   facebookUrl: string;
   tiktokUrl: string;
+
+  // Logo & Identity Customizer
+  logoType: "text" | "image" | "both";
+  logoImageUrl: string;
+  brandNameArabic: string;
+  brandNameEnglish: string;
+  brandSubtitle: string;
+  logoHeight: number;
+
+  // Marquee Ticker Customizer
+  showMarquee: boolean;
+  marqueeShowCountdown: boolean;
+  marqueeCountdownHours: number;
+  marqueeShowFreeShipping: boolean;
+  marqueeShowPromo: boolean;
+  marqueeShowWarranty: boolean;
+  marqueeShowGiftWrap: boolean;
+  marqueeCustomText: string;
+
+  // Header Nav & Collections Customizer
+  navLinks: NavLinkItem[];
+  searchPlaceholder: string;
 }
 
 export interface OrderItem {
@@ -140,6 +170,36 @@ const DEFAULT_SETTINGS: StoreSettings = {
   instagramUrl: "https://instagram.com",
   facebookUrl: "https://facebook.com",
   tiktokUrl: "https://tiktok.com",
+  // Logo Defaults
+  logoType: "text",
+  logoImageUrl: "",
+  brandNameArabic: "أَثَـر",
+  brandNameEnglish: "ATHAR",
+  brandSubtitle: "فضة إسترليني عيار 925",
+  logoHeight: 34,
+  // Marquee Ticker Defaults
+  showMarquee: true,
+  marqueeShowCountdown: true,
+  marqueeCountdownHours: 6,
+  marqueeShowFreeShipping: true,
+  marqueeShowPromo: true,
+  marqueeShowWarranty: true,
+  marqueeShowGiftWrap: true,
+  marqueeCustomText: "شحن مجاني على كافة الطلبات بقيمة 2,500 ج.م أو أكثر لجميع المحافظات",
+  // Nav Links & Collections Defaults
+  navLinks: [
+    { id: "all", label: "كافة القطع", href: "/collection/all", visible: true },
+    { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true },
+    { id: "men", label: "تشكيلة رجالية", href: "/collection/men", visible: true },
+    { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true },
+    { id: "chains", label: "سلاسل إيطالي", href: "/collection/chains", visible: true },
+    { id: "bracelets", label: "أساور وتنس", href: "/collection/bracelets", visible: true },
+    { id: "sets", label: "أطقم ملكية", href: "/collection/sets", visible: true },
+    { id: "sizeguide", label: "دليل المقاسات", href: "#sizeguide", visible: true },
+    { id: "story", label: "عن أَثَر", href: "/#story", visible: true },
+    { id: "care", label: "العناية بالفضة", href: "/#care", visible: true },
+  ],
+  searchPlaceholder: "ابحث عن خاتم، سلسلة، عيار 925...",
 };
 
 const SAMPLE_ORDERS: Order[] = [

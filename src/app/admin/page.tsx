@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useStore, StoreSettings, Order } from "@/context/StoreContext";
+import { useStore, StoreSettings, Order, NavLinkItem } from "@/context/StoreContext";
 import { Product } from "@/data/products";
 import {
   Lock,
@@ -79,6 +79,11 @@ export default function AdminPage() {
   const heroFileInputRef = useRef<HTMLInputElement>(null);
   const womenFileInputRef = useRef<HTMLInputElement>(null);
   const menFileInputRef = useRef<HTMLInputElement>(null);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Header Nav Links Editor State
+  const [newNavLabel, setNewNavLabel] = useState<string>("");
+  const [newNavHref, setNewNavHref] = useState<string>("");
 
   // Form State for Product Add/Edit (Shopify-Grade Fields)
   const initialProductForm: Omit<Product, "id"> = {
@@ -222,10 +227,10 @@ export default function AdminPage() {
     }
   };
 
-  // Dedicated upload for Theme Images (Hero, Women, Men)
+  // Dedicated upload for Theme Images (Hero, Women, Men, Logo)
   const handleThemeImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: "heroImageUrl" | "splitWomenImage" | "splitMenImage"
+    field: "heroImageUrl" | "splitWomenImage" | "splitMenImage" | "logoImageUrl"
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -240,6 +245,71 @@ export default function AdminPage() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Nav Links Controls
+  const toggleNavLinkVisibility = (id: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: (prev.navLinks || []).map((link) =>
+        link.id === id ? { ...link, visible: !link.visible } : link
+      ),
+    }));
+  };
+
+  const updateNavLinkLabel = (id: string, label: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: (prev.navLinks || []).map((link) =>
+        link.id === id ? { ...link, label } : link
+      ),
+    }));
+  };
+
+  const deleteNavLink = (id: string) => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: (prev.navLinks || []).filter((link) => link.id !== id),
+    }));
+  };
+
+  const handleAddNavLink = () => {
+    if (!newNavLabel.trim() || !newNavHref.trim()) {
+      alert("يرجى إدخال اسم الرابط والمسار");
+      return;
+    }
+    const newLink: NavLinkItem = {
+      id: `custom-${Date.now()}`,
+      label: newNavLabel.trim(),
+      href: newNavHref.trim(),
+      visible: true,
+    };
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: [...(prev.navLinks || []), newLink],
+    }));
+    setNewNavLabel("");
+    setNewNavHref("");
+    addToast("تمت الإضافة", "تمت إضافة الرابط الجديد للقائمة بنجاح، اضغط حفظ لتطبيقه", "info");
+  };
+
+  const handleResetNavLinks = () => {
+    setSettingsForm((prev) => ({
+      ...prev,
+      navLinks: [
+        { id: "all", label: "كافة القطع", href: "/collection/all", visible: true },
+        { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true },
+        { id: "men", label: "تشكيلة رجالية", href: "/collection/men", visible: true },
+        { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true },
+        { id: "chains", label: "سلاسل إيطالي", href: "/collection/chains", visible: true },
+        { id: "bracelets", label: "أساور وتنس", href: "/collection/bracelets", visible: true },
+        { id: "sets", label: "أطقم ملكية", href: "/collection/sets", visible: true },
+        { id: "sizeguide", label: "دليل المقاسات", href: "#sizeguide", visible: true },
+        { id: "story", label: "عن أَثَر", href: "/#story", visible: true },
+        { id: "care", label: "العناية بالفضة", href: "/#care", visible: true },
+      ],
+    }));
+    addToast("استعادة الروابط", "تمت استعادة المجموعات الافتراضية بنجاح", "info");
   };
 
   // Add Manual Image URL
@@ -884,12 +954,543 @@ export default function AdminPage() {
               </div>
 
               <form onSubmit={handleSaveSettings} className="space-y-8">
-                {/* 1. HERO BANNER SECTION */}
-                <div className="p-5 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
+                {/* ======================================================== */}
+                {/* 1. BRAND LOGO & HEADER IDENTITY SECTION */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span>1. شعار وهوية البراند في أعلى الصفحة (Brand Logo & Header)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تحكم كامل في طريقة عرض اللوجو، رفع لوجو المتجر من جهازك، والتحكم في حجمه
+                      </p>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 self-start sm:self-auto">
+                      تحكم شوبي فاي 100%
+                    </span>
+                  </div>
+
+                  {/* Logo Display Mode Selector */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-[#1c1815] block">طريقة عرض الشعار في الهيدر:</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <label
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-2.5 ${
+                          settingsForm.logoType === "text"
+                            ? "bg-amber-500/10 border-amber-500 text-[#1c1815] font-bold"
+                            : "bg-white border-[#d8c8b4] text-[#705e4d] hover:bg-[#f6efe4]"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="logoType"
+                          value="text"
+                          checked={settingsForm.logoType === "text"}
+                          onChange={() => setSettingsForm({ ...settingsForm, logoType: "text" })}
+                          className="text-amber-600 focus:ring-0"
+                        />
+                        <span className="text-xs">نصوص فقط (أَثَـر / ATHAR 925)</span>
+                      </label>
+
+                      <label
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-2.5 ${
+                          settingsForm.logoType === "image"
+                            ? "bg-amber-500/10 border-amber-500 text-[#1c1815] font-bold"
+                            : "bg-white border-[#d8c8b4] text-[#705e4d] hover:bg-[#f6efe4]"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="logoType"
+                          value="image"
+                          checked={settingsForm.logoType === "image"}
+                          onChange={() => setSettingsForm({ ...settingsForm, logoType: "image" })}
+                          className="text-amber-600 focus:ring-0"
+                        />
+                        <span className="text-xs">لوجو مصور فقط (Image Logo)</span>
+                      </label>
+
+                      <label
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-2.5 ${
+                          settingsForm.logoType === "both"
+                            ? "bg-amber-500/10 border-amber-500 text-[#1c1815] font-bold"
+                            : "bg-white border-[#d8c8b4] text-[#705e4d] hover:bg-[#f6efe4]"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="logoType"
+                          value="both"
+                          checked={settingsForm.logoType === "both"}
+                          onChange={() => setSettingsForm({ ...settingsForm, logoType: "both" })}
+                          className="text-amber-600 focus:ring-0"
+                        />
+                        <span className="text-xs">كلاهما معاً (اللوجو بجانب الاسم)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Image Upload Area (Shown when image or both is selected) */}
+                  {(settingsForm.logoType === "image" || settingsForm.logoType === "both") && (
+                    <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                      <div className="flex flex-col sm:flex-row gap-4 items-center">
+                        <div className="w-full sm:w-48 h-24 rounded-xl border-2 border-dashed border-[#d8c8b4] bg-[#faf8f5] flex items-center justify-center p-2 relative overflow-hidden shrink-0">
+                          {settingsForm.logoImageUrl ? (
+                            <img
+                              src={settingsForm.logoImageUrl}
+                              alt="Logo Preview"
+                              style={{ height: `${Math.min(settingsForm.logoHeight || 36, 70)}px` }}
+                              className="w-auto object-contain"
+                            />
+                          ) : (
+                            <div className="text-center text-[#a89582] text-xs">
+                              <ImageIcon className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                              <span>لا يوجد لوجو مصور</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 w-full space-y-2">
+                          <label className="text-xs font-bold text-[#1c1815] block">رفع لوجو المتجر من جهازك:</label>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => logoFileInputRef.current?.click()}
+                              className="px-4 py-2.5 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-white text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
+                            >
+                              <Upload className="w-3.5 h-3.5 text-amber-300" />
+                              <span>اختر ملف الشعار من جهازك (PNG / JPG / SVG)</span>
+                            </button>
+                            {settingsForm.logoImageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setSettingsForm({ ...settingsForm, logoImageUrl: "" })}
+                                className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold border border-rose-200 transition-colors"
+                              >
+                                مسح الصورة
+                              </button>
+                            )}
+                            <input
+                              type="file"
+                              ref={logoFileInputRef}
+                              onChange={(e) => handleThemeImageUpload(e, "logoImageUrl")}
+                              accept="image/*"
+                              className="hidden"
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.logoImageUrl || ""}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, logoImageUrl: e.target.value })}
+                            placeholder="أو اكتب رابط اللوجو مباشرة..."
+                            className="w-full px-3.5 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Logo Height Slider */}
+                      <div className="pt-2 border-t border-[#ebdcca] space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <label className="font-bold text-[#1c1815]">ارتفاع الشعار في الهيدر (Logo Height):</label>
+                          <span className="font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            {settingsForm.logoHeight || 36} بكسل (px)
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={20}
+                          max={80}
+                          step={2}
+                          value={settingsForm.logoHeight || 36}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, logoHeight: Number(e.target.value) })}
+                          className="w-full accent-amber-600 cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px] text-[#8c7865]">
+                          <span>صغير (20px)</span>
+                          <span>متوسط (36px)</span>
+                          <span>كبير وبارز (80px)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Brand Typography Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">اسم البراند بالعربية</label>
+                      <input
+                        type="text"
+                        value={settingsForm.brandNameArabic || ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, brandNameArabic: e.target.value })}
+                        placeholder="أَثَـر"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm font-bold focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">اسم البراند بالإنجليزية</label>
+                      <input
+                        type="text"
+                        value={settingsForm.brandNameEnglish || ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, brandNameEnglish: e.target.value })}
+                        placeholder="ATHAR"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm font-mono tracking-wider focus:outline-none focus:border-amber-600 uppercase"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">الشعار الفرعي (Tagline)</label>
+                      <input
+                        type="text"
+                        value={settingsForm.brandSubtitle || ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, brandSubtitle: e.target.value })}
+                        placeholder="فضة إسترليني عيار 925"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Visual Header Preview Box */}
+                  <div className="p-3.5 rounded-xl bg-[#ede3d3] border border-[#d8c8b4] space-y-1.5">
+                    <span className="text-[11px] font-bold text-[#705e4d] block">معاينة فورية لمظهر الشعار في الهيدر:</span>
+                    <div className="h-16 bg-[#faf8f5] rounded-lg border border-[#e8ded0] px-4 flex items-center justify-between shadow-inner">
+                      <div className="flex items-center gap-3">
+                        {(settingsForm.logoType === "image" || settingsForm.logoType === "both") &&
+                          settingsForm.logoImageUrl && (
+                            <img
+                              src={settingsForm.logoImageUrl}
+                              alt="Logo"
+                              style={{ height: `${settingsForm.logoHeight || 36}px` }}
+                              className="w-auto object-contain"
+                            />
+                          )}
+                        {(settingsForm.logoType === "text" ||
+                          settingsForm.logoType === "both" ||
+                          !settingsForm.logoImageUrl) && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl sm:text-2xl font-light tracking-[0.15em] text-[#1c1815] font-alexandria uppercase">
+                              {settingsForm.brandNameEnglish || "ATHAR"}
+                            </span>
+                            <span className="text-[9px] font-mono tracking-widest text-[#8c7865] border-r border-[#d8c8b4] pr-2 uppercase">
+                              {settingsForm.brandNameArabic || "أَثَـر"} • {settingsForm.brandSubtitle || "925"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-[#8c7865] bg-white px-2 py-1 rounded-md border border-[#ebdcca]">
+                        معاينة حية للمتجر
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ======================================================== */}
+                {/* 2. TOP ANNOUNCEMENT MARQUEE TICKER SECTION */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span>2. الشريط الإعلاني المتحرك العلوي (Top Marquee Ticker)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        الشريط المتحرك أعلى الموقع الذي يعرض عداد الوقت والخصومات ومميزات الشحن
+                      </p>
+                    </div>
+
+                    {/* Master Marquee Toggle */}
+                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-[#d8c8b4] shadow-sm select-none">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.showMarquee !== false}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, showMarquee: e.target.checked })}
+                        className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                      />
+                      <span className="text-xs font-bold text-[#1c1815]">
+                        {settingsForm.showMarquee !== false ? "الشريط مفعّل ومرئي 🟢" : "الشريط مخفي تماماً ⚪"}
+                      </span>
+                    </label>
+                  </div>
+
+                  {settingsForm.showMarquee !== false && (
+                    <div className="space-y-4">
+                      {/* Marquee Options Checkboxes */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Countdown Item */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <label className="flex items-center justify-between cursor-pointer select-none">
+                            <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
+                              <span>⏰ عداد العرض التنازلي التفاعلي</span>
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={settingsForm.marqueeShowCountdown !== false}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, marqueeShowCountdown: e.target.checked })
+                              }
+                              className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                            />
+                          </label>
+                          {settingsForm.marqueeShowCountdown !== false && (
+                            <div className="flex items-center gap-2 pt-1 border-t border-[#f4ece0]">
+                              <span className="text-[11px] text-[#8c7865]">مدة العداد:</span>
+                              <input
+                                type="number"
+                                min={1}
+                                max={72}
+                                value={settingsForm.marqueeCountdownHours || 6}
+                                onChange={(e) =>
+                                  setSettingsForm({
+                                    ...settingsForm,
+                                    marqueeCountdownHours: Number(e.target.value) || 6,
+                                  })
+                                }
+                                className="w-16 px-2 py-1 rounded bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-center"
+                              />
+                              <span className="text-[11px] text-[#8c7865]">ساعات (يعاد تلقائياً)</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Free Shipping Item */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
+                            <span>🚚 رسالة الشحن المجاني التلقائي</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.marqueeShowFreeShipping !== false}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, marqueeShowFreeShipping: e.target.checked })
+                            }
+                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                          />
+                        </div>
+
+                        {/* Promo Coupon Item */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
+                            <span>🎟️ رسالة كود الخصم مع زر النسخ السريع</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.marqueeShowPromo !== false}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, marqueeShowPromo: e.target.checked })
+                            }
+                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                          />
+                        </div>
+
+                        {/* Lifetime Warranty Item */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
+                            <span>🛡️ رسالة ضمان الفضة 925 مدى الحياة</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.marqueeShowWarranty !== false}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, marqueeShowWarranty: e.target.checked })
+                            }
+                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                          />
+                        </div>
+
+                        {/* Gift Wrap Item */}
+                        <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] flex items-center justify-between sm:col-span-2">
+                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-2">
+                            <span>🎁 رسالة التغليف الفاخر المجاني وكارت الإهداء</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.marqueeShowGiftWrap !== false}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, marqueeShowGiftWrap: e.target.checked })
+                            }
+                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Custom Marquee Announcement Text */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          رسالة إعلانية مخصصة إضافية تظهر في الشريط:
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.marqueeCustomText || ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, marqueeCustomText: e.target.value })}
+                          placeholder="مثال: خصم خاص 15% بمناسبة عيد الفطر المبارك على جميع أطقم الفضة..."
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ======================================================== */}
+                {/* 3. NAVIGATION & COLLECTIONS MENU CUSTOMIZER */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-amber-600" />
+                        <span>3. قوائم المجموعات وشريط البحث (Navigation & Collections)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تعديل أسماء الأقسام، إخفاء/إظهار أي مجموعة، وإضافة روابط وأقسام جديدة كلياً
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleResetNavLinks}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#ede3d3] border border-[#d8c8b4] text-xs text-[#705e4d] font-bold transition-colors self-start sm:self-auto"
+                      title="استعادة الترتيب والروابط الأصلية للمتجر"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                      <span>استعادة المجموعات الافتراضية</span>
+                    </button>
+                  </div>
+
+                  {/* Search Bar Placeholder Setting */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#1c1815] block">
+                      نص البحث التوضيحي في شريط البحث (Search Placeholder):
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={settingsForm.searchPlaceholder || ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, searchPlaceholder: e.target.value })}
+                        placeholder="ابحث عن خاتم، سلسلة، عيار 925..."
+                        className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                      />
+                      <Search className="w-4 h-4 text-[#8c7865] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Collections Links Table */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-[#1c1815] block">
+                        روابط المجموعات والأقسام في الهيدر ({settingsForm.navLinks?.length || 0}):
+                      </label>
+                      <span className="text-[11px] text-[#8c7865]">
+                        اضغط على أيقونة العين لإخفاء أو إظهار الرابط في المتجر
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                      {(settingsForm.navLinks || []).map((link, idx) => (
+                        <div
+                          key={link.id || idx}
+                          className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
+                            link.visible
+                              ? "bg-white border-[#ebdcca]"
+                              : "bg-[#f2ece2] border-[#ded2c2] opacity-70"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <span className="w-6 h-6 rounded-full bg-[#f4ece0] text-[#705e4d] text-xs font-mono font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <div className="flex-1 space-y-1">
+                              <input
+                                type="text"
+                                value={link.label}
+                                onChange={(e) => updateNavLinkLabel(link.id, e.target.value)}
+                                className="w-full px-2.5 py-1 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white focus:outline-none focus:border-amber-600"
+                                placeholder="اسم الرابط"
+                              />
+                            </div>
+                            <span className="font-mono text-[11px] text-[#8c7865] bg-[#faf8f5] px-2 py-1 rounded border border-[#ebdcca] shrink-0 dir-ltr hidden md:inline">
+                              {link.href}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-auto">
+                            <button
+                              type="button"
+                              onClick={() => toggleNavLinkVisibility(link.id)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                                link.visible
+                                  ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                              }`}
+                              title={link.visible ? "إخفاء من الهيدر" : "إظهار في الهيدر"}
+                            >
+                              {link.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                              <span>{link.visible ? "معروض" : "مخفي"}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => deleteNavLink(link.id)}
+                              className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              title="حذف هذا الرابط"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Add New Nav Link Form */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
+                    <span className="text-xs font-bold text-[#1c1815] block">
+                      + إضافة قسم أو رابط جديد لقائمة المتجر:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                      <div className="sm:col-span-5">
+                        <input
+                          type="text"
+                          value={newNavLabel}
+                          onChange={(e) => setNewNavLabel(e.target.value)}
+                          placeholder="اسم الرابط (مثال: هدايا عيد الأم أو ساعات)"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+                      <div className="sm:col-span-4">
+                        <input
+                          type="text"
+                          value={newNavHref}
+                          onChange={(e) => setNewNavHref(e.target.value)}
+                          placeholder="المسار (مثال: /collection/gifts)"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <button
+                          type="button"
+                          onClick={handleAddNavLink}
+                          className="w-full py-2 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-amber-300" />
+                          <span>إضافة للقائمة</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ======================================================== */}
+                {/* 4. HERO BANNER SECTION */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
                   <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
                     <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-600" />
-                      <span>بنر البداية الرئيسي (Hero Banner)</span>
+                      <span>4. بنر البداية الرئيسي (Hero Banner)</span>
                     </h3>
                     <span className="text-[11px] text-[#8c7865]">واجهة المتجر الكبرى</span>
                   </div>
@@ -969,12 +1570,14 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* 2. DUAL SPLIT 50/50 SHOWCASE (Women's & Men's) */}
-                <div className="p-5 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
+                {/* ======================================================== */}
+                {/* 5. DUAL SPLIT 50/50 SHOWCASE (Women's & Men's) */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
                   <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
                     <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
                       <Layers className="w-4 h-4 text-rose-700" />
-                      <span>البنر المزدوج 50/50 (Women&apos;s & Men&apos;s Showcases)</span>
+                      <span>5. البنر المزدوج 50/50 (Women&apos;s & Men&apos;s Showcases)</span>
                     </h3>
                     <span className="text-[11px] text-[#8c7865]">بنرات التشكيلات الكبرى</span>
                   </div>
@@ -1078,15 +1681,75 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* ======================================================== */}
+                {/* 6. SOCIAL MEDIA & CONTACT INFO SECTION */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
+                    <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-blue-600" />
+                      <span>6. روابط التواصل الاجتماعي والفوتر (Social & Contact)</span>
+                    </h3>
+                    <span className="text-[11px] text-[#8c7865]">تظهر في أسفل كل الصفحات</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">رابط إنستغرام (Instagram)</label>
+                      <input
+                        type="url"
+                        value={settingsForm.instagramUrl || ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
+                        placeholder="https://instagram.com/atharsilver"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">رابط تيك توك (TikTok)</label>
+                      <input
+                        type="url"
+                        value={settingsForm.tiktokUrl || ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, tiktokUrl: e.target.value })}
+                        placeholder="https://tiktok.com/@atharsilver"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">رابط فيسبوك (Facebook)</label>
+                      <input
+                        type="url"
+                        value={settingsForm.facebookUrl || ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
+                        placeholder="https://facebook.com/atharsilver"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Submit Theme Changes */}
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#1c1815] hover:bg-[#342c25] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
-                  >
-                    <Save className="w-4 h-4 text-amber-400" />
-                    <span>حفظ ونشر التعديلات على المتجر مباشرة</span>
-                  </button>
+                <div className="pt-2 sticky bottom-4 z-20">
+                  <div className="p-4 rounded-2xl bg-[#1c1815] border border-[#3b3229] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-white">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                        ✦
+                      </div>
+                      <div>
+                        <span className="font-bold text-xs sm:text-sm block">جاهز لتطبيق التعديلات على المتجر؟</span>
+                        <span className="text-[11px] text-[#c7b59e]">تُحفظ كافة التغييرات وتظهر فوراً لكل الزوار بدون إعادة تحميل</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-[#14110e] font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>حفظ ونشر التعديلات على المتجر مباشرة</span>
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

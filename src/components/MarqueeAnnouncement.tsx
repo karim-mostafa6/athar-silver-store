@@ -10,7 +10,8 @@ interface MarqueeAnnouncementProps {
 
 export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNotify }) => {
   const { storeSettings } = useStore();
-  const [timeLeft, setTimeLeft] = useState({ hours: 5, minutes: 42, seconds: 18 });
+  const initialHours = storeSettings.marqueeCountdownHours || 6;
+  const [timeLeft, setTimeLeft] = useState({ hours: initialHours, minutes: 42, seconds: 18 });
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -23,12 +24,12 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
         } else if (prev.hours > 0) {
           return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
         } else {
-          return { hours: 12, minutes: 0, seconds: 0 };
+          return { hours: storeSettings.marqueeCountdownHours || 6, minutes: 0, seconds: 0 };
         }
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [storeSettings.marqueeCountdownHours]);
 
   const handleCopyCode = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -40,8 +41,15 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
-  const tickerItems = [
-    {
+  if (storeSettings.showMarquee === false) {
+    return null;
+  }
+
+  const tickerItems: { icon: React.ReactNode; text: React.ReactNode }[] = [];
+
+  // 1. Countdown item
+  if (storeSettings.marqueeShowCountdown !== false) {
+    tickerItems.push({
       icon: <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />,
       text: (
         <span className="flex items-center gap-1.5 font-bold">
@@ -51,12 +59,27 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
           </span>
         </span>
       ),
-    },
-    {
+    });
+  }
+
+  // 2. Free Shipping item
+  if (storeSettings.marqueeShowFreeShipping !== false) {
+    tickerItems.push({
       icon: <Truck className="w-3.5 h-3.5 text-[#8a7258]" />,
-      text: <span>{storeSettings.announcementText}</span>,
-    },
-    {
+      text: (
+        <span>
+          {storeSettings.announcementText ||
+            `شحن مجاني على جميع الطلبات بقيمة ${storeSettings.freeShippingThreshold.toLocaleString(
+              "ar-EG"
+            )} ج.م أو أكثر لجميع المحافظات`}
+        </span>
+      ),
+    });
+  }
+
+  // 3. Promo code item
+  if (storeSettings.marqueeShowPromo !== false && storeSettings.promoCode) {
+    tickerItems.push({
       icon: <Sparkles className="w-3.5 h-3.5 text-amber-500" />,
       text: (
         <span className="flex items-center gap-1.5">
@@ -71,16 +94,34 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
           </button>
         </span>
       ),
-    },
-    {
+    });
+  }
+
+  // 4. Lifetime warranty item
+  if (storeSettings.marqueeShowWarranty !== false) {
+    tickerItems.push({
       icon: <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />,
       text: <span>فضة إسترليني إيطالية وتركية عيار 925 مختومة بضمان رسمي مدى الحياة</span>,
-    },
-    {
+    });
+  }
+
+  // 5. Gift wrap item
+  if (storeSettings.marqueeShowGiftWrap !== false) {
+    tickerItems.push({
       icon: <Gift className="w-3.5 h-3.5 text-rose-500" />,
       text: <span>تغليف إهداء مخملي فاخر مجاناً مع كارت معايدة مخصص لكل طلب</span>,
-    },
-  ];
+    });
+  }
+
+  // 6. Custom text item
+  if (storeSettings.marqueeCustomText && storeSettings.marqueeCustomText.trim()) {
+    tickerItems.push({
+      icon: <Sparkles className="w-3.5 h-3.5 text-amber-600" />,
+      text: <span>{storeSettings.marqueeCustomText}</span>,
+    });
+  }
+
+  if (tickerItems.length === 0) return null;
 
   return (
     <div className="w-full bg-[#f4ece0] border-b border-[#e5dacb] overflow-hidden py-2 text-xs text-[#4b3e32] select-none">
