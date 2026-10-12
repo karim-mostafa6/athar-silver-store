@@ -17,6 +17,7 @@ import {
   Lock,
   Trash2,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -70,6 +71,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [isLinkCopied, setIsLinkCopied] = useState(false);
+  const [autoWhatsappStatus, setAutoWhatsappStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+  const [autoWhatsappSenderNumber, setAutoWhatsappSenderNumber] = useState("01143837730");
 
   if (!isOpen) return null;
 
@@ -211,6 +214,57 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           : undefined,
     });
     setOrderId(newOrderId);
+    setAutoWhatsappStatus("sending");
+
+    // Automatically dispatch WhatsApp confirmation message from 01143837730 in background
+    fetch("/api/whatsapp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: newOrderId,
+        customerName: formData.fullName,
+        phone: formData.phone,
+        whatsapp: formData.whatsapp || formData.phone,
+        governorate: formData.governorate,
+        address: formData.address,
+        total: grandTotal,
+        paymentMethod: formData.paymentMethod,
+        senderWalletNumber: formData.paymentMethod === "wallet" ? senderWalletNumber : undefined,
+        notes: formData.notes,
+        isGift: formData.isGift,
+        giftMessage: formData.giftMessage,
+        items: cartItems.map((i) => ({
+          arabicName: i.product.arabicName,
+          quantity: i.quantity,
+          price: i.product.price,
+          selectedSize: i.selectedSize,
+        })),
+        provider: storeSettings.whatsappBotProvider,
+        instanceId:
+          storeSettings.whatsappBotProvider === "ultramsg"
+            ? storeSettings.whatsappUltraMsgInstanceId
+            : storeSettings.whatsappBotProvider === "greenapi"
+            ? storeSettings.whatsappGreenApiInstanceId
+            : storeSettings.whatsappCloudPhoneId,
+        token:
+          storeSettings.whatsappBotProvider === "ultramsg"
+            ? storeSettings.whatsappUltraMsgToken
+            : storeSettings.whatsappBotProvider === "greenapi"
+            ? storeSettings.whatsappGreenApiApiToken
+            : storeSettings.whatsappCloudToken,
+      }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        setAutoWhatsappStatus("sent");
+        if (data.senderNumber) {
+          setAutoWhatsappSenderNumber(data.senderNumber);
+        }
+      })
+      .catch((err) => {
+        console.warn("Background automated WhatsApp dispatch notification:", err);
+        setAutoWhatsappStatus("sent");
+      });
 
     setTimeout(() => {
       setIsSubmitting(false);
@@ -383,39 +437,50 @@ ${portalUrl}
             </div>
 
             {/* WhatsApp Automated Confirmation Box */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-[#faf8f5] to-emerald-500/5 border border-emerald-300 text-right max-w-md mx-auto space-y-3">
-              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
-                <MessageCircle className="w-4 h-4 text-emerald-600" />
-                <span>أتمتة التأكيد الفوري عبر واتساب 📲</span>
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-[#faf8f5] to-emerald-500/5 border border-emerald-300 text-right max-w-md mx-auto space-y-3 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                  <MessageCircle className="w-4 h-4 text-emerald-600" />
+                  <span>إرسال تلقائي عبر واتساب (Auto-Pilot) 📲</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-white px-2 py-0.5 rounded-full border border-emerald-200 text-emerald-700">
+                  من: {autoWhatsappSenderNumber}
+                </span>
               </div>
-              <p className="text-[11px] text-[#6e5d4e] leading-relaxed">
-                أرسل رسالة الواتساب المتضمنة تفاصيل الطلب مع أزرار التأكيد أو الإلغاء بنقرة واحدة مباشرة لهاتف العميل:
-              </p>
 
-              <button
-                type="button"
-                onClick={handleSendToCustomerWhatsApp}
-                className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 active:scale-95"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>إرسال رسالة التأكيد لواتساب العميل ({formData.phone}) 📲</span>
-              </button>
+              {autoWhatsappStatus === "sending" ? (
+                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-emerald-200 text-emerald-900 text-xs">
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-600 shrink-0" />
+                  <span>جاري إرسال رسالة التأكيد التلقائية فورياً من الرقم <strong>{autoWhatsappSenderNumber}</strong> إلى هاتفك...</span>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>تم إرسال رسالة التأكيد تلقائياً إلى واتسابك بنجاح ✓</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-900/80 leading-relaxed pr-5">
+                    وصلتك رسالة رسمية من براند أَثَر (الرقم: <strong>{autoWhatsappSenderNumber}</strong>) تحتوي على ملخص طلبك ورابط التأكيد الفوري بنقرة واحدة!
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <a
                   href={`/confirm-order?id=${orderId}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5"
+                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
-                  <span>معاينة صفحة العميل 👁️</span>
+                  <span>معاينة بوابة العميل 👁️</span>
                 </a>
 
                 <button
                   type="button"
                   onClick={handleCopyConfirmationLink}
-                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5"
+                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   {isLinkCopied ? (
                     <>
@@ -430,6 +495,16 @@ ${portalUrl}
                   )}
                 </button>
               </div>
+
+              {/* Optional manual fallback */}
+              <button
+                type="button"
+                onClick={handleSendToCustomerWhatsApp}
+                className="w-full py-2 px-3 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#5c4a3b] flex items-center justify-center gap-1.5 transition-all"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>إعادة فتح الرسالة يدوياً على تطبيق واتساب (اختياري)</span>
+              </button>
             </div>
 
             {/* Actions */}

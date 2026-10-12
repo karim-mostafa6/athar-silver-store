@@ -44,6 +44,8 @@ import {
   FileText,
   Ban,
   Undo2,
+  Send,
+  Loader2,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -580,6 +582,75 @@ export default function AdminPage() {
     updateStoreSettings(settingsForm);
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2500);
+  };
+
+  // Test WhatsApp Dispatcher State & Handler
+  const [testWhatsAppPhone, setTestWhatsAppPhone] = useState<string>("01143837730");
+  const [testWhatsAppStatus, setTestWhatsAppStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [testWhatsAppResult, setTestWhatsAppResult] = useState<{
+    success?: boolean;
+    mode?: string;
+    provider?: string;
+    senderNumber?: string;
+    recipientPhone?: string;
+    notice?: string;
+    error?: string;
+  } | null>(null);
+
+  const handleTestWhatsAppSend = async () => {
+    if (!testWhatsAppPhone.trim()) {
+      alert("يرجى كتابة رقم هاتف لإرسال الرسالة التجريبية إليه");
+      return;
+    }
+    setTestWhatsAppStatus("loading");
+    setTestWhatsAppResult(null);
+    try {
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: "ATH-TEST",
+          customerName: "تجربة كريم مصطفى",
+          phone: testWhatsAppPhone,
+          whatsapp: testWhatsAppPhone,
+          governorate: "القاهرة",
+          address: "مقر إدارة أَثَر للفضة 925",
+          total: 1450,
+          items: [
+            {
+              arabicName: "خاتم ملكي عيار 925 مرصع بزركون سويسري",
+              quantity: 1,
+              price: 1450,
+              selectedSize: "مقاس 18",
+            },
+          ],
+          provider: settingsForm.whatsappBotProvider,
+          instanceId:
+            settingsForm.whatsappBotProvider === "ultramsg"
+              ? settingsForm.whatsappUltraMsgInstanceId
+              : settingsForm.whatsappBotProvider === "greenapi"
+              ? settingsForm.whatsappGreenApiInstanceId
+              : settingsForm.whatsappCloudPhoneId,
+          token:
+            settingsForm.whatsappBotProvider === "ultramsg"
+              ? settingsForm.whatsappUltraMsgToken
+              : settingsForm.whatsappBotProvider === "greenapi"
+              ? settingsForm.whatsappGreenApiApiToken
+              : settingsForm.whatsappCloudToken,
+          isTest: true,
+        }),
+      });
+      const data = await res.json();
+      setTestWhatsAppResult(data);
+      setTestWhatsAppStatus(data.success ? "success" : "error");
+      if (data.success) {
+        addToast("إرسال ناجح 📲", `تم إرسال الرسالة بنجاح إلى الرقم ${testWhatsAppPhone}`, "info");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "خطأ غير متوقع";
+      setTestWhatsAppResult({ error: message });
+      setTestWhatsAppStatus("error");
+    }
   };
 
   // Export Data
@@ -3868,86 +3939,207 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* 3. WhatsApp Order Confirmation & Bot Automation Settings */}
-                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#f4ece0] pb-2.5 gap-2">
+                  {/* 3. WhatsApp Automated Confirmation & Bot Automation Settings */}
+                  <div className="p-5 rounded-2xl bg-white border border-[#ebdcca] space-y-5 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#f4ece0] pb-3 gap-2">
                       <div className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-emerald-600" />
-                        <span className="text-xs font-bold text-[#1c1815]">
-                          3. أتمتة رسائل وتأكيد الطلبات عبر واتساب (WhatsApp Confirmation & Bot):
-                        </span>
+                        <div className="w-8 h-8 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 flex items-center justify-center font-bold">
+                          📲
+                        </div>
+                        <div>
+                          <span className="text-xs sm:text-sm font-bold text-[#1c1815] block">
+                            3. نظام الإرسال التلقائي للواتساب من الرقم 01143837730 (WhatsApp Auto-Pilot):
+                          </span>
+                          <span className="text-[11px] text-[#8c7865]">
+                            إرسال رسائل الفواتير وروابط التأكيد فوراً للعملاء تلقائياً 24/7 بدون تدخل يدوي
+                          </span>
+                        </div>
                       </div>
-                      <label className="flex items-center gap-2 cursor-pointer bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 select-none self-start sm:self-auto">
-                        <input
-                          type="checkbox"
-                          checked={settingsForm.whatsappAutoConfirm !== false}
-                          onChange={(e) =>
-                            setSettingsForm({ ...settingsForm, whatsappAutoConfirm: e.target.checked })
-                          }
-                          className="rounded border-[#d8c8b4] text-emerald-600 focus:ring-0 w-3.5 h-3.5"
-                        />
-                        <span className="text-xs font-bold text-emerald-900">
-                          {settingsForm.whatsappAutoConfirm !== false ? "التأكيد التلقائي مفعّل 🟢" : "معطل ⚪"}
-                        </span>
-                      </label>
+                      <div className="flex items-center gap-2">
+                        <label className="flex items-center gap-2 cursor-pointer bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 select-none">
+                          <input
+                            type="checkbox"
+                            checked={settingsForm.whatsappAutoSendOnOrder !== false}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, whatsappAutoSendOnOrder: e.target.checked })
+                            }
+                            className="rounded border-[#d8c8b4] text-emerald-600 focus:ring-0 w-3.5 h-3.5"
+                          />
+                          <span className="text-xs font-bold text-emerald-900">
+                            {settingsForm.whatsappAutoSendOnOrder !== false ? "الإرسال التلقائي مفعّل 🟢" : "معطل ⚪"}
+                          </span>
+                        </label>
+                      </div>
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 text-xs space-y-1">
-                      <span className="font-bold block">
-                        💡 كيف تعمل أتمتة تأكيد الواتساب الاحترافية؟
-                      </span>
-                      <p className="text-[11px] text-emerald-900/90 leading-relaxed">
-                        بمجرد أن يُنهي العميل طلبه، يتم تجهيز رسالة واتساب رسمية تتضمن تفاصيل الطلب بالإضافة إلى:
-                        <strong> رابط تأكيد الطلب بنقرة واحدة</strong> و <strong>رابط إلغاء الطلب مع تسجيل السبب</strong>.
-                        عند ضغط العميل على أي منهما، تنتقل حالة الطلب تلقائياً في لوحة التحكم إلى <em>&quot;مؤكد عبر واتساب 📲&quot;</em> أو <em>&quot;ملغي ❌&quot;</em> لتكون مكالمتك الهاتفية أسهل وتوفر عليك مصاريف الشحن المرتجع!
+                    {/* How It Works Explainer Box */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-[#faf8f5] to-emerald-50/50 border border-emerald-300/80 text-emerald-950 text-xs space-y-2">
+                      <div className="flex items-center gap-2 font-bold text-emerald-900">
+                        <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>💡 كيف يعمل الإرسال التلقائي من رقمك (01143837730) بدون أن تفتح الواتساب بنفسك؟</span>
+                      </div>
+                      <p className="text-[11px] text-emerald-900/90 leading-relaxed pr-6">
+                        المتصفحات العادية لا تسمح بإرسال رسائل بالخفاء بدون فتح شاشة الواتساب، لذلك قمنا ببناء <strong>محرك إرسال تلقائي (API Gateway)</strong>.
+                        يمكنك ربط رقمك <strong>01143837730</strong> في دقيقة واحدة عن طريق مسح باركود (QR Code) تماماً مثل WhatsApp Web عبر خدمة <strong>UltraMsg</strong> أو <strong>Green-API</strong>. بمجرد مسح الكود مرة واحدة، يقوم السيرفر بإطلاق الرسائل مباشرة لهواتف العملاء في أقل من ثانية واحدة مع روابط التأكيد والإلغاء!
                       </p>
                     </div>
 
+                    {/* Sender Number & Provider Selector */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-[#1c1815] block">
-                          نظام إرسال الواتساب المستخدم:
+                          رقم المتجر المعتمد للإرسال (Sender Phone Number):
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.whatsappSenderNumber || "01143837730"}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, whatsappSenderNumber: e.target.value })
+                          }
+                          placeholder="01143837730"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono font-bold text-[#1c1815] dir-ltr text-right"
+                        />
+                        <span className="text-[10px] text-[#8c7865] block">
+                          * الرقم الذي ستظهر منه الرسائل التلقائية للعملاء ({settingsForm.whatsappSenderNumber || "01143837730"}).
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          بوابة الربط التلقائي للرقم (Gateway Provider):
                         </label>
                         <select
-                          value={settingsForm.whatsappBotProvider || "direct_link"}
+                          value={settingsForm.whatsappBotProvider || "ultramsg"}
                           onChange={(e) =>
                             setSettingsForm({
                               ...settingsForm,
-                              whatsappBotProvider: e.target.value as "direct_link" | "cloud_api" | "ultramsg",
+                              whatsappBotProvider: e.target.value as StoreSettings["whatsappBotProvider"],
                             })
                           }
                           className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
                         >
-                          <option value="direct_link">
-                            روابط واتساب التفاعلية الفورية (wa.me) - مجاني وبدون تكلفة ✓
+                          <option value="ultramsg">
+                            1. بوابة UltraMsg (الأسهل: مسح QR Code من هاتف 01143837730) ⭐ موصى به
+                          </option>
+                          <option value="greenapi">
+                            2. بوابة Green-API (مسح QR Code من هاتف 01143837730)
                           </option>
                           <option value="cloud_api">
-                            Meta WhatsApp Cloud API (ربط رسمي بشريحة تجارية مستقبلاً)
+                            3. Meta WhatsApp Cloud API (الربط الرسمي من شركة ميتا)
                           </option>
-                          <option value="ultramsg">
-                            UltraMsg / Wati Gateway (بوابة مخصصة)
+                          <option value="direct_link">
+                            4. فتح روابط wa.me التفاعلية (بدون بوابة خارجية)
                           </option>
                         </select>
                       </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[#1c1815] block">
-                          رقم هاتف الواتساب المعتمد للمتجر:
-                        </label>
-                        <input
-                          type="text"
-                          value={settingsForm.whatsappNumber || "201099887766"}
-                          onChange={(e) =>
-                            setSettingsForm({ ...settingsForm, whatsappNumber: e.target.value })
-                          }
-                          placeholder="مثال: 201143837730"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono font-bold text-[#1c1815] dir-ltr text-right"
-                        />
-                      </div>
                     </div>
 
+                    {/* UltraMsg Fields */}
+                    {(!settingsForm.whatsappBotProvider || settingsForm.whatsappBotProvider === "ultramsg") && (
+                      <div className="p-4 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] space-y-3">
+                        <div className="flex items-center justify-between border-b border-[#ebdcca] pb-2">
+                          <span className="text-xs font-bold text-[#1c1815] flex items-center gap-1.5">
+                            <span>📲 إعدادات ربط رقمك 01143837730 عبر UltraMsg:</span>
+                          </span>
+                          <a
+                            href="https://ultramsg.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] text-emerald-700 hover:underline font-bold flex items-center gap-1"
+                          >
+                            <span>فتح موقع UltraMsg وعمل مسح QR</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-[#1c1815] block">Instance ID (معرف النسخة):</label>
+                            <input
+                              type="text"
+                              value={settingsForm.whatsappUltraMsgInstanceId || ""}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, whatsappUltraMsgInstanceId: e.target.value })
+                              }
+                              placeholder="مثال: instance104821"
+                              className="w-full px-3 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-mono text-left"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-[#1c1815] block">Token (رمز التحقق السري):</label>
+                            <input
+                              type="password"
+                              value={settingsForm.whatsappUltraMsgToken || ""}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, whatsappUltraMsgToken: e.target.value })
+                              }
+                              placeholder="مثال: a1b2c3d4e5f6..."
+                              className="w-full px-3 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-mono text-left"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="text-[10px] text-[#8c7865] space-y-0.5 pt-1">
+                          <p><strong>خطوات التفعيل في 60 ثانية:</strong></p>
+                          <p>1. ادخل على ultramsg.com واضغط Start Free Trial (تجربة مجانية).</p>
+                          <p>2. افتح الواتساب على هاتفك (01143837730) واختر: الأجهزة المرتبطة (Linked Devices) وامسح كود الـ QR.</p>
+                          <p>3. انسخ Instance ID و Token والصقهما هنا واضغط حفظ بالأسفل، وسيتم الإرسال التلقائي بنجاح!</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Green API Fields */}
+                    {settingsForm.whatsappBotProvider === "greenapi" && (
+                      <div className="p-4 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] space-y-3">
+                        <div className="flex items-center justify-between border-b border-[#ebdcca] pb-2">
+                          <span className="text-xs font-bold text-[#1c1815]">
+                            📲 إعدادات ربط رقمك 01143837730 عبر Green-API:
+                          </span>
+                          <a
+                            href="https://green-api.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] text-emerald-700 hover:underline font-bold flex items-center gap-1"
+                          >
+                            <span>فتح موقع Green-API</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-[#1c1815] block">IdInstance:</label>
+                            <input
+                              type="text"
+                              value={settingsForm.whatsappGreenApiInstanceId || ""}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, whatsappGreenApiInstanceId: e.target.value })
+                              }
+                              placeholder="1101928374"
+                              className="w-full px-3 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-mono text-left"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-[#1c1815] block">ApiTokenInstance:</label>
+                            <input
+                              type="password"
+                              value={settingsForm.whatsappGreenApiApiToken || ""}
+                              onChange={(e) =>
+                                setSettingsForm({ ...settingsForm, whatsappGreenApiApiToken: e.target.value })
+                              }
+                              placeholder="d87f98e72c84..."
+                              className="w-full px-3 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-mono text-left"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Meta Cloud API Fields */}
                     {settingsForm.whatsappBotProvider === "cloud_api" && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-[#faf8f5] border border-[#ebdcca] animate-in fade-in duration-150">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#faf8f5] border border-[#d8c8b4]">
                         <div className="space-y-1">
                           <label className="text-[11px] font-bold text-[#1c1815] block">Meta Cloud Token:</label>
                           <input
@@ -3957,7 +4149,7 @@ export default function AdminPage() {
                               setSettingsForm({ ...settingsForm, whatsappCloudToken: e.target.value })
                             }
                             placeholder="EAAG..."
-                            className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono"
+                            className="w-full px-3 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-mono text-left"
                           />
                         </div>
                         <div className="space-y-1">
@@ -3969,7 +4161,7 @@ export default function AdminPage() {
                               setSettingsForm({ ...settingsForm, whatsappCloudPhoneId: e.target.value })
                             }
                             placeholder="104928174..."
-                            className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono"
+                            className="w-full px-3 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-mono text-left"
                           />
                         </div>
                         <div className="space-y-1">
@@ -3981,11 +4173,87 @@ export default function AdminPage() {
                               setSettingsForm({ ...settingsForm, whatsappCloudTemplateName: e.target.value })
                             }
                             placeholder="order_confirmation_v1"
-                            className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono"
+                            className="w-full px-3 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-mono text-left"
                           />
                         </div>
                       </div>
                     )}
+
+                    {/* LIVE INTERACTIVE TEST DISPATCHER */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-[#faf8f5] to-[#f4ece0] border border-[#ded1be] space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#1c1815] flex items-center gap-1.5">
+                          <Send className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>تجربة إرسال رسالة تلقائية حية الآن (Live Test Sender):</span>
+                        </span>
+                        <span className="text-[10px] text-[#8c7865] font-mono">
+                          المرسل: {settingsForm.whatsappSenderNumber || "01143837730"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          value={testWhatsAppPhone}
+                          onChange={(e) => setTestWhatsAppPhone(e.target.value)}
+                          placeholder="اكتب رقم الهاتف لتجربة الاستلام (مثال: 01143837730)"
+                          className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#d8c8b4] bg-white text-xs font-mono font-bold text-[#1c1815] dir-ltr text-right"
+                        />
+                        <button
+                          type="button"
+                          disabled={testWhatsAppStatus === "loading"}
+                          onClick={handleTestWhatsAppSend}
+                          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm shrink-0 active:scale-95"
+                        >
+                          {testWhatsAppStatus === "loading" ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>جاري إرسال التجربة...</span>
+                            </>
+                          ) : (
+                            <>
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              <span>إرسال رسالة تجريبية الآن 🚀</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {testWhatsAppResult && (
+                        <div
+                          className={`p-3 rounded-xl text-xs space-y-1.5 animate-in fade-in duration-150 ${
+                            testWhatsAppStatus === "success"
+                              ? "bg-emerald-50 border border-emerald-300 text-emerald-900"
+                              : "bg-rose-50 border border-rose-300 text-rose-900"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between font-bold">
+                            <span className="flex items-center gap-1">
+                              {testWhatsAppStatus === "success" ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                  <span>تمت معالجة الإرسال التلقائي بنجاح!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="w-4 h-4 text-rose-600" />
+                                  <span>فشل الإرسال: {testWhatsAppResult.error || "خطأ غير معروف"}</span>
+                                </>
+                              )}
+                            </span>
+                            <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border">
+                              الوضع: {testWhatsAppResult.mode || "جاهز"}
+                            </span>
+                          </div>
+
+                          {testWhatsAppResult.notice && (
+                            <p className="text-[11px] leading-relaxed opacity-90">
+                              {testWhatsAppResult.notice}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 

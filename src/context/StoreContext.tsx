@@ -128,8 +128,14 @@ export interface StoreSettings {
   paymobMode?: "test" | "live";
 
   // WhatsApp Order Confirmation & Bot Automation
+  whatsappSenderNumber?: string;
   whatsappAutoConfirm?: boolean;
-  whatsappBotProvider?: "direct_link" | "cloud_api" | "ultramsg";
+  whatsappAutoSendOnOrder?: boolean;
+  whatsappBotProvider?: "ultramsg" | "greenapi" | "cloud_api" | "direct_link" | "simulation";
+  whatsappUltraMsgInstanceId?: string;
+  whatsappUltraMsgToken?: string;
+  whatsappGreenApiInstanceId?: string;
+  whatsappGreenApiApiToken?: string;
   whatsappCloudToken?: string;
   whatsappCloudPhoneId?: string;
   whatsappCloudTemplateName?: string;
@@ -235,7 +241,7 @@ interface StoreContextType {
 }
 
 const DEFAULT_SETTINGS: StoreSettings = {
-  whatsappNumber: "201099887766",
+  whatsappNumber: "01143837730",
   announcementText: "شحن مجاني لكافة محافظات مصر على الطلبات فوق 2,500 ج.م",
   freeShippingThreshold: 2500,
   promoCode: "ATHAR10",
@@ -341,8 +347,14 @@ const DEFAULT_SETTINGS: StoreSettings = {
   paymobMode: "test",
 
   // WhatsApp Order Confirmation & Bot Defaults
+  whatsappSenderNumber: "01143837730",
   whatsappAutoConfirm: true,
-  whatsappBotProvider: "direct_link",
+  whatsappAutoSendOnOrder: true,
+  whatsappBotProvider: "ultramsg",
+  whatsappUltraMsgInstanceId: "",
+  whatsappUltraMsgToken: "",
+  whatsappGreenApiInstanceId: "",
+  whatsappGreenApiApiToken: "",
   whatsappCloudToken: "",
   whatsappCloudPhoneId: "",
   whatsappCloudTemplateName: "order_confirmation_v1",
