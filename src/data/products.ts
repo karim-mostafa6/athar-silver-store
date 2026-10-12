@@ -401,29 +401,49 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-export const GOVERNORATES = [
-  { name: "القاهرة", shipping: 45 },
-  { name: "الجيزة", shipping: 45 },
-  { name: "الإسكندرية", shipping: 50 },
-  { name: "القليوبية", shipping: 50 },
-  { name: "الدقهلية (المنصورة)", shipping: 55 },
-  { name: "الشرقية (الزقازيق)", shipping: 55 },
-  { name: "الغربية (طنطا)", shipping: 55 },
-  { name: "المنوفية", shipping: 55 },
-  { name: "البحيرة", shipping: 55 },
-  { name: "دمياط", shipping: 55 },
-  { name: "بورسعيد", shipping: 55 },
-  { name: "الإسماعيلية", shipping: 55 },
-  { name: "السويس", shipping: 55 },
-  { name: "كفر الشيخ", shipping: 55 },
-  { name: "الفيوم", shipping: 60 },
-  { name: "بني سويف", shipping: 60 },
-  { name: "المنيا", shipping: 65 },
-  { name: "أسيوط", shipping: 65 },
-  { name: "سوهاج", shipping: 70 },
-  { name: "قنا", shipping: 70 },
-  { name: "الأقصر", shipping: 75 },
-  { name: "أسوان", shipping: 75 },
-  { name: "البحر الأحمر (الغردقة)", shipping: 75 },
-  { name: "جنوب سيناء (شرم الشيخ)", shipping: 80 },
+export interface GovernorateInfo {
+  name: string;
+  region: "cairo" | "alex_coast" | "delta" | "canal_sinai" | "upper_egypt";
+  regionName: string;
+  shipping: number;
+  deliveryEstimate: string;
+}
+
+export const GOVERNORATES: GovernorateInfo[] = [
+  // القاهرة الكبرى
+  { name: "القاهرة", region: "cairo", regionName: "القاهرة الكبرى", shipping: 45, deliveryEstimate: "خلال 24-48 ساعة" },
+  { name: "الجيزة", region: "cairo", regionName: "القاهرة الكبرى", shipping: 45, deliveryEstimate: "خلال 24-48 ساعة" },
+  { name: "القليوبية", region: "cairo", regionName: "القاهرة الكبرى", shipping: 50, deliveryEstimate: "خلال 24-48 ساعة" },
+
+  // الإسكندرية والساحل
+  { name: "الإسكندرية", region: "alex_coast", regionName: "الإسكندرية والساحل", shipping: 50, deliveryEstimate: "خلال 24-48 ساعة" },
+  { name: "مطروح (الساحل الشمالي)", region: "alex_coast", regionName: "الإسكندرية والساحل", shipping: 75, deliveryEstimate: "خلال 2-3 أيام" },
+
+  // الدلتا والوجه البحري
+  { name: "الدقهلية (المنصورة)", region: "delta", regionName: "الدلتا والوجه البحري", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "الشرقية (الزقازيق)", region: "delta", regionName: "الدلتا والوجه البحري", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "الغربية (طنطا)", region: "delta", regionName: "الدلتا والوجه البحري", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "المنوفية", region: "delta", regionName: "الدلتا والوجه البحري", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "البحيرة", region: "delta", regionName: "الدلتا والوجه البحري", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "كفر الشيخ", region: "delta", regionName: "الدلتا والوجه البحري", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "دمياط", region: "delta", regionName: "الدلتا والوجه البحري", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+
+  // مدن القناة وسيناء
+  { name: "بورسعيد", region: "canal_sinai", regionName: "مدن القناة وسيناء", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "الإسماعيلية", region: "canal_sinai", regionName: "مدن القناة وسيناء", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "السويس", region: "canal_sinai", regionName: "مدن القناة وسيناء", shipping: 55, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "جنوب سيناء (شرم الشيخ)", region: "canal_sinai", regionName: "مدن القناة وسيناء", shipping: 80, deliveryEstimate: "خلال 3-4 أيام" },
+  { name: "شمال سيناء", region: "canal_sinai", regionName: "مدن القناة وسيناء", shipping: 80, deliveryEstimate: "خلال 3-4 أيام" },
+
+  // صعيد مصر والجنوب
+  { name: "الفيوم", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 60, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "بني سويف", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 60, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "المنيا", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 65, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "أسيوط", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 65, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "سوهاج", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 70, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "قنا", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 70, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "الأقصر", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 75, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "أسوان", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 75, deliveryEstimate: "خلال 3-4 أيام" },
+  { name: "البحر الأحمر (الغردقة)", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 75, deliveryEstimate: "خلال 2-3 أيام" },
+  { name: "الوادي الجديد", region: "upper_egypt", regionName: "صعيد مصر والجنوب", shipping: 85, deliveryEstimate: "خلال 3-5 أيام" },
 ];

@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useStore, StoreSettings, Order, NavLinkItem } from "@/context/StoreContext";
-import { Product, StoreCategory, DEFAULT_CATEGORIES } from "@/data/products";
+import { Product, StoreCategory, DEFAULT_CATEGORIES, GOVERNORATES } from "@/data/products";
+import { playRoyalOrderChime } from "@/lib/sound";
 import {
   Lock,
   User,
@@ -49,6 +50,11 @@ import {
   Copy,
   Check,
   ShieldCheck,
+  Bell,
+  BellOff,
+  Volume2,
+  Truck,
+  MapPin,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -190,6 +196,82 @@ export default function AdminPage() {
     icon: "✨",
     slug: "",
   });
+
+  // Sound Alert State & Ref
+  const [soundAlertEnabled, setSoundAlertEnabled] = useState<boolean>(true);
+  const prevOrdersCountRef = useRef<number | null>(null);
+
+  // Governorate Shipping Customizer State
+  const [govRegionFilter, setGovRegionFilter] = useState<string>("all");
+  const [bulkShippingInput, setBulkShippingInput] = useState<string>("");
+  const [govSearchQuery, setGovSearchQuery] = useState<string>("");
+
+  // Load sound alert preference
+  useEffect(() => {
+    const saved = localStorage.getItem("athar_sound_alert_enabled");
+    if (saved !== null) {
+      setSoundAlertEnabled(saved === "true");
+    }
+  }, []);
+
+  const toggleSoundAlert = () => {
+    setSoundAlertEnabled((prev) => {
+      const next = !prev;
+      localStorage.setItem("athar_sound_alert_enabled", String(next));
+      if (next) {
+        playRoyalOrderChime();
+        addToast("التنبيه الصوتي", "تم تفعيل التنبيه الصوتي للطلبات الجديدة 🔔", "info");
+      } else {
+        addToast("التنبيه الصوتي", "تم كتم صوت تنبيهات الطلبات 🔕", "info");
+      }
+      return next;
+    });
+  };
+
+  const handleTestSoundAlert = () => {
+    playRoyalOrderChime();
+    addToast("اختبار الصوت 🔊", "تم تشغيل نغمة التنبيه الملكية للطلبات بنجاح!", "info");
+  };
+
+  // Watch for new incoming orders and trigger royal audio alert
+  useEffect(() => {
+    if (prevOrdersCountRef.current === null) {
+      prevOrdersCountRef.current = orders.length;
+      return;
+    }
+
+    if (orders.length > prevOrdersCountRef.current) {
+      const newOrdersCount = orders.length - prevOrdersCountRef.current;
+      const newestOrder = orders[0];
+
+      if (soundAlertEnabled) {
+        playRoyalOrderChime();
+      }
+
+      // Flash page title for 10 seconds
+      const originalTitle = document.title;
+      let flashes = 0;
+      const interval = setInterval(() => {
+        document.title =
+          flashes % 2 === 0
+            ? `🔔 (${newOrdersCount}) طلب جديد وارد!`
+            : "أَثَـر | لوحة التحكم";
+        flashes++;
+        if (flashes > 12) {
+          clearInterval(interval);
+          document.title = originalTitle;
+        }
+      }, 750);
+
+      addToast(
+        "🔔 طلب جديد وارد الآن!",
+        `طلب #${newestOrder?.id || ""} بقيمة ${(newestOrder?.total || 0).toLocaleString("ar-EG")} ج.م من العميل (${newestOrder?.customerName || ""})`,
+        "cart"
+      );
+    }
+
+    prevOrdersCountRef.current = orders.length;
+  }, [orders, soundAlertEnabled, addToast]);
 
   // Check login on mount
   useEffect(() => {
@@ -797,6 +879,58 @@ export default function AdminPage() {
     }
   };
 
+  // Handle Single Governorate Rate Change
+  const handleGovernorateRateChange = (govName: string, rate: number) => {
+    const updatedRates = {
+      ...(settingsForm.governorateShippingRates || {}),
+      [govName]: isNaN(rate) ? 0 : Math.max(0, rate),
+    };
+    const updatedSettings = {
+      ...settingsForm,
+      governorateShippingRates: updatedRates,
+    };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+  };
+
+  // Apply Bulk Shipping Rate to All Governorates
+  const handleApplyBulkShippingRate = () => {
+    const rate = Number(bulkShippingInput);
+    if (isNaN(rate) || rate < 0 || bulkShippingInput.trim() === "") {
+      alert("يرجى إدخال قيمة صحيحة لسعر الشحن الموحد");
+      return;
+    }
+    const newRates: Record<string, number> = {};
+    GOVERNORATES.forEach((g) => {
+      newRates[g.name] = rate;
+    });
+    const updatedSettings = {
+      ...settingsForm,
+      governorateShippingRates: newRates,
+    };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+    setBulkShippingInput("");
+    addToast("تم التحديث 🚚", `تم تطبيق سعر شحن ${rate} ج.م على كافة المحافظات الـ 27`, "info");
+  };
+
+  // Reset Governorate Shipping Rates to Defaults
+  const handleResetGovernorateRates = () => {
+    if (confirm("هل ترغب في استعادة أسعار الشحن الافتراضية لكافة محافظات مصر الـ 27؟")) {
+      const defaultRates: Record<string, number> = {};
+      GOVERNORATES.forEach((g) => {
+        defaultRates[g.name] = g.shipping;
+      });
+      const updatedSettings = {
+        ...settingsForm,
+        governorateShippingRates: defaultRates,
+      };
+      setSettingsForm(updatedSettings);
+      updateStoreSettings(updatedSettings);
+      addToast("تمت الاستعادة", "تمت استعادة أسعار الشحن الافتراضية لكافة المحافظات", "info");
+    }
+  };
+
   // Save Settings
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1194,6 +1328,46 @@ export default function AdminPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Live Order Sound Alert Controller */}
+            <div className="flex items-center gap-1.5 bg-[#251f19] p-1 rounded-xl border border-[#3d3328]">
+              <button
+                type="button"
+                onClick={toggleSoundAlert}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  soundAlertEnabled
+                    ? "bg-emerald-900/60 hover:bg-emerald-800 text-emerald-300 border border-emerald-600/50 shadow-sm"
+                    : "bg-[#1c1815] text-[#8c7865] hover:text-[#c7b59e] border border-transparent"
+                }`}
+                title={
+                  soundAlertEnabled
+                    ? "التنبيه الصوتي مفعّل للطلبات الجديدة - اضغط للكتم"
+                    : "التنبيه الصوتي مكتوم - اضغط للتفعيل"
+                }
+              >
+                {soundAlertEnabled ? (
+                  <>
+                    <Bell className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
+                    <span>تنبيه الطلبات: مفعّل</span>
+                  </>
+                ) : (
+                  <>
+                    <BellOff className="w-3.5 h-3.5 text-[#8c7865]" />
+                    <span>تنبيه الطلبات: صامت</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleTestSoundAlert}
+                className="px-2 py-1 rounded-lg hover:bg-[#382f27] text-[#c7b59e] hover:text-white transition-colors flex items-center gap-1 text-[11px] font-bold"
+                title="تجربة صوت الرنين الفاخر للطلبات 🔔"
+              >
+                <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden xl:inline">اختبار الصوت</span>
+              </button>
+            </div>
+
             <Link
               href="/"
               target="_blank"
@@ -4073,57 +4247,156 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Regional Shipping Fees */}
-                <div className="space-y-3 pt-2">
-                  <label className="text-xs font-bold text-[#1c1815] block">أسعار الشحن للمحافظات (ج.م):</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="p-3 rounded-xl bg-[#faf8f5] border border-[#ebdcca] space-y-1">
-                      <span className="text-[11px] text-[#8c7865] block">القاهرة والجيزة</span>
-                      <input
-                        type="number"
-                        value={settingsForm.shippingCairoGiza}
-                        onChange={(e) =>
-                          setSettingsForm({ ...settingsForm, shippingCairoGiza: Number(e.target.value) })
-                        }
-                        className="w-full font-bold text-sm bg-transparent border-b border-[#d8c8b4] py-1 focus:outline-none"
-                      />
+                {/* ======================================================== */}
+                {/* 27 EGYPTIAN GOVERNORATES INDEPENDENT SHIPPING MANAGER */}
+                {/* ======================================================== */}
+                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#ebdcca] shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#f4ece0] pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
+                        <Truck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm sm:text-base text-[#1c1815] flex items-center gap-2">
+                          <span>تخصيص أسعار الشحن لكل محافظة بشكل مستقل (27 محافظة)</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                            تحديث فوري
+                          </span>
+                        </h3>
+                        <p className="text-xs text-[#8c7865] mt-0.5">
+                          حدد السعر المخصص لكل محافظة على حدة، وسيظهر تلقائياً للعميل عند إتمام الطلب
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-[#faf8f5] border border-[#ebdcca] space-y-1">
-                      <span className="text-[11px] text-[#8c7865] block">الإسكندرية</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleResetGovernorateRates}
+                        className="px-3 py-1.5 rounded-xl border border-[#ebdcca] bg-[#faf8f5] hover:bg-[#f5efe6] text-xs font-bold text-[#6d5b4a] transition-colors flex items-center gap-1.5 shadow-sm"
+                        title="استعادة الأسعار الافتراضية لكافة المحافظات"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
+                        <span>استعادة الافتراضي</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Bulk Price Setter & Search Bar */}
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-[#faf8f5] p-3.5 rounded-2xl border border-[#ebdcca]">
+                    {/* Search by governorate name */}
+                    <div className="relative w-full md:w-64">
                       <input
-                        type="number"
-                        value={settingsForm.shippingAlex}
-                        onChange={(e) =>
-                          setSettingsForm({ ...settingsForm, shippingAlex: Number(e.target.value) })
-                        }
-                        className="w-full font-bold text-sm bg-transparent border-b border-[#d8c8b4] py-1 focus:outline-none"
+                        type="text"
+                        placeholder="ابحث عن اسم محافظة..."
+                        value={govSearchQuery}
+                        onChange={(e) => setGovSearchQuery(e.target.value)}
+                        className="w-full pr-9 pl-3 py-1.5 rounded-xl bg-white border border-[#d8c8b4] text-xs text-[#1c1815] focus:outline-none focus:border-amber-600"
                       />
+                      <Search className="w-3.5 h-3.5 text-[#8c7865] absolute right-3 top-1/2 -translate-y-1/2" />
                     </div>
 
-                    <div className="p-3 rounded-xl bg-[#faf8f5] border border-[#ebdcca] space-y-1">
-                      <span className="text-[11px] text-[#8c7865] block">الدلتا والقناة</span>
-                      <input
-                        type="number"
-                        value={settingsForm.shippingDeltaCanal}
-                        onChange={(e) =>
-                          setSettingsForm({ ...settingsForm, shippingDeltaCanal: Number(e.target.value) })
-                        }
-                        className="w-full font-bold text-sm bg-transparent border-b border-[#d8c8b4] py-1 focus:outline-none"
-                      />
+                    {/* Bulk set all rates */}
+                    <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                      <span className="text-xs font-bold text-[#6d5b4a] whitespace-nowrap">
+                        سعر موحد للكل:
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          placeholder="مثلاً 50"
+                          value={bulkShippingInput}
+                          onChange={(e) => setBulkShippingInput(e.target.value)}
+                          className="w-24 px-3 py-1.5 rounded-xl bg-white border border-[#d8c8b4] text-xs text-[#1c1815] font-bold text-center focus:outline-none focus:border-amber-600"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyBulkShippingRate}
+                          className="px-3 py-1.5 rounded-xl bg-[#1c1815] hover:bg-[#382f27] text-white text-xs font-bold transition-colors whitespace-nowrap shadow-sm"
+                        >
+                          تطبيق على الكل
+                        </button>
+                      </div>
                     </div>
+                  </div>
 
-                    <div className="p-3 rounded-xl bg-[#faf8f5] border border-[#ebdcca] space-y-1">
-                      <span className="text-[11px] text-[#8c7865] block">محافظات الصعيد</span>
-                      <input
-                        type="number"
-                        value={settingsForm.shippingUpperEgypt}
-                        onChange={(e) =>
-                          setSettingsForm({ ...settingsForm, shippingUpperEgypt: Number(e.target.value) })
-                        }
-                        className="w-full font-bold text-sm bg-transparent border-b border-[#d8c8b4] py-1 focus:outline-none"
-                      />
-                    </div>
+                  {/* Regional Tabs Filter */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                    {[
+                      { id: "all", label: "كافة المحافظات (27)" },
+                      { id: "cairo", label: "🏙️ القاهرة الكبرى (3)" },
+                      { id: "alex_coast", label: "🌊 الإسكندرية والساحل (2)" },
+                      { id: "delta", label: "🌾 الدلتا والبحري (7)" },
+                      { id: "canal_sinai", label: "🚢 القناة وسيناء (5)" },
+                      { id: "upper_egypt", label: "🌴 الصعيد والجنوب (10)" },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setGovRegionFilter(tab.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                          govRegionFilter === tab.id
+                            ? "bg-[#1c1815] text-white shadow-sm"
+                            : "bg-[#faf8f5] text-[#705e4d] hover:bg-[#f5efe6] border border-[#ebdcca]"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* 27 Governorates Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {GOVERNORATES.filter((g) => {
+                      if (govRegionFilter !== "all" && g.region !== govRegionFilter) return false;
+                      if (govSearchQuery.trim()) {
+                        const q = govSearchQuery.trim().toLowerCase();
+                        return (
+                          g.name.toLowerCase().includes(q) ||
+                          g.regionName.toLowerCase().includes(q)
+                        );
+                      }
+                      return true;
+                    }).map((gov) => {
+                      const currentRate =
+                        settingsForm.governorateShippingRates?.[gov.name] ?? gov.shipping;
+
+                      return (
+                        <div
+                          key={gov.name}
+                          className="p-3.5 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] hover:border-amber-300 transition-all flex items-center justify-between gap-3 shadow-xs"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                              <span className="font-bold text-xs text-[#1c1815]">{gov.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[10px] text-[#8c7865]">
+                              <span className="bg-white px-1.5 py-0.5 rounded border border-[#ebdcca]">
+                                {gov.regionName}
+                              </span>
+                              <span>•</span>
+                              <span>{gov.deliveryEstimate}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="relative">
+                              <input
+                                type="number"
+                                min={0}
+                                value={currentRate}
+                                onChange={(e) =>
+                                  handleGovernorateRateChange(gov.name, Number(e.target.value))
+                                }
+                                className="w-20 px-2.5 py-1.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-bold text-center text-[#1c1815] focus:outline-none focus:border-amber-600 shadow-inner"
+                              />
+                            </div>
+                            <span className="text-[11px] font-bold text-[#6d5b4a]">ج.م</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 

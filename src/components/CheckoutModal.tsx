@@ -111,7 +111,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const freeShippingThreshold = storeSettings.freeShippingThreshold;
   const currentGov = GOVERNORATES.find((g) => g.name === formData.governorate) || GOVERNORATES[0];
-  const shippingFee = subtotal >= freeShippingThreshold ? 0 : currentGov.shipping;
+  const configuredFee =
+    storeSettings.governorateShippingRates?.[formData.governorate] ?? currentGov.shipping;
+  const shippingFee = subtotal >= freeShippingThreshold ? 0 : configuredFee;
   const grandTotal = Math.max(0, subtotal - discountAmount + shippingFee);
 
   const handleCopyNumber = (num: string) => {
@@ -502,11 +504,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
                     className="w-full bg-white border border-[#ded1be] rounded-xl px-3.5 py-2.5 text-xs text-[#1c1815] focus:outline-none focus:border-[#7d6953] shadow-inner"
                   >
-                    {GOVERNORATES.map((gov) => (
-                      <option key={gov.name} value={gov.name}>
-                        {gov.name} ({gov.shipping} ج.م)
-                      </option>
-                    ))}
+                    {GOVERNORATES.map((gov) => {
+                      const rate =
+                        storeSettings.governorateShippingRates?.[gov.name] ?? gov.shipping;
+                      return (
+                        <option key={gov.name} value={gov.name}>
+                          {gov.name} ({rate} ج.م) • {gov.deliveryEstimate}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 

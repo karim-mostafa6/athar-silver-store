@@ -35,6 +35,7 @@ export interface StoreSettings {
   shippingAlex: number;
   shippingDeltaCanal: number;
   shippingUpperEgypt: number;
+  governorateShippingRates?: Record<string, number>;
   // Deep Store Customization (Shopify-like Theme)
   heroTitle: string;
   heroSubtitle: string;
@@ -369,6 +370,35 @@ const DEFAULT_SETTINGS: StoreSettings = {
   warrantyPolicyText: "ضمان رسمي مدى الحياة على أصالة وجودة الفضة الإسترليني عيار 925 الإيطالية والسويسرية، مع خدمة تلميع وتنظيف احترافي مجانية لجميع عملاء أَثَر.",
   shippingPolicyTimeline: "توصيل سريع خلال 24 - 48 ساعة للقاهرة والجيزة والإسكندرية، وخلال 2 - 3 أيام لباقي محافظات الجمهورية مع التنسيق الهاتفي لميعاد الاستلام المناسب لك.",
   categories: DEFAULT_CATEGORIES,
+  governorateShippingRates: {
+    "القاهرة": 45,
+    "الجيزة": 45,
+    "القليوبية": 50,
+    "الإسكندرية": 50,
+    "مطروح (الساحل الشمالي)": 75,
+    "الدقهلية (المنصورة)": 55,
+    "الشرقية (الزقازيق)": 55,
+    "الغربية (طنطا)": 55,
+    "المنوفية": 55,
+    "البحيرة": 55,
+    "كفر الشيخ": 55,
+    "دمياط": 55,
+    "بورسعيد": 55,
+    "الإسماعيلية": 55,
+    "السويس": 55,
+    "جنوب سيناء (شرم الشيخ)": 80,
+    "شمال سيناء": 80,
+    "الفيوم": 60,
+    "بني سويف": 60,
+    "المنيا": 65,
+    "أسيوط": 65,
+    "سوهاج": 70,
+    "قنا": 70,
+    "الأقصر": 75,
+    "أسوان": 75,
+    "البحر الأحمر (الغردقة)": 75,
+    "الوادي الجديد": 85,
+  },
 };
 
 const SAMPLE_ORDERS: Order[] = [
@@ -531,6 +561,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           ...DEFAULT_SETTINGS,
           ...parsed,
           categories: Array.isArray(parsed.categories) && parsed.categories.length > 0 ? parsed.categories : DEFAULT_CATEGORIES,
+          governorateShippingRates: {
+            ...DEFAULT_SETTINGS.governorateShippingRates,
+            ...(parsed.governorateShippingRates || {}),
+          },
         });
       }
 
