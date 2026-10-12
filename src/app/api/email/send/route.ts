@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { getServerSettings, saveServerSettings } from "@/lib/serverSettings";
 
 interface EmailRequestBody {
   orderId: string;
@@ -49,12 +50,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const serverConfig = getServerSettings();
+
+    // If an app password was explicitly passed and valid, persist it to server config
+    if (bodyAppPassword && bodyAppPassword.trim().length >= 8 && bodyAppPassword.replace(/\s+/g, "") !== serverConfig.gmailAppPassword) {
+      saveServerSettings({
+        gmailAppPassword: bodyAppPassword.trim(),
+        senderEmail: bodySenderEmail || serverConfig.senderEmail,
+        senderEmailName: bodySenderName || serverConfig.senderEmailName,
+      });
+    }
+
     const officialSenderEmail =
-      process.env.GMAIL_USER || bodySenderEmail || "theathar.eg@gmail.com";
+      process.env.GMAIL_USER ||
+      serverConfig.senderEmail ||
+      bodySenderEmail ||
+      "theathar.eg@gmail.com";
     const officialSenderName =
-      process.env.GMAIL_SENDER_NAME || bodySenderName || "أَثَـر للفضة 925";
+      process.env.GMAIL_SENDER_NAME ||
+      serverConfig.senderEmailName ||
+      bodySenderName ||
+      "أَثَـر للفضة 925";
     const effectiveAppPassword = (
       process.env.GMAIL_APP_PASSWORD ||
+      serverConfig.gmailAppPassword ||
       bodyAppPassword ||
       ""
     ).replace(/\s+/g, "");

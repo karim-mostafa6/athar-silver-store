@@ -183,6 +183,23 @@ export default function AdminPage() {
     setSettingsForm(storeSettings);
   }, [storeSettings]);
 
+  // Sync server settings on mount
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.gmailAppPassword) {
+          setSettingsForm((prev) => ({
+            ...prev,
+            gmailAppPassword: data.gmailAppPassword,
+            senderEmail: data.senderEmail || prev.senderEmail,
+            senderEmailName: data.senderEmailName || prev.senderEmailName,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Login Handler
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -584,14 +601,58 @@ export default function AdminPage() {
   };
 
   // Save Settings
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     updateStoreSettings(settingsForm);
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderEmail: settingsForm.senderEmail || "theathar.eg@gmail.com",
+          senderEmailName: settingsForm.senderEmailName || "أَثَـر للفضة 925",
+          gmailAppPassword: settingsForm.gmailAppPassword || "",
+        }),
+      });
+    } catch (err) {
+      console.warn("Failed to sync server settings:", err);
+    }
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2500);
   };
 
-  // Resend Invoice Email Helper
+  // Direct email save state & handler
+  const [isSavingEmailDirectly, setIsSavingEmailDirectly] = useState(false);
+  const [emailDirectSaveFeedback, setEmailDirectSaveFeedback] = useState("");
+
+  const handleSaveEmailSettingsDirectly = async () => {
+    setIsSavingEmailDirectly(true);
+    setEmailDirectSaveFeedback("");
+    try {
+      updateStoreSettings(settingsForm);
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderEmail: settingsForm.senderEmail || "theathar.eg@gmail.com",
+          senderEmailName: settingsForm.senderEmailName || "أَثَـر للفضة 925",
+          gmailAppPassword: settingsForm.gmailAppPassword || "",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmailDirectSaveFeedback("تم حفظ إعدادات البريد في السيرفر بنجاح! جاهز لإرسال الفواتير لجميع العملاء فوراً ✓");
+        addToast("إعدادات البريد", "تم حفظ كلمة المرور في السيرفر بنجاح", "info");
+      } else {
+        setEmailDirectSaveFeedback("فشل الحفظ: " + (data.error || "خطأ غير معروف"));
+      }
+    } catch {
+      setEmailDirectSaveFeedback("حدث خطأ أثناء الاتصال بالسيرفر");
+    } finally {
+      setIsSavingEmailDirectly(false);
+    }
+  };
+
   // Resend Invoice Email Helper
   const handleResendInvoiceEmail = async (order: Order) => {
     if (!order.email) {
@@ -681,6 +742,16 @@ export default function AdminPage() {
         setTestEmailStatus("success");
         setTestEmailFeedback(data.message || "تم إرسال البريد التجريبي بنجاح!");
         addToast("إرسال ناجح ✉️", `تم إرسال بريد تجريبي إلى ${testEmailAddress}`, "info");
+        // Also persist to server automatically so all future customer orders work!
+        fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            senderEmail: settingsForm.senderEmail || "theathar.eg@gmail.com",
+            senderEmailName: settingsForm.senderEmailName || "أَثَـر للفضة 925",
+            gmailAppPassword: settingsForm.gmailAppPassword || "",
+          }),
+        }).catch(() => {});
       } else {
         setTestEmailStatus("error");
         setTestEmailFeedback(data.error || "فشل إرسال البريد التجريبي");
@@ -3873,9 +3944,38 @@ export default function AdminPage() {
                           {showAppPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                      <span className="text-[10px] text-[#8c7865] block">
-                        * تُستخدم فقط للإرسال الآمن عبر خوادم Google SMTP وتُحفظ مشفرة في متجرك.
-                      </span>
+
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1">
+                        <span className="text-[10px] text-[#8c7865] block">
+                          * تُحفظ في سيرفر متجرك بأمان تام وتُستخدم لإرسال الفواتير لجميع العملاء.
+                        </span>
+
+                        <button
+                          type="button"
+                          disabled={isSavingEmailDirectly}
+                          onClick={handleSaveEmailSettingsDirectly}
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0"
+                        >
+                          {isSavingEmailDirectly ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>جاري الحفظ في السيرفر...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>حفظ إعدادات البريد في السيرفر الآن 💾</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {emailDirectSaveFeedback && (
+                        <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>{emailDirectSaveFeedback}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* LIVE INTERACTIVE TEST EMAIL DISPATCHER */}
