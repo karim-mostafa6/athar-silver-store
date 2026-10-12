@@ -109,8 +109,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         {/* Minimal Badges: Top Left */}
-        <div className="absolute top-3 left-3 z-10 pointer-events-none">
-          {product.isNew ? (
+        <div className="absolute top-3 left-3 z-10 pointer-events-none flex flex-col gap-1 items-start">
+          {product.customBadge ? (
+            <span className="bg-[#1c1815] text-[#ded1be] border border-[#524436] text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider shadow-sm">
+              {product.customBadge}
+            </span>
+          ) : product.isNew ? (
             <span className="bg-[#1c1815] text-[#faf8f5] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
               NEW
             </span>

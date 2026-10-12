@@ -48,6 +48,7 @@ import {
   Mail,
   Copy,
   Check,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -77,8 +78,8 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState<string>("");
   const [rememberMe, setRememberMe] = useState<boolean>(true);
 
-  // Active Main Tabs: Products, Theme/Store Customizer, Orders, Settings
-  const [activeTab, setActiveTab] = useState<"products" | "theme" | "orders" | "settings">("products");
+  // Active Main Tabs: Dedicated Orders Command Center, Products, Theme, Policies, Settings
+  const [activeTab, setActiveTab] = useState<"orders" | "products" | "theme" | "policies" | "settings">("orders");
 
   // Product Filter & Search
   const [productSearch, setProductSearch] = useState<string>("");
@@ -87,7 +88,7 @@ export default function AdminPage() {
   // Add/Edit Product Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
-  const [modalActiveTab, setModalActiveTab] = useState<"general" | "media" | "pricing" | "specs" | "seo">("general");
+  const [modalActiveTab, setModalActiveTab] = useState<"general" | "media" | "pricing" | "specs" | "internal" | "seo">("general");
 
   // Image Uploading State
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -142,6 +143,11 @@ export default function AdminPage() {
     isBestSeller: true,
     isNew: true,
     inStock: true,
+    customEngravingAvailable: false,
+    customEngravingMaxChars: 12,
+    warrantyDuration: "ضمان رسمي مدى الحياة على عيار الفضة 925",
+    internalNotes: "",
+    returnPolicyNote: "معاينة كاملة عند الاستلام مع المندوب واسترجاع خلال 14 يوماً",
     tags: ["خواتم", "فضة 925", "زركون"],
   };
 
@@ -199,6 +205,46 @@ export default function AdminPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Master Modal Scroll Lock & Escape Key Handler for Admin
+  useEffect(() => {
+    const hasAnyModal =
+      isModalOpen ||
+      Boolean(selectedOrderId) ||
+      Boolean(cancellingOrder) ||
+      Boolean(previewReceiptOrder) ||
+      Boolean(editingNotesOrder) ||
+      Boolean(printingOrder);
+
+    if (!hasAnyModal) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (previewReceiptOrder) setPreviewReceiptOrder(null);
+        else if (printingOrder) setPrintingOrder(null);
+        else if (editingNotesOrder) setEditingNotesOrder(null);
+        else if (cancellingOrder) setCancellingOrder(null);
+        else if (selectedOrderId) setSelectedOrderId(null);
+        else if (isModalOpen) setIsModalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    isModalOpen,
+    selectedOrderId,
+    cancellingOrder,
+    previewReceiptOrder,
+    editingNotesOrder,
+    printingOrder,
+  ]);
 
   // Login Handler
   const handleLogin = (e: React.FormEvent) => {
@@ -550,6 +596,11 @@ export default function AdminPage() {
       isBestSeller: !!product.isBestSeller,
       isNew: !!product.isNew,
       inStock: product.inStock,
+      customEngravingAvailable: product.customEngravingAvailable ?? false,
+      customEngravingMaxChars: product.customEngravingMaxChars ?? 12,
+      warrantyDuration: product.warrantyDuration || "ضمان رسمي مدى الحياة على عيار الفضة 925",
+      internalNotes: product.internalNotes || "",
+      returnPolicyNote: product.returnPolicyNote || "معاينة كاملة عند الاستلام مع المندوب واسترجاع خلال 14 يوماً",
       tags: product.tags || [],
     });
     setModalActiveTab("general");
@@ -982,12 +1033,12 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#faf8f5] text-[#1c1815] pb-24 text-right">
       {/* Top Admin Header */}
       <header className="sticky top-0 z-40 bg-[#1c1815] text-[#faf8f5] border-b border-[#3b3229] shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="w-full px-4 sm:px-8 xl:px-12 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 group">
               <span className="text-xl font-black font-alexandria text-white">أَثَـر</span>
               <span className="text-amber-400 text-xs px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 font-bold">
-                PRO CMS • شوبي فاي
+                PRO CMS • بوابة الإدارة والتشغيل المركزية
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-2 text-xs text-[#c7b59e] border-r border-[#3b3229] pr-4 mr-2">
@@ -996,7 +1047,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/"
               target="_blank"
@@ -1026,70 +1077,122 @@ export default function AdminPage() {
         </div>
       </header>
 
-      {/* Navigation Tabs (Shopify Style) */}
-      <div className="bg-white border-b border-[#ebdcca] shadow-sm sticky top-16 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between overflow-x-auto py-2">
-            <div className="flex items-center gap-2 sm:gap-3">
+      {/* Top Navigation Bar: Standalone Dedicated Orders Command Center + Store CMS */}
+      <div className="bg-[#1c1815] border-b border-[#3b3229] sticky top-16 z-30 shadow-md">
+        <div className="w-full px-4 sm:px-8 xl:px-12">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 py-2.5">
+            {/* Left: Distinct Portals */}
+            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
+              {/* 1. DEDICATED ORDERS WORKSPACE (مستقل ومميز بالكامل) */}
               <button
-                onClick={() => setActiveTab("products")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                  activeTab === "products"
-                    ? "bg-[#1c1815] text-white shadow-sm"
-                    : "text-[#705e4d] hover:bg-[#f6efe4] hover:text-[#1c1815]"
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                <span>إدارة المنتجات ({products.length})</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("theme")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                  activeTab === "theme"
-                    ? "bg-[#1c1815] text-white shadow-sm"
-                    : "text-[#705e4d] hover:bg-[#f6efe4] hover:text-[#1c1815]"
-                }`}
-              >
-                <Palette className="w-4 h-4 text-amber-500" />
-                <span>مظهر وهوية المتجر (Theme Customizer)</span>
-              </button>
-
-              <button
+                type="button"
                 onClick={() => setActiveTab("orders")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                className={`relative px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 shadow-sm shrink-0 ${
                   activeTab === "orders"
-                    ? "bg-[#1c1815] text-white shadow-sm"
-                    : "text-[#705e4d] hover:bg-[#f6efe4] hover:text-[#1c1815]"
+                    ? "bg-gradient-to-r from-amber-500 to-amber-600 text-[#14110e] shadow-amber-500/25 ring-2 ring-amber-400 font-black"
+                    : "bg-[#27201a] text-[#ded1be] hover:bg-[#342b23] border border-[#483d32]"
                 }`}
               >
-                <ShoppingBag className="w-4 h-4 text-amber-500" />
-                <span>إدارة الطلبات والمبيعات ({orders.length})</span>
-                {orders.some((o) => o.status === "pending") && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
-                    {pendingOrdersCount} جديد
+                <Package className="w-4 h-4 text-amber-300 shrink-0" />
+                <span>📦 صالة إدارة ومتابعة الطلبات ({orders.length})</span>
+                {pendingOrdersCount > 0 ? (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[11px] font-bold animate-pulse">
+                    {pendingOrdersCount} جديد بحاجة لتأكيد 📞
+                  </span>
+                ) : (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-mono">
+                    الكل مكتمل ✓
                   </span>
                 )}
               </button>
 
-              <button
-                onClick={() => setActiveTab("settings")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                  activeTab === "settings"
-                    ? "bg-[#1c1815] text-white shadow-sm"
-                    : "text-[#705e4d] hover:bg-[#f6efe4] hover:text-[#1c1815]"
-                }`}
-              >
-                <Sliders className="w-4 h-4" />
-                <span>إعدادات الشحن والدفع والكوبونات</span>
-              </button>
+              <div className="h-7 w-px bg-white/20 hidden sm:block shrink-0" />
+
+              {/* 2. STORE MANAGEMENT TABS (مفصول تماماً عن الطلبات) */}
+              <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#27201a] border border-[#483d32] shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("products")}
+                  className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "products"
+                      ? "bg-[#faf8f5] text-[#1c1815] shadow-sm"
+                      : "text-[#c7b59e] hover:text-white"
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5 text-amber-500" />
+                  <span>المنتجات والمخزون ({products.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("theme")}
+                  className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "theme"
+                      ? "bg-[#faf8f5] text-[#1c1815] shadow-sm"
+                      : "text-[#c7b59e] hover:text-white"
+                  }`}
+                >
+                  <Palette className="w-3.5 h-3.5 text-amber-500" />
+                  <span>مظهر وهوية المتجر</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("policies")}
+                  className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "policies"
+                      ? "bg-[#faf8f5] text-[#1c1815] shadow-sm"
+                      : "text-[#c7b59e] hover:text-white"
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>السياسات والاسترجاع والضمان 🛡️</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("settings")}
+                  className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "settings"
+                      ? "bg-[#faf8f5] text-[#1c1815] shadow-sm"
+                      : "text-[#c7b59e] hover:text-white"
+                  }`}
+                >
+                  <Sliders className="w-3.5 h-3.5 text-amber-500" />
+                  <span>الإعدادات والربط التقني</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Live Quick Metrics Badge */}
+            <div className="hidden xl:flex items-center gap-5 text-xs text-[#ded1be]">
+              <div>
+                <span className="opacity-75">المبيعات المؤكدة: </span>
+                <strong className="text-emerald-400 font-mono font-bold text-sm">
+                  {validSalesTotal.toLocaleString("ar-EG")} ج.م
+                </strong>
+              </div>
+              <div className="h-4 w-px bg-white/20" />
+              <div>
+                <span className="opacity-75">نسبة التأكيد: </span>
+                <strong className="text-amber-400 font-bold text-sm">
+                  {100 - cancellationPercentage}%
+                </strong>
+              </div>
+              <div className="h-4 w-px bg-white/20" />
+              <div>
+                <span className="opacity-75">المتوفر بالمخزن: </span>
+                <strong className="text-white font-mono font-bold">
+                  {products.filter((p) => p.inStock).length} قطعة
+                </strong>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      {/* Main Content Area (Full Width Luxury Portal) */}
+      <main className="w-full px-4 sm:px-8 xl:px-12 pt-6 flex-1">
         {/* ======================================================== */}
         {/* TAB 1: PRODUCTS MANAGEMENT (Shopify-Grade) */}
         {/* ======================================================== */}
@@ -3029,7 +3132,229 @@ export default function AdminPage() {
         )}
 
         {/* ======================================================== */}
-        {/* TAB 3: DEDICATED ORDERS MANAGEMENT & TELE-SALES */}
+        {/* TAB: STORE POLICIES, RETURNS & WARRANTY (السياسات والاسترجاع والضمان) */}
+        {/* ======================================================== */}
+        {activeTab === "policies" && (
+          <div className="space-y-6">
+            {/* Header Card */}
+            <div className="bg-white p-6 rounded-3xl border border-[#ebdcca] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold font-mono uppercase tracking-wider text-amber-800">
+                  Store Policies & Customer Protection
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black font-alexandria text-[#1c1815] mt-1 flex items-center gap-2">
+                  <span>سياسات المتجر، الاستبدال والاسترجاع، والضمان الملكي</span>
+                  <ShieldCheck className="w-6 h-6 text-emerald-600" />
+                </h3>
+                <p className="text-xs text-[#705e4d] mt-1 max-w-2xl leading-relaxed">
+                  تحكم كامل في نصوص وشروط الاسترجاع، حق المعاينة قبل الدفع، مدة الضمان على الفضة 925، ومواعيد الشحن الظاهرة للعملاء لزيادة الثقة والمصداقية.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                className="px-6 py-3 rounded-2xl bg-[#1c1815] hover:bg-[#342c25] text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 active:scale-95 shrink-0"
+              >
+                <Save className="w-4 h-4 text-amber-400" />
+                <span>حفظ كافة السياسات الآن 💾</span>
+              </button>
+            </div>
+
+            {/* 3 Main Policy Cards Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Card 1: Return & Exchange */}
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#ebdcca] shadow-sm space-y-4">
+                <div className="flex items-center gap-3 border-b border-[#eee4d6] pb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-lg">
+                    🔄
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-[#1c1815]">سياسة الاستبدال والاسترجاع</h4>
+                    <span className="text-[11px] text-[#8c7865]">حقوق العميل بعد استلام القطعة</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="text-xs font-bold text-[#1c1815] block mb-1">
+                      عدد أيام الاسترجاع المسموحة (Days):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        max={60}
+                        value={settingsForm.returnPolicyDays ?? 14}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, returnPolicyDays: Number(e.target.value) })
+                        }
+                        className="w-24 px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-sm font-bold text-center"
+                      />
+                      <span className="text-xs font-bold text-[#705e4d]">يوماً من تاريخ الاستلام</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-[#f2ece2]">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#1c1815]">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.returnPolicyInspectionAllowed !== false}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, returnPolicyInspectionAllowed: e.target.checked })
+                        }
+                        className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                      />
+                      <span>السماح بالمعاينة والفحص عند الاستلام قبل الدفع ✓</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#1c1815]">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.returnPolicyFreeExchange !== false}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, returnPolicyFreeExchange: e.target.checked })
+                        }
+                        className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                      />
+                      <span>استبدال مجاني وسلس في حالة عيوب الصناعة أو المقاس ✓</span>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-[#1c1815] block mb-1">
+                      عنوان السياسة الظاهر للعملاء:
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsForm.returnPolicyTitle || "سياسة الاستبدال والاسترجاع والضمان الملكي"}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, returnPolicyTitle: e.target.value })
+                      }
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-[#1c1815] block mb-1">
+                      النص التفصيلي لشروط الاسترجاع والاستبدال:
+                    </label>
+                    <textarea
+                      rows={5}
+                      value={settingsForm.returnPolicyText || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, returnPolicyText: e.target.value })
+                      }
+                      className="w-full p-3.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs leading-relaxed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Lifetime Warranty */}
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#ebdcca] shadow-sm space-y-4">
+                <div className="flex items-center gap-3 border-b border-[#eee4d6] pb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-900 flex items-center justify-center font-bold text-lg">
+                    👑
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-[#1c1815]">ضمان الفضة 925 الملكي</h4>
+                    <span className="text-[11px] text-[#8c7865]">شهادة الأصالة والتلميع المجاني</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="text-xs font-bold text-[#1c1815] block mb-1">
+                      النص التفصيلي لضمان الفضة 925:
+                    </label>
+                    <textarea
+                      rows={6}
+                      value={settingsForm.warrantyPolicyText || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, warrantyPolicyText: e.target.value })
+                      }
+                      placeholder="ضمان أصالة عيار 925 مدى الحياة..."
+                      className="w-full p-3.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#fbf8f3] border border-[#ebdcca] text-xs text-[#705e4d] space-y-1">
+                    <span className="font-bold text-[#1c1815] block">ميزة الثقة العالية:</span>
+                    <p className="text-[11px] leading-relaxed">
+                      هذا النص يُبرز للعميل أن القطعة مختومة رسمياً بعيار 925 وأن البراند يقدم خدمة تنظيف وتلميع دورية مجاناً، مما يزيل أي تردد قبل الشراء.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Shipping & Delivery Times */}
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#ebdcca] shadow-sm space-y-4">
+                <div className="flex items-center gap-3 border-b border-[#eee4d6] pb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold text-lg">
+                    🚚
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-[#1c1815]">مواعيد وتفاصيل الشحن والتوصيل</h4>
+                    <span className="text-[11px] text-[#8c7865]">سرعة التوصيل والتنسيق الهاتفي</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="text-xs font-bold text-[#1c1815] block mb-1">
+                      النص الظاهر لمواعيد الشحن لكافة المحافظات:
+                    </label>
+                    <textarea
+                      rows={6}
+                      value={settingsForm.shippingPolicyTimeline || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, shippingPolicyTimeline: e.target.value })
+                      }
+                      placeholder="توصيل خلال 24 - 48 ساعة للقاهرة والجيزة..."
+                      className="w-full p-3.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                    <span className="font-bold block">التأكيد الهاتفي:</span>
+                    <p className="text-[11px] text-emerald-800 leading-relaxed">
+                      يتم تذكير العميل دائماً بأن الشحن يبدأ بعد تأكيد تفاصيل الطلب هاتفياً من قبل خدمة العملاء للتأكد من ملاءمة المقاس وميعاد التوصيل.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Customer Preview */}
+            <div className="bg-gradient-to-r from-[#1c1815] to-[#2b241e] text-white p-6 rounded-3xl shadow-xl space-y-3">
+              <span className="text-xs text-amber-400 font-bold block">معاينة مباشرة كما تظهر للعميل في المتجر:</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="p-4 rounded-2xl bg-white/10 border border-white/10 space-y-1">
+                  <span className="text-amber-300 font-bold text-sm block">✓ معاينة قبل الدفع</span>
+                  <p className="text-white/80 text-[11px] leading-relaxed">
+                    {settingsForm.returnPolicyInspectionAllowed !== false ? "يحق لك فحص ومعاينة القطعة بالكامل مع المندوب قبل دفع أي جنيه." : "وفقاً لسياسة الشحن المعتمدة."}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/10 border border-white/10 space-y-1">
+                  <span className="text-amber-300 font-bold text-sm block">✓ استبدال واسترجاع {settingsForm.returnPolicyDays ?? 14} يوماً</span>
+                  <p className="text-white/80 text-[11px] leading-relaxed">
+                    {settingsForm.returnPolicyText?.slice(0, 95)}...
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white/10 border border-white/10 space-y-1">
+                  <span className="text-amber-300 font-bold text-sm block">✓ ضمان الفضة 925 مدى الحياة</span>
+                  <p className="text-white/80 text-[11px] leading-relaxed">
+                    {settingsForm.warrantyPolicyText?.slice(0, 95)}...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* TAB: DEDICATED ORDERS MANAGEMENT & TELE-SALES */}
         {/* ======================================================== */}
         {activeTab === "orders" && (
           <div className="space-y-6">
@@ -4064,7 +4389,12 @@ export default function AdminPage() {
       {/* SHOPIFY-GRADE ADD / EDIT PRODUCT MODAL */}
       {/* ======================================================== */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+        >
           <div className="relative w-full max-w-4xl bg-[#faf8f5] border border-[#d8c8b4] rounded-3xl text-[#1c1815] shadow-2xl text-right my-6 max-h-[92vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-[#ebdcca] bg-white flex items-center justify-between shrink-0">
@@ -4142,6 +4472,19 @@ export default function AdminPage() {
               >
                 <Sliders className="w-3.5 h-3.5" />
                 <span>المقاسات والمواصفات</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModalActiveTab("internal")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  modalActiveTab === "internal"
+                    ? "bg-[#1c1815] text-white shadow-sm"
+                    : "text-[#705e4d] hover:bg-[#eae0d2]"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                <span>النقش والضمان والتحكم الداخلي</span>
               </button>
 
               <button
@@ -4655,6 +4998,126 @@ export default function AdminPage() {
                 </div>
               )}
 
+              {/* TAB: INTERNAL CONTROLS & ENGRAVING & WARRANTY */}
+              {modalActiveTab === "internal" && (
+                <div className="space-y-6">
+                  {/* Laser Engraving Controls */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#d8c8b4] space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <span className="text-xs sm:text-sm font-bold text-[#1c1815] block">
+                          خدمة الحفر والنقش بالليزر المخصص (Custom Laser Engraving)
+                        </span>
+                        <p className="text-[11px] sm:text-xs text-[#705e4d]">
+                          إتاحة خيار نقش الأسماء أو التواريخ أو العبارات التذكارية على القطعة للعميل
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={productForm.customEngravingAvailable || false}
+                          onChange={(e) =>
+                            setProductForm({
+                              ...productForm,
+                              customEngravingAvailable: e.target.checked,
+                            })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                      </label>
+                    </div>
+
+                    {productForm.customEngravingAvailable && (
+                      <div className="pt-3 border-t border-[#ebdcca] grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-[#1c1815] block">
+                            الحد الأقصى لعدد حروف النقش (حروف/أرقام):
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={productForm.customEngravingMaxChars || 12}
+                            onChange={(e) =>
+                              setProductForm({
+                                ...productForm,
+                                customEngravingMaxChars: parseInt(e.target.value) || 12,
+                              })
+                            }
+                            className="w-full px-3.5 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
+                          />
+                        </div>
+                        <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-[11px] flex items-center">
+                          يظهر للعميل في صفحة المنتج حقل لكتابة النص المراد حفره بالليزر مع عداد للأحرف المسموحة لضمان دقة الصياغة.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Warranty & Return Terms Specific to this Item */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">
+                        صيغة الضمان الخاصة بهذه القطعة:
+                      </label>
+                      <input
+                        type="text"
+                        value={productForm.warrantyDuration || ""}
+                        onChange={(e) =>
+                          setProductForm({ ...productForm, warrantyDuration: e.target.value })
+                        }
+                        placeholder="ضمان رسمي مدى الحياة على عيار الفضة 925"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm"
+                      />
+                      <span className="text-[10px] text-[#8c7865] block">
+                        تظهر هذه العبارة بجوار زر الطلب كإثبات أصالة للمشتري.
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">
+                        تنويه المعاينة والاسترجاع للقطعة:
+                      </label>
+                      <input
+                        type="text"
+                        value={productForm.returnPolicyNote || ""}
+                        onChange={(e) =>
+                          setProductForm({ ...productForm, returnPolicyNote: e.target.value })
+                        }
+                        placeholder="معاينة كاملة عند الاستلام مع المندوب واسترجاع خلال 14 يوماً"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm"
+                      />
+                      <span className="text-[10px] text-[#8c7865] block">
+                        تنويه يطمئن العميل بخصوص الفحص والتأكد قبل الدفع للمندوب.
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Secret Internal Merchant Notes */}
+                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-3.5 h-3.5 text-amber-800" />
+                      <label className="text-xs font-bold text-amber-950 block">
+                        ملاحظات سرية خاصة بـ (كريم / التاجر) - داخلية فقط:
+                      </label>
+                    </div>
+                    <textarea
+                      rows={3}
+                      value={productForm.internalNotes || ""}
+                      onChange={(e) =>
+                        setProductForm({ ...productForm, internalNotes: e.target.value })
+                      }
+                      placeholder="مثال: المصنع/الورشة الموردة، تكلفة المصنعية للجرام، مكان تخزين القطعة بالخزنة، الحد الأدنى للبيع في العروض الخاصة..."
+                      className="w-full p-3 rounded-xl border border-amber-300 bg-white text-xs text-[#1c1815] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                    <span className="text-[11px] text-amber-800 block">
+                      🔒 هذه الملاحظات لا تظهر للعملاء نهائياً، بل تظهر لك فقط داخل لوحة التحكم لمتابعة المصنع والمخزن.
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Modal Footer Buttons */}
               <div className="pt-4 border-t border-[#ebdcca] flex items-center justify-between shrink-0">
                 <button
@@ -4681,7 +5144,12 @@ export default function AdminPage() {
       {/* PAYMENT RECEIPT PREVIEW LIGHTBOX MODAL */}
       {/* ======================================================== */}
       {previewReceiptOrder && previewReceiptOrder.paymentReceiptImage && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPreviewReceiptOrder(null);
+          }}
+          className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
+        >
           <div className="relative w-full max-w-2xl bg-[#1c1815] border border-amber-600/30 rounded-3xl text-white shadow-2xl overflow-hidden text-right">
             {/* Header */}
             <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between">
@@ -4771,7 +5239,12 @@ export default function AdminPage() {
       {/* MODAL: CANCEL ORDER WITH REASONS */}
       {/* ======================================================== */}
       {cancellingOrder && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setCancellingOrder(null);
+          }}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+        >
           <div className="bg-white rounded-3xl max-w-lg w-full border border-[#ebdcca] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="p-5 border-b border-[#ebdcca] bg-[#faf8f5] flex items-center justify-between">
@@ -4907,7 +5380,12 @@ export default function AdminPage() {
       {/* MODAL: PRINT SHIPPING WAYBILL */}
       {/* ======================================================== */}
       {printingOrder && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPrintingOrder(null);
+          }}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+        >
           <div className="bg-white rounded-3xl max-w-2xl w-full border border-[#ebdcca] shadow-2xl overflow-hidden">
             {/* Modal Controls Header (Hidden on print) */}
             <div className="p-4 border-b border-[#ebdcca] bg-[#faf8f5] flex items-center justify-between print:hidden">
@@ -5056,7 +5534,12 @@ export default function AdminPage() {
       {/* MODAL: EDIT TELE-SALES INTERNAL NOTES */}
       {/* ======================================================== */}
       {editingNotesOrder && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEditingNotesOrder(null);
+          }}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+        >
           <div className="bg-white rounded-3xl max-w-md w-full border border-[#ebdcca] shadow-2xl p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
               <div className="flex items-center gap-2">
@@ -5112,7 +5595,12 @@ export default function AdminPage() {
       {/* COMPREHENSIVE ORDER DETAILS & ACTIONS MODAL */}
       {/* ======================================================== */}
       {selectedOrderDetails && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedOrderId(null);
+          }}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto overscroll-contain"
+        >
           <div className="relative w-full max-w-4xl bg-white rounded-3xl border border-[#ebdcca] shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150 text-right">
             {/* Modal Header */}
             <div className="p-4 sm:p-6 bg-gradient-to-r from-[#1c1815] via-[#2d251f] to-[#1c1815] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10">

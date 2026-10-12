@@ -44,6 +44,7 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     product?.defaultSize || (product?.sizes ? product.sizes[0] : undefined)
   );
+  const [engravingText, setEngravingText] = useState<string>("");
   const [selectedPlating, setSelectedPlating] = useState<"silver" | "gold" | "rosegold">("silver");
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
@@ -73,7 +74,13 @@ export default function ProductDetailPage() {
   const effectivelyWishlisted = isWishlisted(product.id);
 
   const handleAddToCart = () => {
-    addToCart(product, selectedSize, quantity);
+    let effectiveSize = selectedSize;
+    if (engravingText.trim()) {
+      effectiveSize = effectiveSize
+        ? `${effectiveSize} (نقش ليزر: ${engravingText.trim()})`
+        : `نقش ليزر: ${engravingText.trim()}`;
+    }
+    addToCart(product, effectiveSize, quantity);
     setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
@@ -206,17 +213,25 @@ export default function ProductDetailPage() {
             <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
               <ShieldCheck className="w-4 h-4 text-[#705e4d] mx-auto" />
               <div className="text-[11px] font-bold text-[#1c1815]">فضة 925 أصلية</div>
-              <div className="text-[9px] text-[#705e4d]">مختومة ومضمونة</div>
+              <div className="text-[9px] text-[#705e4d] truncate" title={product.warrantyDuration || storeSettings.warrantyPolicyText}>
+                {product.warrantyDuration || storeSettings.warrantyPolicyText || "ضمان رسمي معتمد"}
+              </div>
             </div>
             <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
               <Truck className="w-4 h-4 text-[#705e4d] mx-auto" />
               <div className="text-[11px] font-bold text-[#1c1815]">شحن لجميع مصر</div>
-              <div className="text-[9px] text-[#705e4d]">2-4 أيام عمل</div>
+              <div className="text-[9px] text-[#705e4d] truncate" title={storeSettings.shippingPolicyTimeline}>
+                {storeSettings.shippingPolicyTimeline || "2-4 أيام عمل"}
+              </div>
             </div>
             <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
               <RotateCcw className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-bold text-[#1c1815]">معاينة عند الاستلام</div>
-              <div className="text-[9px] text-[#705e4d]">قبل السداد التام</div>
+              <div className="text-[11px] font-bold text-[#1c1815]">
+                {storeSettings.returnPolicyInspectionAllowed ? "معاينة عند الاستلام" : "استرجاع مضمون"}
+              </div>
+              <div className="text-[9px] text-[#705e4d]">
+                خلال {storeSettings.returnPolicyDays || 14} يوماً
+              </div>
             </div>
             <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
               <Gift className="w-4 h-4 text-[#705e4d] mx-auto" />
@@ -352,6 +367,32 @@ export default function ProductDetailPage() {
             </div>
           )}
 
+          {/* Custom Laser Engraving Input Card */}
+          {product.customEngravingAvailable && (
+            <div className="p-4 rounded-2xl bg-[#faf6f0] border border-[#e2d5c2] space-y-2 text-right">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#1c1815] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-700" />
+                  <span>خدمة النقش والحفر بالليزر على الفضة:</span>
+                </span>
+                <span className="text-[10px] text-[#8c7865] font-mono">
+                  {(product.customEngravingMaxChars || 12) - engravingText.length} حرف متبقي
+                </span>
+              </div>
+              <input
+                type="text"
+                maxLength={product.customEngravingMaxChars || 12}
+                value={engravingText}
+                onChange={(e) => setEngravingText(e.target.value)}
+                placeholder="اكتب الاسم أو التاريخ أو الحرف المطلوب نقشه..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs text-[#1c1815] focus:outline-none focus:border-[#1c1815]"
+              />
+              <p className="text-[10px] text-[#705e4d]">
+                ✨ حفر دقيق عالي الجودة داخل أو على جسم القطعة يخلد ذكرياتك.
+              </p>
+            </div>
+          )}
+
           {/* Quantity Selector & Action Buttons */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-3">
@@ -433,6 +474,9 @@ export default function ProductDetailPage() {
                     ))}
                     <li>الوزن التقريبي: ~{product.weightGrams} جرام من الفضة النقية</li>
                     <li>عيار الفضة: 925 إسترليني معتمد ومختوم</li>
+                    {product.warrantyDuration && (
+                      <li className="font-bold text-emerald-800">الضمان: {product.warrantyDuration}</li>
+                    )}
                   </ul>
                 </div>
               )}
@@ -450,9 +494,22 @@ export default function ProductDetailPage() {
               </button>
               {openAccordion === "shipping" && (
                 <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed">
-                  <p>• <strong>معاينة كاملة:</strong> يحق لك فتح الشحنة ومعاينة الفضة والتأكد من مطابقتها قبل دفع أي مبلغ للمندوب.</p>
-                  <p>• <strong>مدة التوصيل:</strong> 24-48 ساعة للقاهرة والجيزة، و2-4 أيام لباقي محافظات مصر.</p>
-                  <p>• <strong>الاستبدال والاسترجاع:</strong> متاح مجاناً خلال 14 يوماً من الاستلام.</p>
+                  <p>
+                    • <strong>معاينة كاملة:</strong>{" "}
+                    {storeSettings.returnPolicyInspectionAllowed
+                      ? "يحق لك فتح الشحنة ومعاينة الفضة والتأكد من مطابقتها وفحصها قبل دفع أي مبلغ للمندوب."
+                      : "فحص الشحنة والتأكد من سلامة التغليف عند الاستلام."}
+                  </p>
+                  <p>
+                    • <strong>مدة التوصيل:</strong>{" "}
+                    {storeSettings.shippingPolicyTimeline || "24-48 ساعة للقاهرة والجيزة، و2-4 أيام لباقي محافظات مصر."}
+                  </p>
+                  <p>
+                    • <strong>الاستبدال والاسترجاع:</strong>{" "}
+                    {product.returnPolicyNote ||
+                      storeSettings.returnPolicyText ||
+                      `متاح مجاناً خلال ${storeSettings.returnPolicyDays || 14} يوماً من الاستلام.`}
+                  </p>
                 </div>
               )}
             </div>

@@ -89,6 +89,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     return () => clearInterval(timer);
   }, [orderConfirmed]);
 
+  // Lock body scroll and listen for Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !orderConfirmed) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, orderConfirmed, onClose]);
+
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
@@ -286,8 +303,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-2xl bg-[#faf8f5] border border-[#d8c8b4] rounded-3xl p-6 sm:p-8 text-[#1c1815] shadow-2xl text-right">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !orderConfirmed) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overscroll-contain"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#faf8f5] border border-[#d8c8b4] rounded-3xl p-5 sm:p-8 text-[#1c1815] shadow-2xl text-right overscroll-contain custom-scrollbar"
+      >
         {/* Close button */}
         <button
           onClick={onClose}

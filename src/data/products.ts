@@ -26,6 +26,11 @@ export interface Product {
   isNew?: boolean;
   isBestSeller?: boolean;
   inStock: boolean;
+  customEngravingAvailable?: boolean;
+  customEngravingMaxChars?: number;
+  warrantyDuration?: string;
+  internalNotes?: string;
+  returnPolicyNote?: string;
   tags: string[];
 }
 

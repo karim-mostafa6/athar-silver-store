@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Sparkles, Phone, Mail, MapPin, Heart } from "lucide-react";
-
 import Link from "next/link";
+import { useStore } from "@/context/StoreContext";
 
 interface FooterProps {
   onOpenSizeGuide?: () => void;
@@ -14,6 +14,7 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({
   onOpenSizeGuide,
 }) => {
+  const { storeSettings } = useStore();
   return (
     <footer className="bg-[#1c1815] border-t border-[#382f27] text-[#c9b8a3] text-right">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -132,18 +133,20 @@ export const Footer: React.FC<FooterProps> = ({
                 </a>
               </li>
               <li>
-                <a href="#story" className="hover:text-white transition-colors">
-                  شهادة الضمان والأصالة
-                </a>
-              </li>
-              <li>
                 <span className="hover:text-white cursor-default">
-                  سياسة الاستبدال خلال 14 يوماً
+                  {storeSettings.warrantyPolicyText || "شهادة الضمان والأصالة عيار 925"}
                 </span>
               </li>
               <li>
                 <span className="hover:text-white cursor-default">
-                  الشحن والمعاينة عند الاستلام
+                  {storeSettings.returnPolicyTitle || `سياسة الاستبدال خلال ${storeSettings.returnPolicyDays || 14} يوماً`}
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-white cursor-default">
+                  {storeSettings.returnPolicyInspectionAllowed
+                    ? "معاينة كاملة وفحص مع المندوب قبل السداد"
+                    : "الشحن والمعاينة عند الاستلام"}
                 </span>
               </li>
             </ul>
@@ -155,16 +158,20 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="space-y-2.5 text-xs">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="dir-ltr font-mono text-[#f5f0e8]">+20 100 000 0000</span>
+                <span className="dir-ltr font-mono text-[#f5f0e8]">
+                  {storeSettings.contactPhone || storeSettings.whatsappNumber || "+20 114 383 7730"}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#baa894] shrink-0" />
-                <span className="font-mono text-[#f5f0e8]">support@atharsilver.com</span>
+                <span className="font-mono text-[#f5f0e8]">
+                  {storeSettings.senderEmail || storeSettings.contactEmail || "theathar.eg@gmail.com"}
+                </span>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-[#baa894] shrink-0 mt-0.5" />
                 <span className="text-[#d8c8b4] leading-relaxed">
-                  القاهرة، جمهورية مصر العربية (شحن لجميع المحافظات)
+                  {storeSettings.contactAddress || "القاهرة، جمهورية مصر العربية (شحن لجميع المحافظات)"}
                 </span>
               </div>
             </div>

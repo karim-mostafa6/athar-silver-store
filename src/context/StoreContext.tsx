@@ -131,6 +131,15 @@ export interface StoreSettings {
   senderEmail: string;
   senderEmailName?: string;
   gmailAppPassword?: string;
+
+  // Return & Exchange & Warranty Policies
+  returnPolicyDays: number;
+  returnPolicyInspectionAllowed: boolean;
+  returnPolicyFreeExchange: boolean;
+  returnPolicyTitle: string;
+  returnPolicyText: string;
+  warrantyPolicyText: string;
+  shippingPolicyTimeline: string;
 }
 
 export interface OrderItem {
@@ -345,6 +354,14 @@ const DEFAULT_SETTINGS: StoreSettings = {
   paymobIframeId: "",
   paymobMode: "test",
 
+  // Policies & Guarantee Defaults
+  returnPolicyDays: 14,
+  returnPolicyInspectionAllowed: true,
+  returnPolicyFreeExchange: true,
+  returnPolicyTitle: "سياسة الاستبدال والاسترجاع والضمان الملكي",
+  returnPolicyText: "حق المعاينة والفحص الكامل مع مندوب الشحن قبل سداد أي مبالغ. استبدال واسترجاع مجاني وسلس خلال 14 يوماً في حالة وجود أي عيب مصنعي أو رغبة في استبدال المقاس، بشرط الحفاظ على القطعة والعلبة الأصلية وكارت الضمان.",
+  warrantyPolicyText: "ضمان رسمي مدى الحياة على أصالة وجودة الفضة الإسترليني عيار 925 الإيطالية والسويسرية، مع خدمة تلميع وتنظيف احترافي مجانية لجميع عملاء أَثَر.",
+  shippingPolicyTimeline: "توصيل سريع خلال 24 - 48 ساعة للقاهرة والجيزة والإسكندرية، وخلال 2 - 3 أيام لباقي محافظات الجمهورية مع التنسيق الهاتفي لميعاد الاستلام المناسب لك.",
 };
 
 const SAMPLE_ORDERS: Order[] = [

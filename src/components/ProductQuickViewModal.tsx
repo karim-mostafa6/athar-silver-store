@@ -30,6 +30,21 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
 
+  // Lock body scroll and listen for Escape key
+  React.useEffect(() => {
+    if (!product) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [product, onClose]);
+
   if (!product) return null;
 
   const handleAdd = () => {
@@ -53,8 +68,18 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#faf8f5] border border-[#d8c8b4] p-6 sm:p-8 text-[#1c1815] shadow-2xl">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in overscroll-contain"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#faf8f5] border border-[#d8c8b4] p-5 sm:p-8 text-[#1c1815] shadow-2xl overscroll-contain custom-scrollbar"
+      >
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -104,9 +129,9 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 <span>ضمان ومزايا أَثَر الفاخرة:</span>
               </div>
               <ul className="space-y-1 text-[#665545] pr-5 list-disc">
-                <li>فضة إسترليني أصلية عيار 925 مختومة بالكامل.</li>
-                <li>تغليف فاخر في بوكس مخملي أنيق مجاناً.</li>
-                <li>منديل مخصص لتلميع وحماية الفضة هدية.</li>
+                <li>{product.warrantyDuration || "فضة إسترليني أصلية عيار 925 مختومة ومضمونة."}</li>
+                <li>{product.returnPolicyNote || "معاينة كاملة عند الاستلام واسترجاع خلال 14 يوماً."}</li>
+                <li>تغليف فاخر في بوكس مخملي أنيق ومنديل تلميع هدية.</li>
               </ul>
             </div>
           </div>
