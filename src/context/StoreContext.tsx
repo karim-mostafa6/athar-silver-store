@@ -126,6 +126,14 @@ export interface StoreSettings {
   paymobIntegrationId?: string;
   paymobIframeId?: string;
   paymobMode?: "test" | "live";
+
+  // WhatsApp Order Confirmation & Bot Automation
+  whatsappAutoConfirm?: boolean;
+  whatsappBotProvider?: "direct_link" | "cloud_api" | "ultramsg";
+  whatsappCloudToken?: string;
+  whatsappCloudPhoneId?: string;
+  whatsappCloudTemplateName?: string;
+  whatsappCustomMessage?: string;
 }
 
 export interface OrderItem {
@@ -163,10 +171,13 @@ export interface Order {
     transactionId?: string;
   };
   createdAt: string;
-  status: "pending" | "processing" | "shipped" | "completed" | "cancelled";
+  status: "pending" | "confirmed_whatsapp" | "processing" | "shipped" | "completed" | "cancelled";
   cancellationReason?: string;
   cancelledAt?: string;
   adminNotes?: string;
+  whatsappConfirmed?: boolean;
+  whatsappConfirmedAt?: string;
+  whatsappCancellation?: boolean;
 }
 
 interface StoreContextType {
@@ -185,6 +196,8 @@ interface StoreContextType {
   orders: Order[];
   addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">) => string;
   updateOrderStatus: (orderId: string, status: Order["status"], cancellationReason?: string) => void;
+  confirmOrderViaWhatsApp: (orderId: string) => void;
+  cancelOrderViaWhatsApp: (orderId: string, reason: string) => void;
   cancelOrder: (orderId: string, reason: string, adminNotes?: string) => void;
   restoreOrder: (orderId: string) => void;
   updateOrderAdminNotes: (orderId: string, adminNotes: string) => void;
@@ -326,9 +339,46 @@ const DEFAULT_SETTINGS: StoreSettings = {
   paymobIntegrationId: "",
   paymobIframeId: "",
   paymobMode: "test",
+
+  // WhatsApp Order Confirmation & Bot Defaults
+  whatsappAutoConfirm: true,
+  whatsappBotProvider: "direct_link",
+  whatsappCloudToken: "",
+  whatsappCloudPhoneId: "",
+  whatsappCloudTemplateName: "order_confirmation_v1",
+  whatsappCustomMessage: "",
 };
 
 const SAMPLE_ORDERS: Order[] = [
+  {
+    id: "ATH-819230",
+    customerName: "مريم خالد",
+    phone: "01122334455",
+    whatsapp: "01122334455",
+    governorate: "الجيزة",
+    address: "الدقي، شارع مصدق، عمارة 8، الدور الثاني",
+    items: [
+      {
+        productId: "ath-04",
+        name: "Vintage Royal Byzantine Silver Chain",
+        arabicName: "سلسلة بيزنطية ملكية فنتج مبرومة فضة 925 إيطالي",
+        quantity: 1,
+        price: 2100,
+        selectedSize: "55 سم",
+        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
+      },
+    ],
+    subtotal: 2100,
+    shippingFee: 45,
+    discount: 0,
+    total: 2145,
+    paymentMethod: "cod",
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    status: "confirmed_whatsapp",
+    whatsappConfirmed: true,
+    whatsappConfirmedAt: new Date(Date.now() - 3600000 * 1.5).toISOString(),
+    adminNotes: "أكدت العميل رغبتها في الاستلام عبر واتساب - تم تحديد الاتصال غداً للتنسيق مع المندوب",
+  },
   {
     id: "ATH-928174",
     customerName: "سارة أحمد",
@@ -470,6 +520,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } catch {
       // Ignore
     }
+  }, []);
+
+  // Listen for storage changes across tabs (e.g. customer confirms in /confirm-order, admin tab updates instantly)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "athar_orders" && e.newValue) {
+        try {
+          setOrders(JSON.parse(e.newValue));
+        } catch {
+          // Ignore
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // Save to localStorage
@@ -630,6 +695,47 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     addToast("ملاحظات الطلب", `تم حفظ الملاحظة للطلب #${orderId}`, "info");
   };
 
+  const confirmOrderViaWhatsApp = (orderId: string) => {
+    const nowIso = new Date().toISOString();
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "confirmed_whatsapp",
+              whatsappConfirmed: true,
+              whatsappConfirmedAt: nowIso,
+              adminNotes: o.adminNotes
+                ? `${o.adminNotes} | [تأكيد واتساب]: تم تأكيد رغبة الاستلام عبر واتساب`
+                : "[تأكيد واتساب]: تم تأكيد رغبة الاستلام عبر واتساب",
+            }
+          : o
+      )
+    );
+    addToast("تأكيد واتساب", `تم تأكيد رغبة استلام الطلب #${orderId} عبر واتساب`, "info");
+  };
+
+  const cancelOrderViaWhatsApp = (orderId: string, reason: string) => {
+    const nowIso = new Date().toISOString();
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "cancelled",
+              whatsappCancellation: true,
+              cancellationReason: `إلغاء من العميل عبر واتساب: ${reason}`,
+              cancelledAt: nowIso,
+              adminNotes: o.adminNotes
+                ? `${o.adminNotes} | [إلغاء واتساب]: ${reason}`
+                : `[إلغاء واتساب]: قام العميل بإلغاء الطلب من خلال رابط الواتساب - السبب: ${reason}`,
+            }
+          : o
+      )
+    );
+    addToast("إلغاء الطلب", `تم إلغاء الطلب #${orderId} بناءً على رغبة العميل عبر واتساب`, "info");
+  };
+
   const deleteOrder = (orderId: string) => {
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
     addToast("الطلبات", `تم حذف الطلب #${orderId}`, "info");
@@ -735,6 +841,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         orders,
         addOrder,
         updateOrderStatus,
+        confirmOrderViaWhatsApp,
+        cancelOrderViaWhatsApp,
         cancelOrder,
         restoreOrder,
         updateOrderAdminNotes,

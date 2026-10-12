@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Lock,
   Trash2,
+  ExternalLink,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -68,6 +69,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
 
   if (!isOpen) return null;
 
@@ -225,7 +227,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }, 900);
   };
 
-  const handleSendToWhatsApp = () => {
+  const getConfirmationMessage = () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    const confirmUrl = `${origin}/confirm-order?id=${orderId}&action=confirm`;
+    const cancelUrl = `${origin}/confirm-order?id=${orderId}&action=cancel`;
+    const portalUrl = `${origin}/confirm-order?id=${orderId}`;
+
     const itemsSummary = cartItems
       .map(
         (i) =>
@@ -235,34 +242,61 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       )
       .join("\n");
 
-    const message = `🌟 *طلب جديد من متجر أَثَر للفضة 925* 🌟
-رقم الطلب: *${orderId}*
-
-👤 الاسم: ${formData.fullName}
-📞 الهاتف: ${formData.phone}
-📍 المحافظة: ${formData.governorate}
-🏠 العنوان: ${formData.address}
-💳 طريقة الدفع: ${
+    const paymentName =
       formData.paymentMethod === "cod"
         ? "الدفع عند الاستلام (معاينة قبل الدفع)"
         : formData.paymentMethod === "wallet"
-        ? `تحويل إنستاباي / فودافون كاش (رقم المحول منه: ${senderWalletNumber})`
-        : `بطاقة بنكية عبر Paymob (تنتهي بـ ${cardData.cardNumber.slice(-4) || "4242"})`
-    }
-${receiptImage ? `📸 تم إرفاق صورة إيصال التحويل مع الطلب في لوحة التحكم` : ""}
+        ? `تحويل إنستاباي / فودافون كاش (رقم المحول: ${senderWalletNumber || "غير مدون"})`
+        : `بطاقة بنكية عبر Paymob`;
+
+    return `✨ *طلب شراء جديد من براند أَثَر للفضة 925* ✨
+رقم الطلب: *#${orderId}*
+
+👤 العميل: ${formData.fullName}
+📞 الهاتف: ${formData.phone}
+📍 العنوان: ${formData.governorate} - ${formData.address}
+💳 طريقة الدفع: ${paymentName}
+${receiptImage ? `📸 تم إرفاق صورة إيصال التحويل مع الطلب` : ""}
 
 🛍️ *المنتجات المطلوبة:*
 ${itemsSummary}
 
-المجموع الفرعي: ${subtotal} ج.م
-الخصم (${appliedPromo || "لا يوجد"}): -${discountAmount} ج.م
-الشحن: ${shippingFee === 0 ? "مجاني" : `${shippingFee} ج.م`}
-💰 *الإجمالي النهائي: ${grandTotal} ج.م*
+💰 *الإجمالي النهائي للدفع: ${grandTotal} ج.م*
+${formData.isGift ? `🎁 تغليف كهدية فاخرة: "${formData.giftMessage}"` : ""}
+${formData.notes ? `📝 ملاحظات: ${formData.notes}` : ""}
 
-${formData.isGift ? `🎁 طلب تغليف كهدية: "${formData.giftMessage}"` : ""}
-${formData.notes ? `📝 ملاحظات: ${formData.notes}` : ""}`;
+-----------------------------------------
+📲 *لتأكيد الطلب أو إلغائه بنقرة واحدة:*
 
+✅ *لتأكيد استلام الطلب وبدء الشحن:*
+${confirmUrl}
+
+❌ *لإلغاء الطلب إذا غيرت رأيك:*
+${cancelUrl}
+
+🔗 *رابط بوابة متابعة وتأكيد طلبك:*
+${portalUrl}
+
+📞 *ملاحظة هامة:* سيتواصل معك فريق خدمة العملاء هاتفياً قبل خروج الشحنة لتأكيد موعد التسليم المناسب لك.`;
+  };
+
+  const handleSendToCustomerWhatsApp = () => {
+    const message = getConfirmationMessage();
+    const cleanPhone = formData.phone.replace(/^0+/, "");
+    window.open(`https://wa.me/20${cleanPhone}?text=${encodeURIComponent(message)}`, "_blank");
+  };
+
+  const handleSendToStoreWhatsApp = () => {
+    const message = getConfirmationMessage();
     window.open(`https://wa.me/${storeSettings.whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank");
+  };
+
+  const handleCopyConfirmationLink = () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    const portalUrl = `${origin}/confirm-order?id=${orderId}`;
+    navigator.clipboard.writeText(portalUrl);
+    setIsLinkCopied(true);
+    setTimeout(() => setIsLinkCopied(false), 2500);
   };
 
   return (
@@ -348,20 +382,70 @@ ${formData.notes ? `📝 ملاحظات: ${formData.notes}` : ""}`;
               )}
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto pt-2">
+            {/* WhatsApp Automated Confirmation Box */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-[#faf8f5] to-emerald-500/5 border border-emerald-300 text-right max-w-md mx-auto space-y-3">
+              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                <span>أتمتة التأكيد الفوري عبر واتساب 📲</span>
+              </div>
+              <p className="text-[11px] text-[#6e5d4e] leading-relaxed">
+                أرسل رسالة الواتساب المتضمنة تفاصيل الطلب مع أزرار التأكيد أو الإلغاء بنقرة واحدة مباشرة لهاتف العميل:
+              </p>
+
               <button
                 type="button"
-                onClick={handleSendToWhatsApp}
-                className="flex-1 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+                onClick={handleSendToCustomerWhatsApp}
+                className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 active:scale-95"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>إرسال الفاتورة عبر واتساب لمتابعة الشحن</span>
+                <span>إرسال رسالة التأكيد لواتساب العميل ({formData.phone}) 📲</span>
+              </button>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <a
+                  href={`/confirm-order?id=${orderId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                  <span>معاينة صفحة العميل 👁️</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleCopyConfirmationLink}
+                  className="p-2.5 rounded-xl bg-white hover:bg-[#f6efe4] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  {isLinkCopied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700">تم النسخ ✓</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-[#8c7865]" />
+                      <span>نسخ رابط العميل</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-2.5 justify-center max-w-md mx-auto pt-1">
+              <button
+                type="button"
+                onClick={handleSendToStoreWhatsApp}
+                className="py-2.5 px-4 rounded-xl bg-[#faf8f5] hover:bg-[#f2ece1] border border-[#d8c8b4] text-xs font-bold text-[#6e5d4e] transition-colors flex items-center justify-center gap-1.5"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>إرسال نسخة لواتساب المتجر</span>
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="py-3.5 px-6 rounded-xl bg-white border border-[#ded1be] hover:bg-[#f6efe4] text-[#1c1815] font-bold text-xs transition-colors"
+                className="py-2.5 px-5 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-[#ded1be] font-bold text-xs transition-colors"
               >
                 العودة للمتجر
               </button>

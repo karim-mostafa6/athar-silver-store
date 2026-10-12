@@ -603,8 +603,12 @@ export default function AdminPage() {
   // Orders Filtering & Tele-Sales Calculations
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
-      if (orderFilterStatus !== "all" && o.status !== orderFilterStatus) {
-        return false;
+      if (orderFilterStatus !== "all") {
+        if (orderFilterStatus === "confirmed_whatsapp") {
+          if (o.status !== "confirmed_whatsapp" && !o.whatsappConfirmed) return false;
+        } else if (o.status !== orderFilterStatus) {
+          return false;
+        }
       }
       if (orderSearchQuery.trim()) {
         const q = orderSearchQuery.toLowerCase().trim();
@@ -619,6 +623,7 @@ export default function AdminPage() {
   }, [orders, orderFilterStatus, orderSearchQuery]);
 
   const pendingOrdersCount = orders.filter((o) => o.status === "pending").length;
+  const confirmedWhatsAppOrdersCount = orders.filter((o) => o.status === "confirmed_whatsapp" || o.whatsappConfirmed).length;
   const processingOrdersCount = orders.filter((o) => o.status === "processing").length;
   const shippedOrdersCount = orders.filter((o) => o.status === "shipped").length;
   const completedOrdersCount = orders.filter((o) => o.status === "completed").length;
@@ -2826,11 +2831,11 @@ export default function AdminPage() {
         {activeTab === "orders" && (
           <div className="space-y-6">
             {/* KPI Cards for Tele-Sales & Fulfillment */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
               <div className="bg-white p-4 rounded-2xl border border-[#ebdcca] shadow-sm">
                 <span className="text-[11px] font-bold text-[#8c7865] block">مبيعات الطلبات السارية</span>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl sm:text-2xl font-black font-alexandria text-emerald-600">
+                  <span className="text-xl font-black font-alexandria text-emerald-600">
                     {validSalesTotal.toLocaleString("ar-EG")}
                   </span>
                   <span className="text-xs text-[#8c7865]">ج.م</span>
@@ -2841,22 +2846,35 @@ export default function AdminPage() {
               </div>
 
               <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-sm">
-                <span className="text-[11px] font-bold text-amber-800 block">بانتظار التأكيد الهاتفي 📞</span>
+                <span className="text-[11px] font-bold text-amber-800 block">بانتظار التأكيد 🟡</span>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl sm:text-2xl font-black font-alexandria text-amber-600">
+                  <span className="text-xl font-black font-alexandria text-amber-600">
                     {pendingOrdersCount}
                   </span>
                   <span className="text-xs text-[#8c7865]">طلب</span>
                 </div>
                 <span className="text-[10px] text-amber-700 font-medium block mt-1">
-                  يتطلب الاتصال بالعميل لتأكيد الشحن
+                  لم يؤكد بعد عبر واتساب أو الهاتف
+                </span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-emerald-300 bg-emerald-50/40 shadow-sm">
+                <span className="text-[11px] font-bold text-emerald-800 block">مؤكد عبر واتساب 📲</span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-xl font-black font-alexandria text-emerald-600">
+                    {confirmedWhatsAppOrdersCount}
+                  </span>
+                  <span className="text-xs text-[#8c7865]">طلب</span>
+                </div>
+                <span className="text-[10px] text-emerald-700 font-medium block mt-1">
+                  أكد العميل رغبته • أولوية لمكالمة الشحن 📞
                 </span>
               </div>
 
               <div className="bg-white p-4 rounded-2xl border border-blue-200 bg-blue-50/20 shadow-sm">
-                <span className="text-[11px] font-bold text-blue-800 block">جاري التجهيز والشحن 🚚</span>
+                <span className="text-[11px] font-bold text-blue-800 block">تجهيز وشحن 🚚</span>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl sm:text-2xl font-black font-alexandria text-blue-600">
+                  <span className="text-xl font-black font-alexandria text-blue-600">
                     {processingOrdersCount + shippedOrdersCount}
                   </span>
                   <span className="text-xs text-[#8c7865]">طلب</span>
@@ -2866,16 +2884,16 @@ export default function AdminPage() {
                 </span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/30 shadow-sm">
+              <div className="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/30 shadow-sm col-span-2 lg:col-span-1">
                 <span className="text-[11px] font-bold text-rose-800 block">الطلبات الملغاة ❌</span>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl sm:text-2xl font-black font-alexandria text-rose-600">
+                  <span className="text-xl font-black font-alexandria text-rose-600">
                     {cancelledOrdersCount}
                   </span>
                   <span className="text-xs text-[#8c7865]">طلب</span>
                 </div>
                 <span className="text-[10px] text-rose-700 font-medium block mt-1">
-                  نسبة الإلغاء الإجمالية: {cancellationPercentage}%
+                  نسبة الإلغاء: {cancellationPercentage}%
                 </span>
               </div>
             </div>
@@ -2931,9 +2949,23 @@ export default function AdminPage() {
                       : "bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200"
                   }`}
                 >
-                  <span>بانتظار التأكيد 📞</span>
+                  <span>قيد الانتظار 🟡</span>
                   <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px]">
                     {pendingOrdersCount}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOrderFilterStatus("confirmed_whatsapp")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    orderFilterStatus === "confirmed_whatsapp"
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
+                  }`}
+                >
+                  <span>مؤكد واتساب 📲</span>
+                  <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px]">
+                    {confirmedWhatsAppOrdersCount}
                   </span>
                 </button>
                 <button
@@ -3046,6 +3078,11 @@ export default function AdminPage() {
                               <Ban className="w-3 h-3" />
                               <span>طلب ملغي</span>
                             </span>
+                          ) : o.status === "confirmed_whatsapp" || o.whatsappConfirmed ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm animate-pulse">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              <span>مؤكد عبر واتساب 📲✓</span>
+                            </span>
                           ) : (
                             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               o.status === "completed"
@@ -3056,7 +3093,7 @@ export default function AdminPage() {
                                 ? "bg-blue-100 text-blue-800"
                                 : "bg-amber-100 text-amber-800"
                             }`}>
-                              {o.status === "pending" && "بانتظار التأكيد الهاتفي 🟡"}
+                              {o.status === "pending" && "بانتظار التأكيد 🟡"}
                               {o.status === "processing" && "جاري التجهيز 🔵"}
                               {o.status === "shipped" && "تم الشحن مع المندوب 🟣"}
                               {o.status === "completed" && "تم التوصيل بنجاح 🟢"}
@@ -3082,6 +3119,8 @@ export default function AdminPage() {
                               className={`text-xs font-bold rounded-lg px-2.5 py-1.5 border transition-colors ${
                                 o.status === "completed"
                                   ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                  : o.status === "confirmed_whatsapp"
+                                  ? "bg-emerald-100 text-emerald-800 border-emerald-400 font-black"
                                   : o.status === "shipped"
                                   ? "bg-purple-100 text-purple-800 border-purple-300"
                                   : o.status === "processing"
@@ -3092,12 +3131,25 @@ export default function AdminPage() {
                               }`}
                             >
                               <option value="pending">قيد الانتظار 🟡</option>
+                              <option value="confirmed_whatsapp">مؤكد عبر واتساب 📲</option>
                               <option value="processing">جاري التجهيز 🔵</option>
                               <option value="shipped">تم الشحن 🟣</option>
                               <option value="completed">تم التوصيل بنجاح 🟢</option>
                               <option value="cancelled">ملغي 🔴</option>
                             </select>
                           </div>
+
+                          {/* Customer Portal Link Button */}
+                          <a
+                            href={`/confirm-order?id=${o.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-[#ebdcca] bg-[#faf8f5] hover:bg-[#f5efe6] text-xs font-bold text-[#1c1815] transition-colors flex items-center gap-1"
+                            title="معاينة صفحة العميل لتأكيد أو إلغاء الطلب"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                            <span className="hidden sm:inline">بوابة العميل</span>
+                          </a>
 
                           {/* Print Shipping Waybill Button */}
                           <button
@@ -3179,6 +3231,11 @@ export default function AdminPage() {
                           <div className="flex items-start gap-2.5">
                             <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                             <div>
+                              {o.whatsappCancellation && (
+                                <div className="inline-block bg-rose-200 text-rose-950 px-2 py-0.5 rounded text-[10px] font-bold mb-1">
+                                  إلغاء ذاتي من العميل عبر رابط الواتساب 📲❌
+                                </div>
+                              )}
                               <div className="font-bold text-rose-900">
                                 تم إلغاء هذا الطلب:{" "}
                                 <span className="underline decoration-rose-400">
@@ -3228,6 +3285,24 @@ export default function AdminPage() {
                             <span className="font-bold text-sm text-[#1c1815]">{o.customerName}</span>
                           </div>
 
+                          {/* WhatsApp Confirmed Card */}
+                          {(o.status === "confirmed_whatsapp" || o.whatsappConfirmed) && (
+                            <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs space-y-1">
+                              <div className="font-bold flex items-center gap-1.5 text-emerald-800">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                <span>تم تأكيد رغبة الاستلام عبر واتساب 📲✓</span>
+                              </div>
+                              {o.whatsappConfirmedAt && (
+                                <span className="text-[11px] text-emerald-700 block">
+                                  تاريخ التأكيد: {new Date(o.whatsappConfirmedAt).toLocaleString("ar-EG")}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-emerald-900 font-medium block">
+                                أولوية قصوى: العميل مستعد • اتصل لتنسيق موعد خروج المندوب 📞
+                              </span>
+                            </div>
+                          )}
+
                           {/* Phone & Direct Communication */}
                           <div className="space-y-1.5">
                             <span className="text-[#8c7865] block">رقم الهاتف وتأكيد الأوردر:</span>
@@ -3246,18 +3321,22 @@ export default function AdminPage() {
                                 <span>مكالمة هاتفية</span>
                               </a>
 
-                              {/* Direct WhatsApp Confirmation Button */}
+                              {/* Direct WhatsApp Confirmation Button with 1-click links */}
                               <a
                                 href={`https://wa.me/20${o.phone.replace(/^0+/, "")}?text=${encodeURIComponent(
-                                  `مرحباً أستاذ ${o.customerName}، نتواصل معك من براند أَثَر للفضة 925 بخصوص طلبك رقم #${o.id} بقيمة ${o.total} ج.م.\nنود التأكيد على بيانات الشحن لتجهيز الطلب والشحن لعنوانك:\n${o.governorate} - ${o.address}`
+                                  `مرحباً أستاذ ${o.customerName} ✨\nنتواصل معك من براند أَثَر للفضة 925 بخصوص طلبك رقم #${o.id} بقيمة ${o.total} ج.م.\n\nلتأكيد رغبتك في استلام الشحنة بنقرة واحدة:\n✅ رابط التأكيد المباشر:\n${
+                                    typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"
+                                  }/confirm-order?id=${o.id}&action=confirm\n\n❌ رابط الإلغاء (إذا غيرت رأيك):\n${
+                                    typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"
+                                  }/confirm-order?id=${o.id}&action=cancel\n\nسيقوم فريق خدمة العملاء بالتواصل معك هاتفياً قبل موعد التسليم لتأكيد خروج المندوب.`
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs flex items-center gap-1.5 transition-colors"
-                                title="إرسال رسالة تأكيد واتساب"
+                                title="إرسال رسالة تأكيد واتساب تتضمن روابط التأكيد والإلغاء"
                               >
                                 <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>تأكيد واتساب</span>
+                                <span>إرسال تأكيد واتساب</span>
                               </a>
                             </div>
                           </div>
@@ -3787,6 +3866,126 @@ export default function AdminPage() {
                         />
                       </div>
                     </div>
+                  </div>
+
+                  {/* 3. WhatsApp Order Confirmation & Bot Automation Settings */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#f4ece0] pb-2.5 gap-2">
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-emerald-600" />
+                        <span className="text-xs font-bold text-[#1c1815]">
+                          3. أتمتة رسائل وتأكيد الطلبات عبر واتساب (WhatsApp Confirmation & Bot):
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 select-none self-start sm:self-auto">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.whatsappAutoConfirm !== false}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, whatsappAutoConfirm: e.target.checked })
+                          }
+                          className="rounded border-[#d8c8b4] text-emerald-600 focus:ring-0 w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold text-emerald-900">
+                          {settingsForm.whatsappAutoConfirm !== false ? "التأكيد التلقائي مفعّل 🟢" : "معطل ⚪"}
+                        </span>
+                      </label>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 text-xs space-y-1">
+                      <span className="font-bold block">
+                        💡 كيف تعمل أتمتة تأكيد الواتساب الاحترافية؟
+                      </span>
+                      <p className="text-[11px] text-emerald-900/90 leading-relaxed">
+                        بمجرد أن يُنهي العميل طلبه، يتم تجهيز رسالة واتساب رسمية تتضمن تفاصيل الطلب بالإضافة إلى:
+                        <strong> رابط تأكيد الطلب بنقرة واحدة</strong> و <strong>رابط إلغاء الطلب مع تسجيل السبب</strong>.
+                        عند ضغط العميل على أي منهما، تنتقل حالة الطلب تلقائياً في لوحة التحكم إلى <em>&quot;مؤكد عبر واتساب 📲&quot;</em> أو <em>&quot;ملغي ❌&quot;</em> لتكون مكالمتك الهاتفية أسهل وتوفر عليك مصاريف الشحن المرتجع!
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          نظام إرسال الواتساب المستخدم:
+                        </label>
+                        <select
+                          value={settingsForm.whatsappBotProvider || "direct_link"}
+                          onChange={(e) =>
+                            setSettingsForm({
+                              ...settingsForm,
+                              whatsappBotProvider: e.target.value as "direct_link" | "cloud_api" | "ultramsg",
+                            })
+                          }
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
+                        >
+                          <option value="direct_link">
+                            روابط واتساب التفاعلية الفورية (wa.me) - مجاني وبدون تكلفة ✓
+                          </option>
+                          <option value="cloud_api">
+                            Meta WhatsApp Cloud API (ربط رسمي بشريحة تجارية مستقبلاً)
+                          </option>
+                          <option value="ultramsg">
+                            UltraMsg / Wati Gateway (بوابة مخصصة)
+                          </option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          رقم هاتف الواتساب المعتمد للمتجر:
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.whatsappNumber || "201099887766"}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, whatsappNumber: e.target.value })
+                          }
+                          placeholder="مثال: 201143837730"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono font-bold text-[#1c1815] dir-ltr text-right"
+                        />
+                      </div>
+                    </div>
+
+                    {settingsForm.whatsappBotProvider === "cloud_api" && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-[#faf8f5] border border-[#ebdcca] animate-in fade-in duration-150">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-[#1c1815] block">Meta Cloud Token:</label>
+                          <input
+                            type="password"
+                            value={settingsForm.whatsappCloudToken || ""}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, whatsappCloudToken: e.target.value })
+                            }
+                            placeholder="EAAG..."
+                            className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-[#1c1815] block">Phone Number ID:</label>
+                          <input
+                            type="text"
+                            value={settingsForm.whatsappCloudPhoneId || ""}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, whatsappCloudPhoneId: e.target.value })
+                            }
+                            placeholder="104928174..."
+                            className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-[#1c1815] block">Template Name:</label>
+                          <input
+                            type="text"
+                            value={settingsForm.whatsappCloudTemplateName || "order_confirmation_v1"}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, whatsappCloudTemplateName: e.target.value })
+                            }
+                            placeholder="order_confirmation_v1"
+                            className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
