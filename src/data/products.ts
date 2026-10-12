@@ -1,8 +1,24 @@
+export interface StoreCategory {
+  id: string;
+  label: string;
+  icon?: string;
+  slug?: string;
+  description?: string;
+}
+
+export const DEFAULT_CATEGORIES: StoreCategory[] = [
+  { id: "rings", label: "خواتم وسوليتير", icon: "💍", slug: "rings" },
+  { id: "chains", label: "سلاسل إيطالي", icon: "⛓️", slug: "chains" },
+  { id: "bracelets", label: "أساور وتنس", icon: "✨", slug: "bracelets" },
+  { id: "sets", label: "أطقم ملكية", icon: "👑", slug: "sets" },
+  { id: "earrings", label: "أقراط وحلقان", icon: "💎", slug: "earrings" },
+];
+
 export interface Product {
   id: string;
   name: string;
   arabicName: string;
-  category: "rings" | "chains" | "bracelets" | "earrings" | "sets";
+  category: string;
   gender: "men" | "women" | "unisex";
   purity: string; // e.g. "فضة إسترليني عيار 925"
   price: number;

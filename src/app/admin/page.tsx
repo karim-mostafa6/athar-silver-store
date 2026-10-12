@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useStore, StoreSettings, Order, NavLinkItem } from "@/context/StoreContext";
-import { Product } from "@/data/products";
+import { Product, StoreCategory, DEFAULT_CATEGORIES } from "@/data/products";
 import {
   Lock,
   User,
@@ -174,7 +174,22 @@ export default function AdminPage() {
   const [cancelAdminNote, setCancelAdminNote] = useState<string>("");
   const [printingOrder, setPrintingOrder] = useState<Order | null>(null);
   const [editingNotesOrder, setEditingNotesOrder] = useState<Order | null>(null);
-  const [tempAdminNote, setTempAdminNote] = useState<string>("");
+  const [tempAdminNote, setTempAdminNote] = useState<string>("" );
+
+  // Category Management State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editCategoryForm, setEditCategoryForm] = useState<{ id: string; label: string; icon: string; slug: string }>({
+    id: "",
+    label: "",
+    icon: "",
+    slug: "",
+  });
+  const [newCategoryForm, setNewCategoryForm] = useState<{ label: string; icon: string; slug: string }>({
+    label: "",
+    icon: "✨",
+    slug: "",
+  });
 
   // Check login on mount
   useEffect(() => {
@@ -210,6 +225,7 @@ export default function AdminPage() {
   useEffect(() => {
     const hasAnyModal =
       isModalOpen ||
+      isCategoryModalOpen ||
       Boolean(selectedOrderId) ||
       Boolean(cancellingOrder) ||
       Boolean(previewReceiptOrder) ||
@@ -223,7 +239,8 @@ export default function AdminPage() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (previewReceiptOrder) setPreviewReceiptOrder(null);
+        if (isCategoryModalOpen) setIsCategoryModalOpen(false);
+        else if (previewReceiptOrder) setPreviewReceiptOrder(null);
         else if (printingOrder) setPrintingOrder(null);
         else if (editingNotesOrder) setEditingNotesOrder(null);
         else if (cancellingOrder) setCancellingOrder(null);
@@ -239,6 +256,7 @@ export default function AdminPage() {
     };
   }, [
     isModalOpen,
+    isCategoryModalOpen,
     selectedOrderId,
     cancellingOrder,
     previewReceiptOrder,
@@ -649,6 +667,134 @@ export default function AdminPage() {
   // Toggle Stock Status
   const handleToggleStock = (p: Product) => {
     updateProduct(p.id, { inStock: !p.inStock });
+  };
+
+  // Available Categories Derived from StoreSettings
+  const availableCategories: StoreCategory[] = useMemo(() => {
+    return settingsForm.categories && settingsForm.categories.length > 0
+      ? settingsForm.categories
+      : DEFAULT_CATEGORIES;
+  }, [settingsForm.categories]);
+
+  // Handle Add New Category
+  const handleAddCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanLabel = newCategoryForm.label.trim();
+    if (!cleanLabel) {
+      alert("يرجى إدخال اسم القسم بالعربية");
+      return;
+    }
+
+    let rawSlug = newCategoryForm.slug.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9_-]/g, "");
+    if (!rawSlug) {
+      rawSlug = `cat_${Date.now().toString(36)}`;
+    }
+
+    if (availableCategories.some((c) => c.id === rawSlug)) {
+      rawSlug = `${rawSlug}-${Math.floor(Math.random() * 1000)}`;
+    }
+
+    const newCat: StoreCategory = {
+      id: rawSlug,
+      label: cleanLabel,
+      icon: newCategoryForm.icon.trim() || "✨",
+      slug: rawSlug,
+    };
+
+    const updatedCategories = [...availableCategories, newCat];
+    const updatedSettings = { ...settingsForm, categories: updatedCategories };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+
+    setNewCategoryForm({ label: "", icon: "✨", slug: "" });
+    addToast("تمت إضافة القسم", `تمت إضافة قسم "${cleanLabel}" بنجاح`, "info");
+  };
+
+  // Start Edit Category
+  const handleStartEditCategory = (cat: StoreCategory) => {
+    setEditingCategoryId(cat.id);
+    setEditCategoryForm({
+      id: cat.id,
+      label: cat.label,
+      icon: cat.icon || "✨",
+      slug: cat.slug || cat.id,
+    });
+  };
+
+  // Save Edit Category
+  const handleSaveEditCategory = () => {
+    if (!editingCategoryId) return;
+    const cleanLabel = editCategoryForm.label.trim();
+    if (!cleanLabel) {
+      alert("يرجى كتابة اسم للقسم");
+      return;
+    }
+
+    const updatedCategories = availableCategories.map((c) =>
+      c.id === editingCategoryId
+        ? {
+            ...c,
+            label: cleanLabel,
+            icon: editCategoryForm.icon.trim() || "✨",
+            slug: editCategoryForm.slug.trim() || c.id,
+          }
+        : c
+    );
+
+    const updatedSettings = { ...settingsForm, categories: updatedCategories };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+
+    setEditingCategoryId(null);
+    addToast("تم تحديث القسم", `تم تعديل اسم القسم إلى "${cleanLabel}"`, "info");
+  };
+
+  // Delete Category
+  const handleDeleteCategory = (catId: string, catLabel: string) => {
+    const productsInCat = products.filter((p) => p.category === catId);
+    if (productsInCat.length > 0) {
+      const confirmed = confirm(
+        `تنبيه: يوجد (${productsInCat.length}) منتج مسجل في هذا القسم ("${catLabel}").\nهل أنت متأكد من حذف القسم؟ (ستظل المنتجات موجودة ويمكن نقلها لقسم آخر)`
+      );
+      if (!confirmed) return;
+    } else {
+      if (!confirm(`هل أنت متأكد من حذف قسم "${catLabel}" نهائياً؟`)) return;
+    }
+
+    const updatedCategories = availableCategories.filter((c) => c.id !== catId);
+    const updatedSettings = { ...settingsForm, categories: updatedCategories };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+
+    if (categoryFilter === catId) {
+      setCategoryFilter("all");
+    }
+
+    addToast("تم حذف القسم", `تم حذف قسم "${catLabel}" من المتجر`, "info");
+  };
+
+  // Move Category Up / Down
+  const handleMoveCategory = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= availableCategories.length) return;
+
+    const newCats = [...availableCategories];
+    const [moved] = newCats.splice(index, 1);
+    newCats.splice(targetIndex, 0, moved);
+
+    const updatedSettings = { ...settingsForm, categories: newCats };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+  };
+
+  // Reset Categories to Default
+  const handleResetCategories = () => {
+    if (confirm("هل ترغب باستعادة الأقسام والتصنيفات الافتراضية الأصلية للمتجر؟")) {
+      const updatedSettings = { ...settingsForm, categories: DEFAULT_CATEGORIES };
+      setSettingsForm(updatedSettings);
+      updateStoreSettings(updatedSettings);
+      addToast("تمت الاستعادة", "تمت استعادة الأقسام الخمسة الافتراضية بنجاح", "info");
+    }
   };
 
   // Save Settings
@@ -1255,26 +1401,44 @@ export default function AdminPage() {
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto w-full py-1">
-                {[
-                  { id: "all", label: "كافة القطع" },
-                  { id: "rings", label: "خواتم وسوليتير" },
-                  { id: "chains", label: "سلاسل إيطالي" },
-                  { id: "bracelets", label: "أساور وتنس" },
-                  { id: "sets", label: "أطقم ملكية" },
-                  { id: "earrings", label: "أقراط وحلقان" },
-                ].map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategoryFilter(cat.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                      categoryFilter === cat.id
-                        ? "bg-[#1c1815] text-white"
-                        : "bg-[#f5efe6] text-[#705e4d] hover:bg-[#ece2d3]"
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
+                <button
+                  onClick={() => setCategoryFilter("all")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                    categoryFilter === "all"
+                      ? "bg-[#1c1815] text-white"
+                      : "bg-[#f5efe6] text-[#705e4d] hover:bg-[#ece2d3]"
+                  }`}
+                >
+                  كافة القطع ({products.length})
+                </button>
+                {availableCategories.map((cat) => {
+                  const count = products.filter((p) => p.category === cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCategoryFilter(cat.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                        categoryFilter === cat.id
+                          ? "bg-[#1c1815] text-white"
+                          : "bg-[#f5efe6] text-[#705e4d] hover:bg-[#ece2d3]"
+                      }`}
+                    >
+                      {cat.icon && <span>{cat.icon}</span>}
+                      <span>{cat.label}</span>
+                      <span className="text-[10px] opacity-70">({count})</span>
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300 flex items-center gap-1.5 mr-auto shrink-0 shadow-sm"
+                  title="تعديل مسميات الأقسام أو إضافة أقسام وتصنيفات جديدة للمتجر"
+                >
+                  <Sliders className="w-3.5 h-3.5 text-amber-700" />
+                  <span>تعديل وإضافة أقسام ({availableCategories.length})</span>
+                </button>
               </div>
             </div>
 
@@ -1342,15 +1506,7 @@ export default function AdminPage() {
                             <td className="p-4">
                               <div className="flex flex-col gap-0.5">
                                 <span className="font-bold text-[#1c1815]">
-                                  {p.category === "rings"
-                                    ? "خواتم وسوليتير"
-                                    : p.category === "chains"
-                                    ? "سلاسل إيطالي"
-                                    : p.category === "bracelets"
-                                    ? "أساور وتنس"
-                                    : p.category === "sets"
-                                    ? "أطقم ملكية"
-                                    : "أقراط"}
+                                  {availableCategories.find((c) => c.id === p.category)?.label || p.category}
                                 </span>
                                 <span className="text-[11px] text-[#8c7865]">
                                   {p.gender === "women" ? "حريمي" : p.gender === "men" ? "رجالي" : "للجنسين"}
@@ -4532,19 +4688,28 @@ export default function AdminPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#1c1815] block">القسم</label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#1c1815] block">القسم</label>
+                        <button
+                          type="button"
+                          onClick={() => setIsCategoryModalOpen(true)}
+                          className="text-[11px] text-amber-700 hover:text-amber-800 underline font-medium"
+                        >
+                          + إدارة وتعديل الأقسام
+                        </button>
+                      </div>
                       <select
                         value={productForm.category}
                         onChange={(e) =>
-                          setProductForm({ ...productForm, category: e.target.value as Product["category"] })
+                          setProductForm({ ...productForm, category: e.target.value })
                         }
                         className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600 font-bold"
                       >
-                        <option value="rings">خواتم وسوليتير</option>
-                        <option value="chains">سلاسل إيطالي</option>
-                        <option value="bracelets">أساور وتنس</option>
-                        <option value="sets">أطقم ملكية</option>
-                        <option value="earrings">أقراط وحلقان</option>
+                        {availableCategories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.icon ? `${cat.icon} ` : ""}{cat.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -6214,6 +6379,305 @@ export default function AdminPage() {
                   إغلاق
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* CATEGORY MANAGEMENT & EDITING MODAL */}
+      {/* ======================================================== */}
+      {isCategoryModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsCategoryModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+        >
+          <div className="relative w-full max-w-2xl bg-[#faf8f5] border border-[#d8c8b4] rounded-3xl text-[#1c1815] shadow-2xl text-right my-6 max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 border-b border-[#ebdcca] bg-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
+                  <Sliders className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold font-alexandria text-[#1c1815]">
+                    إدارة وتعديل أقسام المتجر
+                  </h3>
+                  <p className="text-xs text-[#8c7865]">
+                    تعديل مسميات الأقسام الحالية، إضافة أقسام جديدة، تغيير الأيقونات، وترتيب ظهورها
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsCategoryModalOpen(false)}
+                className="p-2 rounded-full bg-[#f5efe6] hover:bg-[#ebdcca] text-[#736150] hover:text-[#1c1815] transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+              {/* Add New Category Box */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#ebdcca] shadow-sm">
+                <h4 className="text-sm font-bold text-[#1c1815] mb-3 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-amber-700" />
+                  <span>إضافة قسم أو تصنيف جديد</span>
+                </h4>
+
+                <form onSubmit={handleAddCategory} className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div className="sm:col-span-6 space-y-1">
+                      <label className="text-[11px] font-bold text-[#6d5b4a] block">
+                        اسم القسم بالعربية *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newCategoryForm.label}
+                        onChange={(e) =>
+                          setNewCategoryForm({ ...newCategoryForm, label: e.target.value })
+                        }
+                        placeholder="مثال: دبل رجالية، سبح فضة، أزرار أكمام"
+                        className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3 space-y-1">
+                      <label className="text-[11px] font-bold text-[#6d5b4a] block">
+                        الأيقونة / الإيموجي
+                      </label>
+                      <input
+                        type="text"
+                        value={newCategoryForm.icon}
+                        onChange={(e) =>
+                          setNewCategoryForm({ ...newCategoryForm, icon: e.target.value })
+                        }
+                        placeholder="💍"
+                        className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs sm:text-sm text-center focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-3 space-y-1">
+                      <label className="text-[11px] font-bold text-[#6d5b4a] block">
+                        الرابط (Slug)
+                      </label>
+                      <input
+                        type="text"
+                        value={newCategoryForm.slug}
+                        onChange={(e) =>
+                          setNewCategoryForm({ ...newCategoryForm, slug: e.target.value })
+                        }
+                        placeholder="men-rings"
+                        className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs sm:text-sm font-mono focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-1.5 text-xs text-[#8c7865]">
+                      <span>إيموجي مقترح:</span>
+                      {["💍", "⛓️", "📿", "👑", "✨", "💎", "🎁", "👔"].map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => setNewCategoryForm({ ...newCategoryForm, icon: emoji })}
+                          className="px-1.5 py-0.5 rounded hover:bg-[#f5efe6] transition-colors"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>إضافة القسم</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Current Categories List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-[#1c1815] flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-amber-700" />
+                    <span>الأقسام الحالية في متجرك ({availableCategories.length})</span>
+                  </h4>
+                  <span className="text-[11px] text-[#8c7865]">
+                    استخدم الأسهم ⬆️ ⬇️ لتغيير ترتيب الظهور
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {availableCategories.map((cat, idx) => {
+                    const count = products.filter((p) => p.category === cat.id).length;
+                    const isEditing = editingCategoryId === cat.id;
+
+                    return (
+                      <div
+                        key={cat.id}
+                        className={`p-3 sm:p-4 rounded-2xl border transition-all ${
+                          isEditing
+                            ? "bg-amber-50/50 border-amber-300 shadow-sm"
+                            : "bg-white border-[#ebdcca] hover:border-[#d8c8b4]"
+                        }`}
+                      >
+                        {isEditing ? (
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                              <div className="sm:col-span-2 space-y-1">
+                                <label className="text-[10px] font-bold text-[#6d5b4a] block">الأيقونة</label>
+                                <input
+                                  type="text"
+                                  value={editCategoryForm.icon}
+                                  onChange={(e) =>
+                                    setEditCategoryForm({ ...editCategoryForm, icon: e.target.value })
+                                  }
+                                  className="w-full px-2 py-1.5 rounded-lg bg-white border border-amber-300 text-center text-sm font-bold focus:outline-none"
+                                />
+                              </div>
+                              <div className="sm:col-span-6 space-y-1">
+                                <label className="text-[10px] font-bold text-[#6d5b4a] block">اسم القسم بالعربية</label>
+                                <input
+                                  type="text"
+                                  value={editCategoryForm.label}
+                                  onChange={(e) =>
+                                    setEditCategoryForm({ ...editCategoryForm, label: e.target.value })
+                                  }
+                                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-xs sm:text-sm font-bold focus:outline-none"
+                                />
+                              </div>
+                              <div className="sm:col-span-4 space-y-1">
+                                <label className="text-[10px] font-bold text-[#6d5b4a] block">الرابط / Slug</label>
+                                <input
+                                  type="text"
+                                  value={editCategoryForm.slug}
+                                  onChange={(e) =>
+                                    setEditCategoryForm({ ...editCategoryForm, slug: e.target.value })
+                                  }
+                                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-xs font-mono focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setEditingCategoryId(null)}
+                                className="px-3 py-1.5 rounded-lg border border-[#d8c8b4] bg-white hover:bg-[#f5efe6] text-xs font-bold text-[#6d5b4a] transition-colors"
+                              >
+                                إلغاء
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleSaveEditCategory}
+                                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center gap-1 shadow-sm"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>حفظ التعديل</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-3">
+                            {/* Move Up/Down + Info */}
+                            <div className="flex items-center gap-2.5">
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => handleMoveCategory(idx, "up")}
+                                  className="p-1 rounded hover:bg-[#f5efe6] disabled:opacity-20 disabled:hover:bg-transparent text-[#705e4d] transition-colors"
+                                  title="تحريك لأعلى"
+                                >
+                                  <ArrowUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === availableCategories.length - 1}
+                                  onClick={() => handleMoveCategory(idx, "down")}
+                                  className="p-1 rounded hover:bg-[#f5efe6] disabled:opacity-20 disabled:hover:bg-transparent text-[#705e4d] transition-colors"
+                                  title="تحريك لأسفل"
+                                >
+                                  <ArrowDown className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              <div className="w-9 h-9 rounded-xl bg-[#faf8f5] border border-[#ebdcca] flex items-center justify-center text-lg shrink-0">
+                                {cat.icon || "✨"}
+                              </div>
+
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-[#1c1815] text-sm">
+                                    {cat.label}
+                                  </span>
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-mono">
+                                    #{cat.id}
+                                  </span>
+                                </div>
+                                <div className="text-[11px] text-[#8c7865] mt-0.5">
+                                  يحتوي على <strong className="text-[#1c1815]">{count}</strong> قطعة معروضة
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditCategory(cat)}
+                                className="px-3 py-1.5 rounded-xl border border-[#ebdcca] bg-white hover:bg-amber-50 hover:border-amber-300 text-xs font-bold text-[#1c1815] transition-colors flex items-center gap-1 shadow-sm"
+                                title="تعديل اسم أو أيقونة هذا القسم"
+                              >
+                                <Edit className="w-3.5 h-3.5 text-amber-700" />
+                                <span>تعديل</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCategory(cat.id, cat.label)}
+                                className="p-1.5 rounded-xl border border-transparent hover:border-rose-200 hover:bg-rose-50 text-[#8c7865] hover:text-rose-600 transition-colors"
+                                title="حذف هذا القسم"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 bg-white border-t border-[#ebdcca] flex items-center justify-between gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={handleResetCategories}
+                className="text-xs text-[#8c7865] hover:text-amber-800 underline font-medium flex items-center gap-1 transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>استعادة الأقسام الافتراضية</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsCategoryModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-white text-xs font-bold transition-colors shadow-sm"
+              >
+                تم والانتهاء
+              </button>
             </div>
           </div>
         </div>

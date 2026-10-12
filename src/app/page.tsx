@@ -11,7 +11,7 @@ import { useStore } from "@/context/StoreContext";
 import { X } from "lucide-react";
 
 export default function Home() {
-  const { products, addToCart, toggleWishlist, isWishlisted, addToast, setIsSizeGuideOpen } = useStore();
+  const { products, storeSettings, addToCart, toggleWishlist, isWishlisted, addToast, setIsSizeGuideOpen } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedGender, setSelectedGender] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("popular");
@@ -23,13 +23,19 @@ export default function Home() {
     productsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const categories = [
-    { id: "all", label: "كافة القطع" },
-    { id: "rings", label: "خواتم وسوليتير" },
-    { id: "chains", label: "سلاسل إيطالي" },
-    { id: "bracelets", label: "أساور وتنس" },
-    { id: "sets", label: "أطقم ملكية" },
-  ];
+  const categories = useMemo(() => {
+    const list =
+      storeSettings?.categories && storeSettings.categories.length > 0
+        ? storeSettings.categories
+        : [
+            { id: "rings", label: "خواتم وسوليتير" },
+            { id: "chains", label: "سلاسل إيطالي" },
+            { id: "bracelets", label: "أساور وتنس" },
+            { id: "sets", label: "أطقم ملكية" },
+            { id: "earrings", label: "أقراط وحلقان" },
+          ];
+    return [{ id: "all", label: "كافة القطع" }, ...list];
+  }, [storeSettings?.categories]);
 
   // Filtering
   const filteredProducts = useMemo(() => {

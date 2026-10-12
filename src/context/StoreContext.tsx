@@ -1,8 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
-import { Product, CartItem, PRODUCTS } from "@/data/products";
+import { Product, CartItem, PRODUCTS, StoreCategory, DEFAULT_CATEGORIES } from "@/data/products";
 import { ToastMessage } from "@/components/Toast";
+
+export type { StoreCategory };
+export { DEFAULT_CATEGORIES };
 
 export interface NavLinkItem {
   id: string;
@@ -140,6 +143,9 @@ export interface StoreSettings {
   returnPolicyText: string;
   warrantyPolicyText: string;
   shippingPolicyTimeline: string;
+
+  // Custom Categories & Collections
+  categories?: StoreCategory[];
 }
 
 export interface OrderItem {
@@ -362,6 +368,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   returnPolicyText: "حق المعاينة والفحص الكامل مع مندوب الشحن قبل سداد أي مبالغ. استبدال واسترجاع مجاني وسلس خلال 14 يوماً في حالة وجود أي عيب مصنعي أو رغبة في استبدال المقاس، بشرط الحفاظ على القطعة والعلبة الأصلية وكارت الضمان.",
   warrantyPolicyText: "ضمان رسمي مدى الحياة على أصالة وجودة الفضة الإسترليني عيار 925 الإيطالية والسويسرية، مع خدمة تلميع وتنظيف احترافي مجانية لجميع عملاء أَثَر.",
   shippingPolicyTimeline: "توصيل سريع خلال 24 - 48 ساعة للقاهرة والجيزة والإسكندرية، وخلال 2 - 3 أيام لباقي محافظات الجمهورية مع التنسيق الهاتفي لميعاد الاستلام المناسب لك.",
+  categories: DEFAULT_CATEGORIES,
 };
 
 const SAMPLE_ORDERS: Order[] = [
@@ -519,7 +526,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
       const savedSettings = localStorage.getItem("athar_store_settings");
       if (savedSettings) {
-        setStoreSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) });
+        const parsed = JSON.parse(savedSettings);
+        setStoreSettings({
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          categories: Array.isArray(parsed.categories) && parsed.categories.length > 0 ? parsed.categories : DEFAULT_CATEGORIES,
+        });
       }
 
       const savedOrders = localStorage.getItem("athar_orders");

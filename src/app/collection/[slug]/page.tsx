@@ -7,8 +7,10 @@ import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
 import { ArrowUpDown } from "lucide-react";
 
+import { DEFAULT_CATEGORIES } from "@/data/products";
+
 export default function CollectionPage() {
-  const { products: allStoreProducts } = useStore();
+  const { products: allStoreProducts, storeSettings } = useStore();
   const params = useParams();
   const slug = (params?.slug as string) || "all";
 
@@ -72,7 +74,28 @@ export default function CollectionPage() {
             "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=85",
           filterCategory: "sets",
         };
-      default:
+      case "earrings":
+        return {
+          title: "أقراط وحلقان",
+          englishTitle: "EARRINGS",
+          subtitle: "أقراط فضة إسترليني 925 متدلية ونواعم بتصاميم ساحرة",
+          bannerImage:
+            "https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=1600&q=85",
+          filterCategory: "earrings",
+        };
+      default: {
+        const catList = storeSettings?.categories && storeSettings.categories.length > 0 ? storeSettings.categories : DEFAULT_CATEGORIES;
+        const matched = catList.find((c) => c.id === slug || c.slug === slug);
+        if (matched) {
+          return {
+            title: matched.label,
+            englishTitle: (matched.slug || matched.id).toUpperCase(),
+            subtitle: matched.description || `تشكيلة ${matched.label} الفاخرة من الفضة الإسترليني عيار 925`,
+            bannerImage:
+              "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
+            filterCategory: matched.id,
+          };
+        }
         return {
           title: "كافة روائع أَثَـر",
           englishTitle: "THE COMPLETE COLLECTION",
@@ -80,17 +103,18 @@ export default function CollectionPage() {
           bannerImage:
             "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
         };
+      }
     }
-  }, [slug]);
+  }, [slug, storeSettings?.categories]);
 
   // Subcategories
-  const subCategories = [
-    { id: "all", label: "الكل" },
-    { id: "rings", label: "خواتم" },
-    { id: "chains", label: "سلاسل" },
-    { id: "bracelets", label: "أساور" },
-    { id: "sets", label: "أطقم" },
-  ];
+  const subCategories = useMemo(() => {
+    const list =
+      storeSettings?.categories && storeSettings.categories.length > 0
+        ? storeSettings.categories
+        : DEFAULT_CATEGORIES;
+    return [{ id: "all", label: "الكل" }, ...list.map((c) => ({ id: c.id, label: c.label }))];
+  }, [storeSettings?.categories]);
 
   // Filtering products
   const products = useMemo(() => {
