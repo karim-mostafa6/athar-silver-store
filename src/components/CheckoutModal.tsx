@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { CartItem, GOVERNORATES } from "@/data/products";
+import { useStore } from "@/context/StoreContext";
 import { X, CheckCircle2, MessageCircle, CreditCard, Banknote, ShieldCheck } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -22,6 +23,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   appliedPromo,
   onOrderSuccess,
 }) => {
+  const { addOrder, storeSettings } = useStore();
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -41,7 +43,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const freeShippingThreshold = 2500;
+  const freeShippingThreshold = storeSettings.freeShippingThreshold;
   const currentGov = GOVERNORATES.find((g) => g.name === formData.governorate) || GOVERNORATES[0];
   const shippingFee = subtotal >= freeShippingThreshold ? 0 : currentGov.shipping;
   const grandTotal = Math.max(0, subtotal - discountAmount + shippingFee);
@@ -54,7 +56,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
 
     setIsSubmitting(true);
-    const newOrderId = `ATH-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newOrderId = addOrder({
+      customerName: formData.fullName,
+      phone: formData.phone,
+      whatsapp: formData.whatsapp,
+      governorate: formData.governorate,
+      address: formData.address,
+      notes: formData.notes,
+      isGift: formData.isGift,
+      giftMessage: formData.giftMessage,
+      items: cartItems.map((i) => ({
+        productId: i.product.id,
+        name: i.product.name,
+        arabicName: i.product.arabicName,
+        quantity: i.quantity,
+        price: i.product.price,
+        selectedSize: i.selectedSize,
+        image: i.product.images[0],
+      })),
+      subtotal,
+      shippingFee,
+      discount: discountAmount,
+      total: grandTotal,
+      paymentMethod: formData.paymentMethod,
+    });
     setOrderId(newOrderId);
 
     setTimeout(() => {
@@ -108,7 +133,7 @@ ${itemsSummary}
 ${formData.isGift ? `🎁 طلب تغليف كهدية: "${formData.giftMessage}"` : ""}
 ${formData.notes ? `📝 ملاحظات: ${formData.notes}` : ""}`;
 
-    window.open(`https://wa.me/201000000000?text=${encodeURIComponent(message)}`, "_blank");
+    window.open(`https://wa.me/${storeSettings.whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank");
   };
 
   return (

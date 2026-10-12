@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo, useRef } from "react";
-import { PRODUCTS } from "@/data/products";
 import { HeroSection } from "@/components/HeroSection";
 import { GenderSplitShowcase } from "@/components/GenderSplitShowcase";
 import { ProductCard } from "@/components/ProductCard";
@@ -12,7 +11,7 @@ import { useStore } from "@/context/StoreContext";
 import { X } from "lucide-react";
 
 export default function Home() {
-  const { addToCart, toggleWishlist, isWishlisted, addToast, setIsSizeGuideOpen } = useStore();
+  const { products, addToCart, toggleWishlist, isWishlisted, addToast, setIsSizeGuideOpen } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedGender, setSelectedGender] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("popular");
@@ -34,7 +33,7 @@ export default function Home() {
 
   // Filtering
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((product) => {
+    return products.filter((product) => {
       if (selectedCategory !== "all" && product.category !== selectedCategory) {
         return false;
       }
@@ -55,7 +54,7 @@ export default function Home() {
       if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
       return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
     });
-  }, [searchQuery, selectedCategory, selectedGender, sortBy]);
+  }, [searchQuery, selectedCategory, selectedGender, sortBy, products]);
 
   return (
     <>

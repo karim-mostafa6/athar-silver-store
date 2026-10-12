@@ -3,11 +3,12 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { PRODUCTS } from "@/data/products";
+import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
 import { ArrowUpDown } from "lucide-react";
 
 export default function CollectionPage() {
+  const { products: allStoreProducts } = useStore();
   const params = useParams();
   const slug = (params?.slug as string) || "all";
 
@@ -93,7 +94,7 @@ export default function CollectionPage() {
 
   // Filtering products
   const products = useMemo(() => {
-    return PRODUCTS.filter((p) => {
+    return allStoreProducts.filter((p) => {
       // By gender
       if (collectionInfo.filterGender) {
         if (p.gender !== collectionInfo.filterGender && p.gender !== "unisex") {
@@ -117,7 +118,7 @@ export default function CollectionPage() {
       if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
       return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
     });
-  }, [collectionInfo, selectedSubCategory, sortBy]);
+  }, [collectionInfo, selectedSubCategory, sortBy, allStoreProducts]);
 
   return (
     <div>

@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { PRODUCTS } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
 import {
@@ -26,12 +25,9 @@ import {
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params?.id as string;
-
-  const product = useMemo(() => {
-    return PRODUCTS.find((p) => p.id === productId);
-  }, [productId]);
-
   const {
+    products,
+    storeSettings,
     addToCart,
     toggleWishlist,
     isWishlisted,
@@ -39,6 +35,10 @@ export default function ProductDetailPage() {
     setIsCartOpen,
     addToast,
   } = useStore();
+
+  const product = useMemo(() => {
+    return products.find((p) => p.id === productId);
+  }, [productId, products]);
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
@@ -94,7 +94,7 @@ export default function ProductDetailPage() {
         product.price * quantity
       } ج.م.\nرابط القطعة: ${product.images[activeImageIdx] || product.images[0]}`
     );
-    window.open(`https://wa.me/201000000000?text=${msg}`, "_blank");
+    window.open(`https://wa.me/${storeSettings.whatsappNumber}?text=${msg}`, "_blank");
   };
 
   const handleShare = () => {
@@ -111,7 +111,7 @@ export default function ProductDetailPage() {
   };
 
   // Related products (same category or gender)
-  const relatedProducts = PRODUCTS.filter(
+  const relatedProducts = products.filter(
     (p) => p.id !== product.id && (p.category === product.category || p.gender === product.gender)
   ).slice(0, 5);
 

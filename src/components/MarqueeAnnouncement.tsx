@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Sparkles, Clock, Truck, ShieldCheck, Gift, Copy, Check } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
 
 interface MarqueeAnnouncementProps {
   onNotify?: (title: string, message: string, type: "promo" | "info") => void;
 }
 
 export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNotify }) => {
+  const { storeSettings } = useStore();
   const [timeLeft, setTimeLeft] = useState({ hours: 5, minutes: 42, seconds: 18 });
   const [copied, setCopied] = useState(false);
 
@@ -30,9 +32,9 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
 
   const handleCopyCode = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard?.writeText("ATHAR10");
+    navigator.clipboard?.writeText(storeSettings.promoCode);
     setCopied(true);
-    onNotify?.("تم نسخ الكود", "كود الخصم ATHAR10 جاهز للاستخدام في السلة", "promo");
+    onNotify?.("تم نسخ الكود", `كود الخصم ${storeSettings.promoCode} جاهز للاستخدام في السلة`, "promo");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -52,19 +54,19 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
     },
     {
       icon: <Truck className="w-3.5 h-3.5 text-[#8a7258]" />,
-      text: <span>شحن مجاني على جميع الطلبات بقيمة 2,500 ج.م أو أكثر لجميع المحافظات</span>,
+      text: <span>{storeSettings.announcementText}</span>,
     },
     {
       icon: <Sparkles className="w-3.5 h-3.5 text-amber-500" />,
       text: (
         <span className="flex items-center gap-1.5">
-          <span>كوبون ترحيبي 10% خصم إضافي:</span>
+          <span>كوبون ترحيبي {storeSettings.promoDiscountPercent}% خصم إضافي:</span>
           <button
             onClick={handleCopyCode}
             className="inline-flex items-center gap-1 bg-[#1c1815] hover:bg-[#382f28] text-white px-2 py-0.5 rounded-full font-mono text-[11px] font-bold transition-transform active:scale-90"
             title="انقر لنسخ الكوبون"
           >
-            <span>ATHAR10</span>
+            <span>{storeSettings.promoCode}</span>
             {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-amber-300" />}
           </button>
         </span>
