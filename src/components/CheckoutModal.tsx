@@ -1,9 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { CartItem, GOVERNORATES } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
-import { X, CheckCircle2, MessageCircle, CreditCard, Banknote, ShieldCheck } from "lucide-react";
+import {
+  X,
+  CheckCircle2,
+  MessageCircle,
+  CreditCard,
+  Banknote,
+  ShieldCheck,
+  Copy,
+  Check,
+  Upload,
+  AlertCircle,
+  Lock,
+  Trash2,
+} from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface CheckoutModalProps {
@@ -36,6 +49,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     paymentMethod: "cod" as "cod" | "wallet" | "card",
   });
 
+  // Wallet / InstaPay State
+  const [senderWalletNumber, setSenderWalletNumber] = useState("");
+  const [receiptImage, setReceiptImage] = useState<string>("");
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [receiptError, setReceiptError] = useState("");
+  const receiptFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Paymob Card State
+  const [cardData, setCardData] = useState({
+    cardNumber: "",
+    cardExpiry: "",
+    cardCvc: "",
+    cardHolder: "",
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderId, setOrderId] = useState("");
@@ -48,11 +77,100 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const shippingFee = subtotal >= freeShippingThreshold ? 0 : currentGov.shipping;
   const grandTotal = Math.max(0, subtotal - discountAmount + shippingFee);
 
+  const handleCopyNumber = (num: string) => {
+    navigator.clipboard.writeText(num);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2200);
+  };
+
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setReceiptError("يرجى اختيار ملف صورة صالح (JPG / PNG / WEBP)");
+      return;
+    }
+    setReceiptError("");
+    setIsUploadingReceipt(true);
+
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: uploadFormData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setReceiptImage(data.url);
+          setIsUploadingReceipt(false);
+          return;
+        }
+      }
+      // Fallback: Read as base64 DataURL
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setReceiptImage(event.target?.result as string);
+        setIsUploadingReceipt(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setReceiptImage(event.target?.result as string);
+        setIsUploadingReceipt(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "").substring(0, 16);
+    const parts = [];
+    for (let i = 0; i < v.length; i += 4) {
+      parts.push(v.substring(i, i + 4));
+    }
+    return parts.length > 0 ? parts.join(" ") : v;
+  };
+
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "").substring(0, 4);
+    if (v.length >= 3) {
+      return `${v.substring(0, 2)}/${v.substring(2, 4)}`;
+    }
+    return v;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.phone || !formData.address) {
       alert("يرجى ملء الاسم ورقم الهاتف والعنوان بالتفصيل");
       return;
+    }
+
+    if (formData.paymentMethod === "wallet") {
+      if (!senderWalletNumber.trim()) {
+        alert("يرجى كتابة رقم الهاتف أو حساب إنستاباي الذي قمت بالتحويل منه");
+        return;
+      }
+      if (storeSettings.requireReceiptUpload !== false && !receiptImage) {
+        alert("يرجى رفع صورة أو لقطة شاشة لإيصال التحويل لتأكيد الطلب");
+        return;
+      }
+    }
+
+    if (formData.paymentMethod === "card") {
+      if (cardData.cardNumber.replace(/\s/g, "").length < 16) {
+        alert("يرجى إدخال رقم بطاقة صحيح (16 رقماً)");
+        return;
+      }
+      if (!cardData.cardExpiry || !cardData.cardCvc) {
+        alert("يرجى إدخال تاريخ انتهاء البطاقة ورمز الأمان CVV");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -79,6 +197,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       discount: discountAmount,
       total: grandTotal,
       paymentMethod: formData.paymentMethod,
+      senderWalletNumber: formData.paymentMethod === "wallet" ? senderWalletNumber : undefined,
+      paymentReceiptImage: formData.paymentMethod === "wallet" ? receiptImage : undefined,
+      cardDetails:
+        formData.paymentMethod === "card"
+          ? {
+              cardHolder: cardData.cardHolder || formData.fullName,
+              cardLast4: cardData.cardNumber.replace(/\s/g, "").slice(-4) || "4242",
+              paymentStatus: "mock_success",
+            }
+          : undefined,
     });
     setOrderId(newOrderId);
 
@@ -116,11 +244,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 🏠 العنوان: ${formData.address}
 💳 طريقة الدفع: ${
       formData.paymentMethod === "cod"
-        ? "الدفع عند الاستلام (COD)"
+        ? "الدفع عند الاستلام (معاينة قبل الدفع)"
         : formData.paymentMethod === "wallet"
-        ? "محفظة فودافون كاش / إنستاباي"
-        : "بطاقة بنكية"
+        ? `تحويل إنستاباي / فودافون كاش (رقم المحول منه: ${senderWalletNumber})`
+        : `بطاقة بنكية عبر Paymob (تنتهي بـ ${cardData.cardNumber.slice(-4) || "4242"})`
     }
+${receiptImage ? `📸 تم إرفاق صورة إيصال التحويل مع الطلب في لوحة التحكم` : ""}
 
 🛍️ *المنتجات المطلوبة:*
 ${itemsSummary}
@@ -179,12 +308,44 @@ ${formData.notes ? `📝 ملاحظات: ${formData.notes}` : ""}`;
                 <span className="text-[#756453]">الإجمالي للدفع:</span>
                 <span className="font-black text-emerald-800 font-alexandria text-sm">{grandTotal} ج.م</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between border-b border-[#eee4d6] pb-2">
                 <span className="text-[#756453]">طريقة الدفع:</span>
-                <span className="text-[#1c1815] font-medium">
-                  {formData.paymentMethod === "cod" ? "الدفع عند الاستلام" : "فودافون كاش / إنستاباي"}
+                <span className="text-[#1c1815] font-bold">
+                  {formData.paymentMethod === "cod"
+                    ? "الدفع عند الاستلام (معاينة قبل الدفع)"
+                    : formData.paymentMethod === "wallet"
+                    ? "تحويل إنستاباي / فودافون كاش"
+                    : "بطاقة بنكية (Paymob)"}
                 </span>
               </div>
+              {formData.paymentMethod === "wallet" && (
+                <>
+                  {senderWalletNumber && (
+                    <div className="flex justify-between border-b border-[#eee4d6] pb-2">
+                      <span className="text-[#756453]">رقم المحول منه:</span>
+                      <span className="font-mono font-bold text-[#1c1815] dir-ltr">{senderWalletNumber}</span>
+                    </div>
+                  )}
+                  {receiptImage && (
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[#756453]">إيصال التحويل:</span>
+                      <span className="text-emerald-700 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>تم إرفاق الإيصال بنجاح</span>
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+              {formData.paymentMethod === "card" && (
+                <div className="flex justify-between pt-1">
+                  <span className="text-[#756453]">حالة البطاقة:</span>
+                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>مؤمنة عبر شبكة Paymob</span>
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Actions */}
@@ -370,10 +531,302 @@ ${formData.notes ? `📝 ملاحظات: ${formData.notes}` : ""}`;
                     <ShieldCheck className="w-4 h-4 shrink-0" />
                     <div>
                       <div className="text-xs font-bold">بطاقة بنكية</div>
-                      <div className="text-[10px] opacity-75">فيزا / ماستركارد</div>
+                      <div className="text-[10px] opacity-75">فيزا / ماستركارد (Paymob)</div>
                     </div>
                   </button>
                 </div>
+
+                {/* ---------------------------------------------------- */}
+                {/* 1. INSTAPAY & VODAFONE CASH INTERACTIVE PANEL */}
+                {/* ---------------------------------------------------- */}
+                {formData.paymentMethod === "wallet" && (
+                  <div className="mt-4 p-5 rounded-2xl bg-gradient-to-br from-[#faf6ef] to-[#f4ebe0] border border-[#d8c8b4] space-y-4 shadow-sm animate-fadeIn text-right">
+                    {/* Header */}
+                    <div className="flex items-center justify-between border-b border-[#e5dacb] pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-purple-700 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                          ⚡
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black text-[#1c1815]">
+                            تحويل فوري عبر إنستاباي / فودافون كاش
+                          </h4>
+                          <span className="text-[10px] text-[#7d6953]">
+                            تحويل فوري مباشر بدون أي رسوم إضافية
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold bg-purple-100 text-purple-900 px-2 py-0.5 rounded-full border border-purple-200">
+                          InstaPay
+                        </span>
+                        <span className="text-[10px] font-bold bg-rose-100 text-rose-900 px-2 py-0.5 rounded-full border border-rose-200">
+                          Vodafone Cash
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Transfer Number Box */}
+                    <div className="p-4 rounded-xl bg-white border border-[#ded1be] space-y-2 shadow-inner">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-[#7d6953]">
+                          رقم التحويل الرسمي المعتمد:
+                        </span>
+                        <span className="text-[11px] font-medium text-[#7d6953]">
+                          الاسم: <strong className="text-[#1c1815]">{storeSettings.instaPayAccountName || "karim mostafa"}</strong>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between bg-[#faf8f5] p-2.5 rounded-xl border border-[#e5dacb] gap-2">
+                        <span className="font-mono text-base sm:text-lg font-black text-[#1c1815] tracking-wider dir-ltr">
+                          {storeSettings.instaPayNumber || "01143837730"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyNumber(storeSettings.instaPayNumber || "01143837730")}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
+                            isCopied
+                              ? "bg-emerald-600 text-white"
+                              : "bg-[#1c1815] text-white hover:bg-[#382f28]"
+                          }`}
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>تم النسخ ✓</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>نسخ الرقم</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <p className="text-[11px] text-[#6d5b49] leading-relaxed pt-1">
+                        {storeSettings.walletInstructions ||
+                          "يرجى تحويل إجمالي المبلغ على الرقم أعلاه عبر تطبيق إنستاباي أو محفظة فودافون كاش، ثم كتابة رقم المحول ورفع صورة إيصال التحويل بالأسفل لتأكيد حجز القطعة فوراً."}
+                      </p>
+                    </div>
+
+                    {/* Sender Info Inputs */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-bold text-[#1c1815] mb-1">
+                          رقم الهاتف أو حساب إنستاباي الذي قمت بالتحويل منه *
+                        </label>
+                        <input
+                          type="text"
+                          required={formData.paymentMethod === "wallet"}
+                          placeholder="مثال: 011xxxxxxxx أو username@instapay"
+                          value={senderWalletNumber}
+                          onChange={(e) => setSenderWalletNumber(e.target.value)}
+                          className="w-full bg-white border border-[#ded1be] rounded-xl px-3.5 py-2.5 text-xs text-[#1c1815] placeholder-[#8f806f] focus:outline-none focus:border-amber-600 font-mono shadow-inner text-right"
+                        />
+                      </div>
+
+                      {/* Receipt Upload Dropzone */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-bold text-[#1c1815]">
+                            صورة إيصال التحويل (Receipt Screenshot)
+                            {storeSettings.requireReceiptUpload !== false ? " *" : " (اختياري)"}
+                          </label>
+                          {receiptImage && (
+                            <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>تم إرفاق الصورة</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <input
+                          type="file"
+                          ref={receiptFileInputRef}
+                          onChange={handleReceiptUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+
+                        {receiptError && (
+                          <div className="mb-2 p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[11px] flex items-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>{receiptError}</span>
+                          </div>
+                        )}
+
+                        {!receiptImage ? (
+                          <div
+                            onClick={() => receiptFileInputRef.current?.click()}
+                            className="w-full p-4 rounded-xl border-2 border-dashed border-[#d8c8b4] bg-white hover:bg-[#faf8f5] hover:border-amber-600 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 group"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+                              {isUploadingReceipt ? (
+                                <div className="w-4 h-4 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Upload className="w-5 h-5" />
+                              )}
+                            </div>
+                            <span className="text-xs font-bold text-[#1c1815]">
+                              {isUploadingReceipt ? "جاري معالجة ورفع الصورة..." : "اضغط لرفع لقطة شاشة / صورة الإيصال من جهازك"}
+                            </span>
+                            <span className="text-[10px] text-[#8c7865]">
+                              (يدعم JPG، PNG، WEBP - ستصل الصورة للإدارة مع تفاصيل الطلب)
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="p-3 rounded-xl bg-white border border-[#ded1be] flex items-center justify-between gap-3 shadow-sm">
+                            <div className="flex items-center gap-2.5 overflow-hidden">
+                              <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-[#d8c8b4] shrink-0 bg-black/5">
+                                <img
+                                  src={receiptImage}
+                                  alt="إيصال التحويل"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="truncate">
+                                <span className="text-xs font-bold text-[#1c1815] block truncate">
+                                  تم إرفاق إيصال التحويل بنجاح
+                                </span>
+                                <span className="text-[10px] text-emerald-700 font-medium">
+                                  جاهز للإرسال وتأكيد الطلب
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => receiptFileInputRef.current?.click()}
+                                className="px-2.5 py-1.5 rounded-lg bg-[#faf8f5] hover:bg-[#f2ece1] border border-[#d8c8b4] text-[11px] font-bold text-[#1c1815] transition-colors"
+                              >
+                                تغيير الصورة
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setReceiptImage("")}
+                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors"
+                                title="حذف الصورة"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ---------------------------------------------------- */}
+                {/* 2. PAYMOB CARD GATEWAY INTERACTIVE PANEL */}
+                {/* ---------------------------------------------------- */}
+                {formData.paymentMethod === "card" && (
+                  <div className="mt-4 p-5 rounded-2xl bg-gradient-to-br from-[#1c1815] via-[#241e1a] to-[#1c1815] text-white border-2 border-amber-600/30 space-y-4 shadow-xl animate-fadeIn text-right">
+                    {/* Header with Paymob & Card Badges */}
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-amber-400 font-bold text-xs">✦ Paymob</span>
+                          <span className="text-white/40 text-xs">|</span>
+                          <h4 className="text-xs font-black text-white">
+                            بوابة الدفع الإلكتروني بالبطاقات البنكية
+                          </h4>
+                        </div>
+                        <span className="text-[10px] text-amber-200/70">
+                          قبول بطاقات فيزا، ماستركارد، وبطاقات ميزة الوطنية
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
+                        <span>3D SECURE</span>
+                      </div>
+                    </div>
+
+                    {/* Paymob Mock Card Form */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#dfd0be] mb-1">
+                          اسم حامل البطاقة (كما هو مدون عليها)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={formData.fullName || "AHMED MAHMOUD"}
+                          value={cardData.cardHolder}
+                          onChange={(e) => setCardData({ ...cardData, cardHolder: e.target.value })}
+                          className="w-full bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-amber-400 text-right uppercase tracking-wider"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#dfd0be] mb-1">
+                          رقم البطاقة البنكية (16 رقماً)
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="4000 1234 5678 9010"
+                            value={cardData.cardNumber}
+                            onChange={(e) =>
+                              setCardData({ ...cardData, cardNumber: formatCardNumber(e.target.value) })
+                            }
+                            maxLength={19}
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-400 font-mono tracking-widest text-left dir-ltr"
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-70">
+                            <CreditCard className="w-4 h-4 text-amber-400" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#dfd0be] mb-1">
+                            تاريخ الانتهاء (MM/YY)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="12/28"
+                            maxLength={5}
+                            value={cardData.cardExpiry}
+                            onChange={(e) =>
+                              setCardData({ ...cardData, cardExpiry: formatExpiry(e.target.value) })
+                            }
+                            className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-amber-400 font-mono text-center"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#dfd0be] mb-1">
+                            رمز الأمان (CVV خلف البطاقة)
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="password"
+                              placeholder="•••"
+                              maxLength={4}
+                              value={cardData.cardCvc}
+                              onChange={(e) => setCardData({ ...cardData, cardCvc: e.target.value.slice(0, 4) })}
+                              className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-amber-400 font-mono text-center"
+                            />
+                            <Lock className="w-3 h-3 text-white/40 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Paymob Security Notice */}
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5 text-[11px] text-amber-100/80">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-white block">
+                          🔒 دفع إلكتروني مشفر ومحمي بنكياً 100%
+                        </span>
+                        <span>
+                          بوابة الدفع مهيأة بنظام Paymob المتوافق مع معايير البنك المركزي المصري. عند التعاقد مع باي موب سيتم خصم المبلغ وتأكيد العملية تلقائياً.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Order Final Summary */}

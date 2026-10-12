@@ -38,6 +38,7 @@ import {
   Sliders,
   Globe,
   Palette,
+  CreditCard,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -139,6 +140,7 @@ export default function AdminPage() {
   // Store Settings & Theme Customizer State
   const [settingsForm, setSettingsForm] = useState<StoreSettings>(storeSettings);
   const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
+  const [previewReceiptOrder, setPreviewReceiptOrder] = useState<Order | null>(null);
 
   // Check login on mount
   useEffect(() => {
@@ -2890,17 +2892,68 @@ export default function AdminPage() {
                       </div>
 
                       <div className="lg:col-span-3 bg-[#f5efe6] p-4 rounded-2xl border border-[#ebdcca] flex flex-col justify-between text-xs">
-                        <div className="space-y-1">
-                          <div className="flex justify-between">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-start">
                             <span className="text-[#8c7865]">طريقة الدفع:</span>
-                            <span className="font-bold text-[#1c1815]">
+                            <span className="font-bold text-[#1c1815] text-left">
                               {o.paymentMethod === "cod"
                                 ? "دفع عند الاستلام"
                                 : o.paymentMethod === "wallet"
-                                ? "فودافون كاش / إنستاباي"
-                                : "فيزا / ماستر"}
+                                ? "إنستاباي / فودافون كاش"
+                                : "فيزا / ماستركارد (Paymob)"}
                             </span>
                           </div>
+
+                          {/* Wallet Payment Details & Receipt */}
+                          {o.paymentMethod === "wallet" && (
+                            <div className="p-2.5 rounded-xl bg-white border border-[#ebdcca] space-y-1.5 my-1">
+                              {o.senderWalletNumber ? (
+                                <div className="flex justify-between items-center text-[11px]">
+                                  <span className="text-[#8c7865]">رقم المحول منه:</span>
+                                  <span className="font-mono font-bold text-[#1c1815] dir-ltr bg-[#faf8f5] px-1.5 py-0.5 rounded border border-[#ebdcca]">
+                                    {o.senderWalletNumber}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-[#8c7865] block">المحول: غير مدون</span>
+                              )}
+
+                              {o.paymentReceiptImage ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewReceiptOrder(o)}
+                                  className="w-full py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                                >
+                                  <ImageIcon className="w-3.5 h-3.5" />
+                                  <span>معاينة إيصال التحويل 📸</span>
+                                </button>
+                              ) : (
+                                <span className="text-[10px] text-amber-800 bg-amber-50 p-1 rounded block text-center border border-amber-200">
+                                  لم يتم إرفاق صورة إيصال
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Paymob Card Details */}
+                          {o.paymentMethod === "card" && (
+                            <div className="p-2 rounded-xl bg-white border border-[#ebdcca] text-[11px] my-1 space-y-1">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[#8c7865]">البوابة:</span>
+                                <span className="font-bold text-amber-800">Paymob (بطاقة)</span>
+                              </div>
+                              {o.cardDetails?.cardLast4 && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[#8c7865]">رقم الكارت:</span>
+                                  <span className="font-mono font-bold text-[#1c1815]">**** {o.cardDetails.cardLast4}</span>
+                                </div>
+                              )}
+                              <span className="text-[10px] text-emerald-700 font-bold block text-center bg-emerald-50 py-0.5 rounded">
+                                دفع إلكتروني معتمد ✓
+                              </span>
+                            </div>
+                          )}
+
                           <div className="flex justify-between">
                             <span className="text-[#8c7865]">الشحن:</span>
                             <span className="text-[#1c1815]">
@@ -3085,6 +3138,210 @@ export default function AdminPage() {
                         }
                         className="w-full font-bold text-sm bg-transparent border-b border-[#d8c8b4] py-1 focus:outline-none"
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ======================================================== */}
+                {/* PAYMENT GATEWAYS & WALLETS CONFIGURATION */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-6">
+                  <div className="border-b border-[#ebdcca] pb-3">
+                    <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-amber-600" />
+                      <span>إعدادات بوابات الدفع والمحافظ الإلكترونية (Payment Gateways & Wallets)</span>
+                    </h3>
+                    <p className="text-[11px] text-[#8c7865] mt-0.5">
+                      التحكم في أرقام التحويل لإنستاباي وفودافون كاش، شروط رفع الإيصالات، وإعدادات ربط باي موب (Paymob)
+                    </p>
+                  </div>
+
+                  {/* 1. InstaPay & Vodafone Cash Settings */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#f4ece0] pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">⚡</span>
+                        <span className="text-xs font-bold text-[#1c1815]">
+                          1. إنستاباي ومحافظ الكاش (InstaPay & Vodafone Cash):
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        مفعّل بالمتجر
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          رقم التحويل المعتمد للعميل (إنستاباي / كاش):
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.instaPayNumber || "01143837730"}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, instaPayNumber: e.target.value })}
+                          placeholder="01143837730"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-sm font-mono font-bold text-[#1c1815] dir-ltr text-right"
+                        />
+                        <span className="text-[10px] text-[#8c7865] block">
+                          * هذا هو الرقم الذي يظهر للعميل في نافذة إتمام الطلب مع زر النسخ السريع.
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          اسم صاحب الحساب (يظهر للعميل للتأكد قبل التحويل):
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.instaPayAccountName || "karim mostafa"}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, instaPayAccountName: e.target.value })
+                          }
+                          placeholder="karim mostafa"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">
+                        تعليمات التحويل الموجهة للعميل:
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={
+                          settingsForm.walletInstructions ||
+                          "يرجى تحويل إجمالي المبلغ على الرقم أعلاه عبر إنستاباي أو محفظة فودافون كاش، ثم كتابة رقم المحول ورفع لقطة شاشة للإيصال لتأكيد الطلب فورياً."
+                        }
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, walletInstructions: e.target.value })
+                        }
+                        className="w-full px-3.5 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs text-[#1c1815]"
+                      />
+                    </div>
+
+                    {/* Require Receipt Toggle */}
+                    <div className="pt-2">
+                      <label className="flex items-center gap-2.5 cursor-pointer bg-[#faf8f5] p-3 rounded-xl border border-[#ebdcca] select-none">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.requireReceiptUpload !== false}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, requireReceiptUpload: e.target.checked })
+                          }
+                          className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                        />
+                        <div>
+                          <span className="text-xs font-bold text-[#1c1815] block">
+                            إلزام العميل برفع صورة إيصال التحويل لإتمام الطلب
+                          </span>
+                          <span className="text-[10px] text-[#8c7865] block">
+                            عند التفعيل لن يتمكن العميل من إنهاء الطلب حتى يرفع سكرين شوت التحويل من جهازه
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* 2. Paymob Credit Card Gateway Settings */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#f4ece0] pb-2.5 gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">💳</span>
+                        <span className="text-xs font-bold text-[#1c1815]">
+                          2. بوابة الدفع بالبطاقات البنكية باي موب (Paymob Gateway - Visa / Mastercard):
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer bg-[#faf8f5] px-3 py-1 rounded-lg border border-[#d8c8b4] select-none self-start sm:self-auto">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.paymobEnabled !== false}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, paymobEnabled: e.target.checked })
+                          }
+                          className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold text-[#1c1815]">
+                          {settingsForm.paymobEnabled !== false ? "بوابة الكروت مفعّلة 🟢" : "معطلة ⚪"}
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Paymob Notice Banner */}
+                    <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-300 text-amber-950 text-xs flex items-start gap-2.5">
+                      <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold block text-[#1c1815]">
+                          جاهزية الربط مع باي موب (Paymob Integration Ready):
+                        </span>
+                        <p className="text-[11px] text-[#6d5b49] leading-relaxed mt-0.5">
+                          تمت تهيئة وبرمجة واجهة الدفع بالبطاقات في المتجر بالكامل. عندما تتعاقد مع باي موب وتستلم بيانات حسابك، يكفيك فقط لصق المفاتيح بالأسفل وسيبدأ المتجر بخصم وتحويل الأموال لحسابك البنكي تلقائياً بدون أي تعديل برمجي.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          وضع التشغيل (Operation Mode):
+                        </label>
+                        <select
+                          value={settingsForm.paymobMode || "test"}
+                          onChange={(e) =>
+                            setSettingsForm({
+                              ...settingsForm,
+                              paymobMode: e.target.value as "test" | "live",
+                            })
+                          }
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815]"
+                        >
+                          <option value="test">🧪 بيئة تجريبية واختبار (Sandbox / Test Mode)</option>
+                          <option value="live">🚀 بيئة حقيقية معتمدة (Live Production Mode)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          مفتاح واجهة Paymob (API Key):
+                        </label>
+                        <input
+                          type="password"
+                          value={settingsForm.paymobApiKey || ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, paymobApiKey: e.target.value })}
+                          placeholder="ZXlKaGJHY2lPaUpJVXpVe..."
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          معرف التكامل للكروت (Integration ID):
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.paymobIntegrationId || ""}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, paymobIntegrationId: e.target.value })
+                          }
+                          placeholder="مثال: 498214"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          معرف الإطار المضمن (Iframe ID):
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.paymobIframeId || ""}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, paymobIframeId: e.target.value })
+                          }
+                          placeholder="مثال: 812903"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3717,6 +3974,96 @@ export default function AdminPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* PAYMENT RECEIPT PREVIEW LIGHTBOX MODAL */}
+      {/* ======================================================== */}
+      {previewReceiptOrder && previewReceiptOrder.paymentReceiptImage && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+          <div className="relative w-full max-w-2xl bg-[#1c1815] border border-amber-600/30 rounded-3xl text-white shadow-2xl overflow-hidden text-right">
+            {/* Header */}
+            <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm sm:text-base font-alexandria flex items-center gap-2 text-white">
+                  <span>إيصال تحويل الطلب #{previewReceiptOrder.id}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-normal">
+                    إنستاباي / كاش
+                  </span>
+                </h3>
+                <p className="text-xs text-[#a89582] mt-0.5">
+                  العميل: <strong className="text-white">{previewReceiptOrder.customerName}</strong> • الهاتف:{" "}
+                  <strong className="text-white font-mono dir-ltr">{previewReceiptOrder.phone}</strong>
+                  {previewReceiptOrder.senderWalletNumber && (
+                    <> • المحول منه: <strong className="text-amber-400 font-mono dir-ltr">{previewReceiptOrder.senderWalletNumber}</strong></>
+                  )}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setPreviewReceiptOrder(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+                title="إغلاق"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Receipt Image Display */}
+            <div className="p-4 bg-black/40 flex items-center justify-center max-h-[65vh] overflow-auto">
+              <img
+                src={previewReceiptOrder.paymentReceiptImage}
+                alt={`إيصال تحويل ${previewReceiptOrder.customerName}`}
+                className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-lg border border-white/10"
+              />
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 border-t border-white/10 bg-[#16120f] flex flex-wrap items-center justify-between gap-3">
+              <div className="text-xs text-[#bda992]">
+                <span>المبلغ المطلوب: </span>
+                <strong className="text-base text-emerald-400 font-alexandria font-bold">
+                  {previewReceiptOrder.total} ج.م
+                </strong>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewReceiptOrder.paymentReceiptImage}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors flex items-center gap-1.5"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>فتح بالحجم الكامل</span>
+                </a>
+
+                {previewReceiptOrder.status === "pending" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateOrderStatus(previewReceiptOrder.id, "processing");
+                      setPreviewReceiptOrder(null);
+                      addToast("تأكيد الدفع", `تم تأكيد تحويل الطلب #${previewReceiptOrder.id} ونقله للتجهيز`, "info");
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>تأكيد التحويل وبدء التجهيز</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setPreviewReceiptOrder(null)}
+                  className="px-4 py-2 rounded-xl bg-[#2a231d] hover:bg-[#382f28] text-[#e0d4c4] text-xs font-bold transition-colors"
+                >
+                  إغلاق
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

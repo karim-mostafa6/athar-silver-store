@@ -111,6 +111,21 @@ export interface StoreSettings {
   // Header Nav & Collections Customizer
   navLinks: NavLinkItem[];
   searchPlaceholder: string;
+
+  // Payment Gateways & Electronic Wallets (InstaPay & Vodafone Cash)
+  instaPayNumber: string;
+  instaPayAccountName?: string;
+  instaPayUsername?: string;
+  vodafoneCashNumber: string;
+  walletInstructions?: string;
+  requireReceiptUpload?: boolean;
+
+  // Paymob Card Payment Gateway
+  paymobEnabled?: boolean;
+  paymobApiKey?: string;
+  paymobIntegrationId?: string;
+  paymobIframeId?: string;
+  paymobMode?: "test" | "live";
 }
 
 export interface OrderItem {
@@ -139,6 +154,14 @@ export interface Order {
   discount: number;
   total: number;
   paymentMethod: "cod" | "wallet" | "card";
+  paymentReceiptImage?: string;
+  senderWalletNumber?: string;
+  cardDetails?: {
+    cardHolder?: string;
+    cardLast4?: string;
+    paymentStatus?: "mock_success" | "pending_paymob" | "authorized";
+    transactionId?: string;
+  };
   createdAt: string;
   status: "pending" | "processing" | "shipped" | "completed" | "cancelled";
 }
@@ -282,6 +305,21 @@ const DEFAULT_SETTINGS: StoreSettings = {
     { id: "care", label: "العناية بالفضة", href: "/#care", visible: true },
   ],
   searchPlaceholder: "ابحث عن خاتم، سلسلة، عيار 925...",
+
+  // Payment Gateways & Electronic Wallets Defaults
+  instaPayNumber: "01143837730",
+  instaPayAccountName: "karim mostafa",
+  instaPayUsername: "karim@instapay",
+  vodafoneCashNumber: "01143837730",
+  walletInstructions: "يرجى تحويل إجمالي المبلغ إلى حساب إنستاباي أو محفظة فودافون كاش على الرقم أعلاه، ثم كتابة رقم المحول ورفع لقطة شاشة للإيصال لتأكيد وتجهيز طلبك فورياً.",
+  requireReceiptUpload: true,
+
+  // Paymob Defaults
+  paymobEnabled: true,
+  paymobApiKey: "",
+  paymobIntegrationId: "",
+  paymobIframeId: "",
+  paymobMode: "test",
 };
 
 const SAMPLE_ORDERS: Order[] = [
@@ -343,6 +381,8 @@ const SAMPLE_ORDERS: Order[] = [
     discount: 310,
     total: 2790,
     paymentMethod: "wallet",
+    senderWalletNumber: "01143837730",
+    paymentReceiptImage: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
     createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
     status: "shipped",
     isGift: true,
