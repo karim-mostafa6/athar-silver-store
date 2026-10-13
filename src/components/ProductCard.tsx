@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Product } from "@/data/products";
-import { Heart, ShoppingBag, Eye, Star, Check } from "lucide-react";
+import { Heart, ShoppingBag, Eye, Check } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 
 interface ProductCardProps {
@@ -183,15 +183,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <h3 className="text-xs sm:text-sm font-medium text-[#1c1815] group-hover:text-[#80684f] transition-colors line-clamp-1 max-w-[95%]">
           {product.arabicName}
         </h3>
-
-        {/* Centered Star Rating */}
-        <div className="flex items-center justify-center gap-1 text-[11px] text-[#705e4d]">
-          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-          <span className="font-semibold text-[#1c1815]">
-            {product.rating.toFixed(1)}
-          </span>
-          <span className="text-[#8c7865]">({product.reviewsCount} تقييم)</span>
-        </div>
 
         {/* Centered Price */}
         <div className="flex items-center justify-center gap-2 pt-0.5">

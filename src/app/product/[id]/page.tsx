@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
 import {
-  Star,
   ShieldCheck,
   Truck,
   RotateCcw,
@@ -227,7 +226,7 @@ export default function ProductDetailPage() {
             <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
               <RotateCcw className="w-4 h-4 text-[#705e4d] mx-auto" />
               <div className="text-[11px] font-bold text-[#1c1815]">
-                {storeSettings.returnPolicyInspectionAllowed ? "معاينة عند الاستلام" : "استرجاع مضمون"}
+                استرجاع واستبدال مضمون
               </div>
               <div className="text-[9px] text-[#705e4d]">
                 خلال {storeSettings.returnPolicyDays || 14} يوماً
@@ -254,16 +253,12 @@ export default function ProductDetailPage() {
               {product.arabicName}
             </h1>
 
-            {/* English Title & Reviews */}
+            {/* English Title & Hallmark */}
             <div className="flex flex-wrap items-center justify-between gap-3 mt-2 pt-2 border-t border-[#eee5d8]">
               <span className="text-xs text-[#705e4d] font-mono">{product.name}</span>
-              <div className="flex items-center gap-1.5 text-xs text-[#705e4d]">
-                <div className="flex items-center text-amber-500">
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                </div>
-                <span className="font-bold text-[#1c1815]">{product.rating.toFixed(1)}</span>
-                <span>({product.reviewsCount} تقييم حقيقي)</span>
-              </div>
+              <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded text-[11px] font-bold border border-emerald-200">
+                ✓ فضة إسترليني أصلية عيار 925
+              </span>
             </div>
           </div>
 
@@ -489,16 +484,14 @@ export default function ProductDetailPage() {
                 onClick={() => setOpenAccordion(openAccordion === "shipping" ? null : "shipping")}
                 className="w-full p-4 text-right flex items-center justify-between text-xs font-bold text-[#1c1815]"
               >
-                <span>الشحن والمعاينة والاستبدال</span>
+                <span>الشحن وسياسة الاستبدال</span>
                 {openAccordion === "shipping" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {openAccordion === "shipping" && (
                 <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed">
                   <p>
-                    • <strong>معاينة كاملة:</strong>{" "}
-                    {storeSettings.returnPolicyInspectionAllowed
-                      ? "يحق لك فتح الشحنة ومعاينة الفضة والتأكد من مطابقتها وفحصها قبل دفع أي مبلغ للمندوب."
-                      : "فحص الشحنة والتأكد من سلامة التغليف عند الاستلام."}
+                    • <strong>تغليف محكم ومؤمن:</strong>{" "}
+                    تصلك الشحنة في بوكس أثر المخملي الملكي ومغلفة بشرائط أمان محكمة لضمان وصول القطعة جديدة وبأعلى درجات الخصوصية.
                   </p>
                   <p>
                     • <strong>مدة التوصيل:</strong>{" "}

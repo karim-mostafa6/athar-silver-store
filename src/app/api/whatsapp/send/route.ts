@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         ? `تحويل إنستاباي / فودافون كاش ${senderWalletNumber ? `(رقم المحول: ${senderWalletNumber})` : ""}`
         : paymentMethod === "card"
         ? "بطاقة دفع إلكتروني (Paymob)"
-        : "الدفع نقداً عند الاستلام (معاينة قبل الدفع)";
+        : "الدفع نقداً عند الاستلام";
 
     // Default high-converting message
     let messageText = customTemplate || "";

@@ -153,7 +153,7 @@ export default function AdminPage() {
     customEngravingMaxChars: 12,
     warrantyDuration: "ضمان رسمي مدى الحياة على عيار الفضة 925",
     internalNotes: "",
-    returnPolicyNote: "معاينة كاملة عند الاستلام مع المندوب واسترجاع خلال 14 يوماً",
+    returnPolicyNote: "تغليف محكم واسترجاع واستبدال خلال 14 يوماً",
     tags: ["خواتم", "فضة 925", "زركون"],
   };
 
@@ -200,6 +200,7 @@ export default function AdminPage() {
   // Sound Alert State & Ref
   const [soundAlertEnabled, setSoundAlertEnabled] = useState<boolean>(true);
   const prevOrdersCountRef = useRef<number | null>(null);
+  const isOrdersMountedRef = useRef<boolean>(false);
 
   // Governorate Shipping Customizer State
   const [govRegionFilter, setGovRegionFilter] = useState<string>("all");
@@ -233,41 +234,50 @@ export default function AdminPage() {
     addToast("اختبار الصوت 🔊", "تم تشغيل نغمة التنبيه الملكية للطلبات بنجاح!", "info");
   };
 
-  // Watch for new incoming orders and trigger royal audio alert
+  // Watch for new incoming orders and trigger royal audio alert (Hydration-safe)
   useEffect(() => {
-    if (prevOrdersCountRef.current === null) {
+    // Skip audio alert on first page mount / hydration
+    if (!isOrdersMountedRef.current) {
+      isOrdersMountedRef.current = true;
       prevOrdersCountRef.current = orders.length;
       return;
     }
 
-    if (orders.length > prevOrdersCountRef.current) {
+    if (prevOrdersCountRef.current !== null && orders.length > prevOrdersCountRef.current) {
       const newOrdersCount = orders.length - prevOrdersCountRef.current;
       const newestOrder = orders[0];
 
-      if (soundAlertEnabled) {
-        playRoyalOrderChime();
-      }
+      // Never alert for demo orders
+      const isDemo =
+        newestOrder &&
+        ["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"].includes(newestOrder.id);
 
-      // Flash page title for 10 seconds
-      const originalTitle = document.title;
-      let flashes = 0;
-      const interval = setInterval(() => {
-        document.title =
-          flashes % 2 === 0
-            ? `🔔 (${newOrdersCount}) طلب جديد وارد!`
-            : "أَثَـر | لوحة التحكم";
-        flashes++;
-        if (flashes > 12) {
-          clearInterval(interval);
-          document.title = originalTitle;
+      if (!isDemo && newestOrder) {
+        if (soundAlertEnabled) {
+          playRoyalOrderChime();
         }
-      }, 750);
 
-      addToast(
-        "🔔 طلب جديد وارد الآن!",
-        `طلب #${newestOrder?.id || ""} بقيمة ${(newestOrder?.total || 0).toLocaleString("ar-EG")} ج.م من العميل (${newestOrder?.customerName || ""})`,
-        "cart"
-      );
+        // Flash page title for 10 seconds
+        const originalTitle = document.title;
+        let flashes = 0;
+        const interval = setInterval(() => {
+          document.title =
+            flashes % 2 === 0
+              ? `🔔 (${newOrdersCount}) طلب جديد وارد!`
+              : "أَثَـر | لوحة التحكم";
+          flashes++;
+          if (flashes > 12) {
+            clearInterval(interval);
+            document.title = originalTitle;
+          }
+        }, 750);
+
+        addToast(
+          "🔔 طلب جديد وارد الآن!",
+          `طلب #${newestOrder?.id || ""} بقيمة ${(newestOrder?.total || 0).toLocaleString("ar-EG")} ج.م من العميل (${newestOrder?.customerName || ""})`,
+          "cart"
+        );
+      }
     }
 
     prevOrdersCountRef.current = orders.length;
@@ -700,7 +710,7 @@ export default function AdminPage() {
       customEngravingMaxChars: product.customEngravingMaxChars ?? 12,
       warrantyDuration: product.warrantyDuration || "ضمان رسمي مدى الحياة على عيار الفضة 925",
       internalNotes: product.internalNotes || "",
-      returnPolicyNote: product.returnPolicyNote || "معاينة كاملة عند الاستلام مع المندوب واسترجاع خلال 14 يوماً",
+      returnPolicyNote: product.returnPolicyNote || "تغليف محكم واسترجاع واستبدال خلال 14 يوماً",
       tags: product.tags || [],
     });
     setModalActiveTab("general");
@@ -3097,7 +3107,7 @@ export default function AdminPage() {
                         <span>5. شريط الضمانات والمميزات أسفل الهيرو (Trust Badges Strip)</span>
                       </h3>
                       <p className="text-[11px] text-[#8c7865] mt-0.5">
-                        الشريط المباشر أسفل بنر الهيرو الذي يبني ثقة العميل (عيار 925، المعاينة، والاسترجاع)
+                        الشريط المباشر أسفل بنر الهيرو الذي يبني ثقة العميل (عيار 925، الشحن والتغليف الآمن، والاسترجاع)
                       </p>
                     </div>
 
@@ -3185,22 +3195,22 @@ export default function AdminPage() {
                         {/* Item 2 */}
                         <div className="p-3.5 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
                           <label className="text-xs font-bold text-[#1c1815] block">
-                            الميزة الثانية (المعاينة عند الاستلام):
+                            الميزة الثانية (الشحن والتغليف الآمن):
                           </label>
                           <div className="flex gap-2">
                             <select
-                              value={settingsForm.trustItem2Icon || "eye"}
+                              value={settingsForm.trustItem2Icon || "truck"}
                               onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2Icon: e.target.value })}
                               className="px-2 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold shrink-0"
                             >
-                              <option value="eye">👁️ معاينة</option>
+                              <option value="truck">🚚 شحن</option>
                               <option value="shield">🛡️ درع</option>
                               <option value="check">✓ توثيق</option>
-                              <option value="truck">🚚 شحن</option>
+                              <option value="eye">👁️ معاينة</option>
                             </select>
                             <input
                               type="text"
-                              value={settingsForm.trustItem2 || "معاينة ومطابقة عند الاستلام قبل الدفع"}
+                              value={settingsForm.trustItem2 || "شحن سريع وتغليف آمن ومحكم لكافة المحافظات"}
                               onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2: e.target.value })}
                               className="w-full px-3 py-1.5 rounded-lg bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] focus:bg-white"
                             />
@@ -3477,7 +3487,7 @@ export default function AdminPage() {
                   <ShieldCheck className="w-6 h-6 text-emerald-600" />
                 </h3>
                 <p className="text-xs text-[#705e4d] mt-1 max-w-2xl leading-relaxed">
-                  تحكم كامل في نصوص وشروط الاسترجاع، حق المعاينة قبل الدفع، مدة الضمان على الفضة 925، ومواعيد الشحن الظاهرة للعملاء لزيادة الثقة والمصداقية.
+                  تحكم كامل في نصوص وشروط الاسترجاع، مدة الضمان على الفضة 925، ومواعيد الشحن الظاهرة للعملاء لزيادة الثقة والمصداقية.
                 </p>
               </div>
 
@@ -3529,13 +3539,13 @@ export default function AdminPage() {
                     <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#1c1815]">
                       <input
                         type="checkbox"
-                        checked={settingsForm.returnPolicyInspectionAllowed !== false}
+                        checked={Boolean(settingsForm.returnPolicyInspectionAllowed)}
                         onChange={(e) =>
                           setSettingsForm({ ...settingsForm, returnPolicyInspectionAllowed: e.target.checked })
                         }
                         className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
                       />
-                      <span>السماح بالمعاينة والفحص عند الاستلام قبل الدفع ✓</span>
+                      <span>السماح بالمعاينة مع المندوب قبل الدفع (غير مفعل لحماية الشحنات من التلف والتبديل)</span>
                     </label>
 
                     <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#1c1815]">
@@ -3661,9 +3671,13 @@ export default function AdminPage() {
               <span className="text-xs text-amber-400 font-bold block">معاينة مباشرة كما تظهر للعميل في المتجر:</span>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                 <div className="p-4 rounded-2xl bg-white/10 border border-white/10 space-y-1">
-                  <span className="text-amber-300 font-bold text-sm block">✓ معاينة قبل الدفع</span>
+                  <span className="text-amber-300 font-bold text-sm block">
+                    {settingsForm.returnPolicyInspectionAllowed ? "✓ معاينة قبل الدفع" : "✓ تغليف ملكي آمن ومحكم"}
+                  </span>
                   <p className="text-white/80 text-[11px] leading-relaxed">
-                    {settingsForm.returnPolicyInspectionAllowed !== false ? "يحق لك فحص ومعاينة القطعة بالكامل مع المندوب قبل دفع أي جنيه." : "وفقاً لسياسة الشحن المعتمدة."}
+                    {settingsForm.returnPolicyInspectionAllowed
+                      ? "يحق لك فحص ومعاينة القطعة بالكامل مع المندوب قبل دفع أي جنيه."
+                      : "شحنات مغلفة بشرائط حماية لضمان وصول الفضة بحالتها الأصلية. استبدال واسترجاع سلس خلال 14 يوماً."}
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white/10 border border-white/10 space-y-1">
@@ -5515,7 +5529,7 @@ export default function AdminPage() {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-[#1c1815] block">
-                        تنويه المعاينة والاسترجاع للقطعة:
+                        تنويه الاسترجاع والاستبدال للقطعة:
                       </label>
                       <input
                         type="text"
@@ -5523,11 +5537,11 @@ export default function AdminPage() {
                         onChange={(e) =>
                           setProductForm({ ...productForm, returnPolicyNote: e.target.value })
                         }
-                        placeholder="معاينة كاملة عند الاستلام مع المندوب واسترجاع خلال 14 يوماً"
+                        placeholder="تغليف محكم واسترجاع واستبدال خلال 14 يوماً"
                         className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm"
                       />
                       <span className="text-[10px] text-[#8c7865] block">
-                        تنويه يطمئن العميل بخصوص الفحص والتأكد قبل الدفع للمندوب.
+                        تنويه يطمئن العميل بخصوص الاسترجاع والاستبدال السلس والضمان.
                       </span>
                     </div>
                   </div>

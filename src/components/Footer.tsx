@@ -144,9 +144,7 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <span className="hover:text-white cursor-default">
-                  {storeSettings.returnPolicyInspectionAllowed
-                    ? "معاينة كاملة وفحص مع المندوب قبل السداد"
-                    : "الشحن والمعاينة عند الاستلام"}
+                  {storeSettings.shippingPolicyTimeline || "شحن آمن وتوصيل لجميع المحافظات"}
                 </span>
               </li>
             </ul>
@@ -201,18 +199,10 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Bottom Bar */}
         <div className="mt-12 pt-6 border-t border-[#382e25] flex flex-col sm:flex-row items-center justify-between text-xs text-[#998772] gap-4">
           <p>© {new Date().getFullYear()} أَثَر (ATHAR) لفضة 925. جميع الحقوق محفوظة.</p>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span>صُنع بحرفية وشغف</span>
-              <Heart className="w-3.5 h-3.5 text-rose-500 fill-current" />
-              <span>ليترك أثراً لا يُمحى</span>
-            </div>
-            <Link
-              href="/admin"
-              className="text-[#baa894] hover:text-amber-200 transition-colors opacity-70 hover:opacity-100 text-[11px]"
-            >
-              🔒 إدارة المتجر
-            </Link>
+          <div className="flex items-center gap-2">
+            <span>صُنع بحرفية وشغف</span>
+            <Heart className="w-3.5 h-3.5 text-rose-500 fill-current" />
+            <span>ليترك أثراً لا يُمحى</span>
           </div>
         </div>
       </div>

@@ -185,7 +185,7 @@ function ConfirmOrderContent() {
 
               <div className="pt-2 flex items-center justify-center gap-2 text-[11px] text-emerald-800 font-bold bg-white/70 py-2 px-3 rounded-xl border border-emerald-200">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>ضمان الفضة 925 + معاينة القطعة قبل الاستلام مع المندوب</span>
+                <span>ضمان الفضة 925 + تغليف آمن ومحكم مع كارت الضمان</span>
               </div>
             </div>
           ) : isCancelled ? (
@@ -403,7 +403,7 @@ function ConfirmOrderContent() {
               <span>طريقة الدفع:</span>
               <span className="font-bold text-[#1c1815]">
                 {order.paymentMethod === "cod"
-                  ? "الدفع عند الاستلام (معاينة القطعة قبل الدفع)"
+                  ? "الدفع عند الاستلام (نقداً عند التوصيل)"
                   : order.paymentMethod === "wallet"
                   ? "تحويل إنستاباي / محفظة فودافون كاش ✓"
                   : "بطاقة بنكية (Paymob) ✓"}

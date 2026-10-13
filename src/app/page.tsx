@@ -6,7 +6,6 @@ import { GenderSplitShowcase } from "@/components/GenderSplitShowcase";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandStorySection } from "@/components/BrandStorySection";
 import { SilverCareSection } from "@/components/SilverCareSection";
-import { ReviewsSection } from "@/components/ReviewsSection";
 import { useStore } from "@/context/StoreContext";
 import { X } from "lucide-react";
 
@@ -207,9 +206,6 @@ export default function Home() {
 
       {/* Silver Care Guide */}
       <SilverCareSection />
-
-      {/* Customer Reviews */}
-      <ReviewsSection />
     </>
   );
 }

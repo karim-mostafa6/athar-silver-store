@@ -22,8 +22,8 @@ export const BrandStorySection: React.FC = () => {
     },
     {
       icon: <RefreshCw className="w-5 h-5 text-[#1c1815]" />,
-      title: "معاينة واستبدال سهل",
-      desc: "حق المعاينة عند الاستلام واستبدال خلال 14 يوماً.",
+      title: "استبدال واسترجاع سلس",
+      desc: "استبدال مقاس واسترجاع مضمون وسهل خلال 14 يوماً.",
     },
   ];
 

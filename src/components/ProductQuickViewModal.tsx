@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Product } from "@/data/products";
-import { X, Star, ShieldCheck, ShoppingBag, MessageCircle, Heart, Sparkles, Check } from "lucide-react";
+import { X, ShieldCheck, ShoppingBag, MessageCircle, Heart, Sparkles, Check } from "lucide-react";
 
 interface ProductQuickViewModalProps {
   product: Product | null;
@@ -130,7 +130,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
               </div>
               <ul className="space-y-1 text-[#665545] pr-5 list-disc">
                 <li>{product.warrantyDuration || "فضة إسترليني أصلية عيار 925 مختومة ومضمونة."}</li>
-                <li>{product.returnPolicyNote || "معاينة كاملة عند الاستلام واسترجاع خلال 14 يوماً."}</li>
+                <li>{product.returnPolicyNote || "تغليف محكم واسترجاع خلال 14 يوماً طبقاً لسياسة الاستبدال."}</li>
                 <li>تغليف فاخر في بوكس مخملي أنيق ومنديل تلميع هدية.</li>
               </ul>
             </div>
@@ -140,11 +140,9 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
           <div className="text-right space-y-5">
             <div>
               <div className="flex items-center justify-between text-xs text-[#73604f] mb-2">
-                <div className="flex items-center gap-1.5 text-amber-500">
-                  <Star className="w-4 h-4 fill-current" />
-                  <span className="font-bold text-[#1c1815]">{product.rating}</span>
-                  <span className="text-[#8c7865]">({product.reviewsCount} تقييم موثق)</span>
-                </div>
+                <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded text-[11px] font-bold border border-emerald-200">
+                  ✓ عيار 925 أصلي ومختوم
+                </span>
                 <span className="bg-[#f0e6d6] text-[#4d3f31] px-2.5 py-0.5 rounded text-[11px] font-bold border border-[#dfd2be]">
                   الوزن: ~{product.weightGrams} جرام
                 </span>

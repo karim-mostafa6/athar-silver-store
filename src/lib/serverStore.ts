@@ -73,6 +73,12 @@ async function saveCloudData(data: ServerStoreData): Promise<boolean> {
   }
 }
 
+const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
+function cleanOrders(orders: unknown): Order[] {
+  if (!Array.isArray(orders)) return [];
+  return (orders as Order[]).filter((o) => o && o.id && !DEMO_ORDER_IDS.has(o.id));
+}
+
 // ----------------------------------------------------
 // GET STORE DATA (Cloud -> Local File -> Defaults)
 // ----------------------------------------------------
@@ -80,6 +86,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
   // 1. Try Cloud KV first if available
   const cloudData = await getCloudData();
   if (cloudData && Array.isArray(cloudData.products) && cloudData.products.length > 0) {
+    cloudData.orders = cleanOrders(cloudData.orders);
     return cloudData;
   }
 
@@ -91,6 +98,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       if (raw.trim()) {
         const parsed = JSON.parse(raw) as ServerStoreData;
         if (Array.isArray(parsed.products) && parsed.products.length > 0) {
+          parsed.orders = cleanOrders(parsed.orders);
           return parsed;
         }
       }
@@ -133,7 +141,7 @@ export async function saveServerStoreData(
   const updated: ServerStoreData = {
     products: updates.products !== undefined ? updates.products : current.products,
     settings: updates.settings !== undefined ? { ...current.settings, ...updates.settings } : current.settings,
-    orders: updates.orders !== undefined ? updates.orders : current.orders,
+    orders: updates.orders !== undefined ? cleanOrders(updates.orders) : current.orders,
     updatedAt: new Date().toISOString(),
     isDefault: false,
   };

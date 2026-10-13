@@ -197,9 +197,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Item 2 */}
             <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-              {renderTrustIcon(storeSettings.trustItem2Icon || "eye")}
+              {renderTrustIcon(storeSettings.trustItem2Icon || "truck")}
               <span className="font-medium">
-                {storeSettings.trustItem2 || "معاينة ومطابقة عند الاستلام قبل الدفع"}
+                {storeSettings.trustItem2 || "شحن سريع وتغليف آمن ومحكم لكافة المحافظات"}
               </span>
             </div>
 

@@ -419,7 +419,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <span className="text-[#756453]">طريقة الدفع:</span>
                 <span className="text-[#1c1815] font-bold">
                   {formData.paymentMethod === "cod"
-                    ? "الدفع عند الاستلام (معاينة قبل الدفع)"
+                    ? "الدفع عند الاستلام (نقداً عند التوصيل)"
                     : formData.paymentMethod === "wallet"
                     ? "تحويل إنستاباي / فودافون كاش"
                     : "بطاقة بنكية (Paymob)"}
@@ -454,10 +454,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           <div>
             <div className="mb-6">
               <h2 className="text-xl sm:text-2xl font-black text-[#1c1815] font-alexandria">
-                إتمام الطلب والمعاينة
+                إتمام الطلب وتأكيد الشحن
               </h2>
               <p className="text-xs text-[#6e5d4c] mt-1">
-                املأ بياناتك للشحن السريع. جميع القطع تأتي مع إمكانية الفحص والمعاينة قبل الدفع.
+                املأ بياناتك للشحن السريع. تصلك القطعة في بوكس أثر المخملي الملكي مع كارت الضمان والفاتورة الرسمية.
               </p>
             </div>
 
@@ -585,7 +585,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <Banknote className="w-4 h-4 shrink-0" />
                     <div>
                       <div className="text-xs font-bold">الدفع عند الاستلام</div>
-                      <div className="text-[10px] opacity-75">معاينة قبل الدفع</div>
+                      <div className="text-[10px] opacity-75">شحن آمن وسريع</div>
                     </div>
                   </button>
 

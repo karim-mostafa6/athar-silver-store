@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef, useCallback, ReactNode } from "react";
 import { Product, CartItem, PRODUCTS, StoreCategory, DEFAULT_CATEGORIES } from "@/data/products";
 import { ToastMessage } from "@/components/Toast";
 
@@ -284,8 +284,8 @@ const DEFAULT_SETTINGS: StoreSettings = {
   trustBarBg: "default",
   trustItem1: "فضة إسترليني معتمدة عيار 925 ومختومة رسمياً",
   trustItem1Icon: "shield",
-  trustItem2: "معاينة ومطابقة عند الاستلام قبل الدفع",
-  trustItem2Icon: "eye",
+  trustItem2: "شحن سريع وتغليف آمن ومحكم لكافة المحافظات",
+  trustItem2Icon: "truck",
   trustItem3: "استبدال واسترجاع سلس خلال 14 يوماً",
   trustItem3Icon: "refresh",
   trustItem4: "تغليف هدايا ملكي وعلبة فاخرة مجاناً",
@@ -363,10 +363,10 @@ const DEFAULT_SETTINGS: StoreSettings = {
 
   // Policies & Guarantee Defaults
   returnPolicyDays: 14,
-  returnPolicyInspectionAllowed: true,
+  returnPolicyInspectionAllowed: false,
   returnPolicyFreeExchange: true,
   returnPolicyTitle: "سياسة الاستبدال والاسترجاع والضمان الملكي",
-  returnPolicyText: "حق المعاينة والفحص الكامل مع مندوب الشحن قبل سداد أي مبالغ. استبدال واسترجاع مجاني وسلس خلال 14 يوماً في حالة وجود أي عيب مصنعي أو رغبة في استبدال المقاس، بشرط الحفاظ على القطعة والعلبة الأصلية وكارت الضمان.",
+  returnPolicyText: "شحنات مغلفة بأمان وشرائط حماية لضمان وصول القطعة بحالتها الأصلية. استبدال واسترجاع سلس خلال 14 يوماً في حالة وجود أي عيب مصنعي أو رغبة في استبدال المقاس، بشرط الحفاظ على القطعة والعلبة الأصلية وكارت الضمان.",
   warrantyPolicyText: "ضمان رسمي مدى الحياة على أصالة وجودة الفضة الإسترليني عيار 925 الإيطالية والسويسرية، مع خدمة تلميع وتنظيف احترافي مجانية لجميع عملاء أَثَر.",
   shippingPolicyTimeline: "توصيل سريع خلال 24 - 48 ساعة للقاهرة والجيزة والإسكندرية، وخلال 2 - 3 أيام لباقي محافظات الجمهورية مع التنسيق الهاتفي لميعاد الاستلام المناسب لك.",
   categories: DEFAULT_CATEGORIES,
@@ -401,140 +401,86 @@ const DEFAULT_SETTINGS: StoreSettings = {
   },
 };
 
-const SAMPLE_ORDERS: Order[] = [
-  {
-    id: "ATH-819230",
-    customerName: "مريم خالد",
-    phone: "01122334455",
-    whatsapp: "01122334455",
-    governorate: "الجيزة",
-    address: "الدقي، شارع مصدق، عمارة 8، الدور الثاني",
-    items: [
-      {
-        productId: "ath-04",
-        name: "Vintage Royal Byzantine Silver Chain",
-        arabicName: "سلسلة بيزنطية ملكية فنتج مبرومة فضة 925 إيطالي",
-        quantity: 1,
-        price: 2100,
-        selectedSize: "55 سم",
-        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
-      },
-    ],
-    subtotal: 2100,
-    shippingFee: 45,
-    discount: 0,
-    total: 2145,
-    paymentMethod: "cod",
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    status: "confirmed_whatsapp",
-    whatsappConfirmed: true,
-    whatsappConfirmedAt: new Date(Date.now() - 3600000 * 1.5).toISOString(),
-    adminNotes: "أكدت العميل رغبتها في الاستلام عبر واتساب - تم تحديد الاتصال غداً للتنسيق مع المندوب",
-  },
-  {
-    id: "ATH-928174",
-    customerName: "سارة أحمد",
-    phone: "01012345678",
-    whatsapp: "01012345678",
-    governorate: "القاهرة",
-    address: "المعادي، شارع النصر، عمارة 14، الدور الثالث",
-    items: [
-      {
-        productId: "ath-02",
-        name: "Emerald Cut Royal Solitaire Ring",
-        arabicName: "خاتم سوليتير ملكي حجر إيميرالد زركون سويسري 925",
-        quantity: 1,
-        price: 1450,
-        selectedSize: "مقاس 16",
-        image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80",
-      },
-    ],
-    subtotal: 1450,
-    shippingFee: 45,
-    discount: 0,
-    total: 1495,
-    paymentMethod: "cod",
-    createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-    status: "processing",
-    notes: "يرجى الاتصال قبل الوصول",
-  },
-  {
-    id: "ATH-583920",
-    customerName: "محمود إبراهيم",
-    phone: "01287654321",
-    governorate: "الإسكندرية",
-    address: "سموحة، بجوار نادي سموحة، برج الصفوة",
-    items: [
-      {
-        productId: "ath-01",
-        name: "Classic Cuban Curb Silver Chain",
-        arabicName: "سلسلة كبح كوبية فضة إيطالي ثقيلة 925",
-        quantity: 1,
-        price: 1850,
-        selectedSize: "55 سم",
-        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        productId: "ath-04",
-        name: "Italian Curb Silver Bracelet",
-        arabicName: "إسورة كبح إيطالية عريضة 925",
-        quantity: 1,
-        price: 1250,
-        selectedSize: "20 سم",
-        image: "https://images.unsplash.com/photo-1611591475102-4a008c3d82a1?auto=format&fit=crop&w=800&q=80",
-      },
-    ],
-    subtotal: 3100,
-    shippingFee: 0, // Free shipping
-    discount: 310,
-    total: 2790,
-    paymentMethod: "wallet",
-    senderWalletNumber: "01143837730",
-    paymentReceiptImage: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-    status: "shipped",
-    isGift: true,
-    giftMessage: "ألف مبروك التخرج يا غالي",
-  },
-  {
-    id: "ATH-741952",
-    customerName: "كريم يوسف",
-    phone: "01099887766",
-    governorate: "الجيزة",
-    address: "الدقي، شارع مصدق، عمارة 8، الدور الثاني",
-    items: [
-      {
-        productId: "ath-01",
-        name: "Classic Cuban Curb Silver Chain",
-        arabicName: "سلسلة كبح كوبية فضة إيطالي ثقيلة 925",
-        quantity: 1,
-        price: 1850,
-        selectedSize: "50 سم",
-        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
-      },
-    ],
-    subtotal: 1850,
-    shippingFee: 45,
-    discount: 0,
-    total: 1895,
-    paymentMethod: "cod",
-    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-    status: "cancelled",
-    cancellationReason: "العميل طلب الإلغاء أثناء مكالمة التأكيد (تأجيل الشراء)",
-    cancelledAt: new Date(Date.now() - 3600000 * 40).toISOString(),
-    adminNotes: "تم الاتصال بالعميل لتأكيد الشحن وأفاد بأنه يرغب بالتأجيل لأول الشهر القادم",
-  },
-];
-
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>(DEFAULT_SETTINGS);
-  const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
+// Helper to filter out any old demo/mock sample orders
+function sanitizeOrders(rawOrders: unknown): Order[] {
+  if (!Array.isArray(rawOrders)) return [];
+  const DEMO_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
+  const DEMO_NAMES = new Set(["مريم خالد", "سارة أحمد", "محمود إبراهيم", "كريم يوسف"]);
+  return (rawOrders as Order[]).filter(
+    (o) => o && o.id && !DEMO_IDS.has(o.id) && !DEMO_NAMES.has(o.customerName)
+  );
+}
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [wishlist, setWishlist] = useState<Product[]>([]);
+export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Ultra-fast synchronous lazy initialization from localStorage cache (Zero-lag first paint)
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window === "undefined") return PRODUCTS;
+    try {
+      const saved = localStorage.getItem("athar_custom_products");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return PRODUCTS;
+  });
+
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+    if (typeof window === "undefined") return DEFAULT_SETTINGS;
+    try {
+      const saved = localStorage.getItem("athar_store_settings");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          categories:
+            Array.isArray(parsed.categories) && parsed.categories.length > 0
+              ? parsed.categories
+              : DEFAULT_CATEGORIES,
+          governorateShippingRates: {
+            ...DEFAULT_SETTINGS.governorateShippingRates,
+            ...(parsed.governorateShippingRates || {}),
+          },
+        };
+      }
+    } catch {}
+    return DEFAULT_SETTINGS;
+  });
+
+  const [orders, setOrders] = useState<Order[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("athar_orders");
+      if (saved) {
+        const cleaned = sanitizeOrders(JSON.parse(saved));
+        localStorage.setItem("athar_orders", JSON.stringify(cleaned));
+        return cleaned;
+      }
+    } catch {}
+    return [];
+  });
+
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("athar_cart");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+
+  const [wishlist, setWishlist] = useState<Product[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("athar_wishlist");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -543,118 +489,93 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [appliedPromo, setAppliedPromo] = useState("");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Load from localStorage on mount, then sync authoritative central data from /api/data
-  useEffect(() => {
-    // 1. Fast local cache load
-    try {
-      const savedProducts = localStorage.getItem("athar_custom_products");
-      if (savedProducts) {
-        const parsed = JSON.parse(savedProducts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
+  // Sync state tracking to prevent duplicate re-renders and unnecessary network traffic
+  const lastServerUpdatedRef = useRef<string>("");
+  const isSyncingRef = useRef<boolean>(false);
+  const lastSyncTimestampRef = useRef<number>(0);
+
+  // Background Central Server Sync (High-speed & non-blocking)
+  const syncWithServer = useCallback((force = false) => {
+    const now = Date.now();
+    // Throttle frequent focus events (minimum 20s between checks unless forced)
+    if (!force && now - lastSyncTimestampRef.current < 20000) return;
+    if (isSyncingRef.current) return;
+
+    isSyncingRef.current = true;
+    lastSyncTimestampRef.current = now;
+
+    fetch("/api/data", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) return;
+
+        // If the server data hasn't changed since our last check, avoid re-rendering
+        if (data.updatedAt && data.updatedAt === lastServerUpdatedRef.current && !force) {
+          return;
         }
-      }
+        lastServerUpdatedRef.current = data.updatedAt || "";
 
-      const savedSettings = localStorage.getItem("athar_store_settings");
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        setStoreSettings({
-          ...DEFAULT_SETTINGS,
-          ...parsed,
-          categories: Array.isArray(parsed.categories) && parsed.categories.length > 0 ? parsed.categories : DEFAULT_CATEGORIES,
-          governorateShippingRates: {
-            ...DEFAULT_SETTINGS.governorateShippingRates,
-            ...(parsed.governorateShippingRates || {}),
-          },
-        });
-      }
-
-      const savedOrders = localStorage.getItem("athar_orders");
-      if (savedOrders) setOrders(JSON.parse(savedOrders));
-
-      const savedCart = localStorage.getItem("athar_cart");
-      if (savedCart) setCartItems(JSON.parse(savedCart));
-
-      const savedWishlist = localStorage.getItem("athar_wishlist");
-      if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
-    } catch {
-      // Ignore
-    }
-
-    // 2. Fetch Central Server Data (Synchronizes Chrome, Safari, mobile devices, and multiple tabs)
-    const syncWithServer = () => {
-      fetch("/api/data", { cache: "no-store" })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            // If server is brand new / uncustomized (isDefault: true), check if this browser already had custom products in localStorage
-            if (data.isDefault) {
-              try {
-                const localProductsRaw = localStorage.getItem("athar_custom_products");
-                if (localProductsRaw) {
-                  const localProds = JSON.parse(localProductsRaw);
-                  if (Array.isArray(localProds) && localProds.length > 0) {
-                    // Upload this browser's custom products to server so all other browsers get them
-                    fetch("/api/products", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ products: localProds }),
-                    }).catch(() => {});
-                    setProducts(localProds);
-                    return;
-                  }
-                }
-              } catch {}
+        // If server is brand new / uncustomized (isDefault: true), check if this browser already had custom products in localStorage
+        if (data.isDefault) {
+          try {
+            const localProductsRaw = localStorage.getItem("athar_custom_products");
+            if (localProductsRaw) {
+              const localProds = JSON.parse(localProductsRaw);
+              if (Array.isArray(localProds) && localProds.length > 0) {
+                fetch("/api/products", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ products: localProds }),
+                }).catch(() => {});
+                setProducts(localProds);
+                return;
+              }
             }
+          } catch {}
+        }
 
-            if (Array.isArray(data.products) && data.products.length > 0) {
-              setProducts(data.products);
-              try {
-                localStorage.setItem("athar_custom_products", JSON.stringify(data.products));
-              } catch {}
-            }
-            if (data.settings && typeof data.settings === "object") {
-              setStoreSettings((prev) => {
-                const merged = {
-                  ...prev,
-                  ...data.settings,
-                  categories:
-                    Array.isArray(data.settings.categories) && data.settings.categories.length > 0
-                      ? data.settings.categories
-                      : prev.categories,
-                  governorateShippingRates: {
-                    ...prev.governorateShippingRates,
-                    ...(data.settings.governorateShippingRates || {}),
-                  },
-                };
-                try {
-                  localStorage.setItem("athar_store_settings", JSON.stringify(merged));
-                } catch {}
-                return merged;
-              });
-            }
-            if (Array.isArray(data.orders)) {
-              setOrders(data.orders);
-              try {
-                localStorage.setItem("athar_orders", JSON.stringify(data.orders));
-              } catch {}
-            }
-          }
-        })
-        .catch((err) => {
-          console.warn("Could not sync with /api/data:", err);
-        });
-    };
+        if (Array.isArray(data.products) && data.products.length > 0) {
+          setProducts(data.products);
+        }
 
-    syncWithServer();
+        if (data.settings && typeof data.settings === "object") {
+          setStoreSettings((prev) => ({
+            ...prev,
+            ...data.settings,
+            categories:
+              Array.isArray(data.settings.categories) && data.settings.categories.length > 0
+                ? data.settings.categories
+                : prev.categories,
+            governorateShippingRates: {
+              ...prev.governorateShippingRates,
+              ...(data.settings.governorateShippingRates || {}),
+            },
+          }));
+        }
 
-    // Re-sync when user switches back to this browser window/tab
-    const onWindowFocus = () => syncWithServer();
+        if (Array.isArray(data.orders)) {
+          const cleanedOrders = sanitizeOrders(data.orders);
+          setOrders(cleanedOrders);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not sync with /api/data:", err);
+      })
+      .finally(() => {
+        isSyncingRef.current = false;
+      });
+  }, []);
+
+  // Initial sync on mount
+  useEffect(() => {
+    syncWithServer(true);
+
+    const onWindowFocus = () => syncWithServer(false);
     window.addEventListener("focus", onWindowFocus);
     return () => {
       window.removeEventListener("focus", onWindowFocus);
     };
-  }, []);
+  }, [syncWithServer]);
 
   // Listen for storage changes across tabs (e.g. customer confirms in /confirm-order, admin tab updates instantly)
   useEffect(() => {
