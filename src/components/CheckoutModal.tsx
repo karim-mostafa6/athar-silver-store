@@ -504,15 +504,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, governorate: e.target.value })}
                     className="w-full bg-white border border-[#ded1be] rounded-xl px-3.5 py-2.5 text-xs text-[#1c1815] focus:outline-none focus:border-[#7d6953] shadow-inner"
                   >
-                    {GOVERNORATES.map((gov) => {
-                      const rate =
-                        storeSettings.governorateShippingRates?.[gov.name] ?? gov.shipping;
-                      return (
-                        <option key={gov.name} value={gov.name}>
-                          {gov.name} ({rate} ج.م) • {gov.deliveryEstimate}
-                        </option>
-                      );
-                    })}
+                    {GOVERNORATES.map((gov) => (
+                      <option key={gov.name} value={gov.name}>
+                        {gov.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
