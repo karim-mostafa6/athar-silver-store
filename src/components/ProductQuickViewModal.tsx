@@ -148,32 +148,33 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
           <div className="text-right space-y-5">
             <div>
               <div className="flex items-center justify-between text-xs text-[#73604f] mb-2">
-                <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded text-[11px] font-bold border border-emerald-200">
-                  ✓ عيار 925 أصلي ومختوم
+                <span className="inline-flex items-center gap-1.5 text-[#524436] bg-[#f8f5f0] px-3 py-1 rounded-full text-[11px] font-normal border border-[#ded1be]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                  فضة إسترليني عيار 925
                 </span>
-                <span className="bg-[#f0e6d6] text-[#4d3f31] px-2.5 py-0.5 rounded text-[11px] font-bold border border-[#dfd2be]">
+                <span className="bg-[#faf6f0] text-[#5c4b3a] px-3 py-1 rounded-full text-[11px] font-normal border border-[#e5d9ca]">
                   الوزن: ~{product.weightGrams} جرام
                 </span>
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-black text-[#1c1815] font-alexandria leading-snug">
+              <h2 className="text-xl sm:text-2xl font-light text-[#1c1815] font-cairo leading-snug">
                 {product.arabicName}
               </h2>
 
-              <p className="text-xs text-[#7d6b59] font-mono mt-1">{product.name}</p>
+              <p className="text-xs text-[#7d6b59] font-sans font-light tracking-wide mt-1">{product.name}</p>
             </div>
 
             {/* Price Box */}
             <div className="p-4 rounded-2xl bg-white border border-[#e5dacb] shadow-sm flex items-center justify-between">
               <div>
-                <span className="text-xs text-[#7a6857] block font-medium">السعر الحالي</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria">
+                <span className="text-xs text-[#7a6857] block font-light">السعر</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl sm:text-3xl font-light text-[#1c1815] font-cairo tracking-tight">
                     {product.price * quantity}
                   </span>
-                  <span className="text-sm font-semibold text-[#5c4c3b]">ج.م</span>
+                  <span className="text-xs font-normal text-[#8c7865]">ج.م</span>
                   {product.originalPrice && (
-                    <span className="text-sm text-[#94816e] line-through">
+                    <span className="text-xs text-[#9e8d7c] line-through font-light mr-2">
                       {product.originalPrice * quantity} ج.م
                     </span>
                   )}
@@ -181,21 +182,21 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
               </div>
 
               <div className="text-left">
-                <span className="inline-block text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                <span className="inline-block text-[11px] font-normal text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
                   متوفر وجاهز للشحن
                 </span>
               </div>
             </div>
 
             {/* Description */}
-            <p className="text-sm text-[#57493b] leading-relaxed font-light">
+            <p className="text-xs sm:text-sm text-[#57493b] leading-relaxed font-light">
               {product.description}
             </p>
 
             {/* Features list */}
             <div className="space-y-1.5">
-              <span className="text-xs font-bold text-[#1c1815]">أبرز المواصفات:</span>
-              <div className="grid grid-cols-1 gap-1 text-xs text-[#524436]">
+              <span className="text-xs font-medium text-[#1c1815]">أبرز المواصفات:</span>
+              <div className="grid grid-cols-1 gap-1 text-xs text-[#524436] font-light">
                 {product.features.map((feat, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8c7760]" />
@@ -209,11 +210,11 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-2 pt-2 border-t border-[#e8ded0]">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-[#1c1815]">اختر المقاس:</span>
+                  <span className="font-medium text-[#1c1815]">اختر المقاس:</span>
                   <button
                     type="button"
                     onClick={onOpenSizeGuide}
-                    className="text-[#6d5b49] hover:text-[#1c1815] underline underline-offset-2 flex items-center gap-1 font-semibold"
+                    className="text-[#6d5b49] hover:text-[#1c1815] underline underline-offset-2 flex items-center gap-1 font-normal"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-[#8c7760]" />
                     دليل المقاسات
@@ -225,7 +226,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                       key={s}
                       type="button"
                       onClick={() => setSelectedSize(s)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all active:scale-95 ${
+                      className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-all active:scale-95 ${
                         selectedSize === s
                           ? "bg-[#1c1815] text-[#faf8f5] border-[#1c1815] shadow-sm animate-pop"
                           : "bg-white text-[#524334] border-[#ded1be] hover:border-[#9c8770]"
@@ -241,22 +242,22 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
             {/* Quantity and Actions */}
             <div className="pt-3 border-t border-[#e8ded0] space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#1c1815]">الكمية:</span>
+                <span className="text-xs font-medium text-[#1c1815]">الكمية:</span>
                 <div className="flex items-center gap-3 bg-white border border-[#ded1be] rounded-xl px-2 py-1 shadow-sm">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-bold"
+                    className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-normal transition-colors"
                   >
                     -
                   </button>
-                  <span className="text-sm font-bold text-[#1c1815] font-mono px-2">
+                  <span className="text-sm font-normal text-[#1c1815] font-sans px-2">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-bold"
+                    className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-normal transition-colors"
                   >
                     +
                   </button>
@@ -269,7 +270,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                   type="button"
                   onClick={handleAdd}
                   disabled={isAdded}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm transition-all duration-200 active:scale-95 shadow-md ${
+                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-md hover-lift ${
                     isAdded
                       ? "bg-emerald-600 text-white animate-pop"
                       : "bg-[#1c1815] text-[#faf8f5] hover:bg-[#2e2620]"
@@ -291,7 +292,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 <button
                   type="button"
                   onClick={handleWhatsAppOrder}
-                  className="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-colors active:scale-95 shadow-md"
+                  className="flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs tracking-wide transition-all active:scale-95 shadow-md hover-lift"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>اطلب عبر واتساب</span>
@@ -300,7 +301,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 <button
                   type="button"
                   onClick={() => onToggleWishlist(product)}
-                  className={`p-3.5 rounded-xl border transition-all active:scale-90 flex items-center justify-center shadow-sm ${
+                  className={`p-3.5 rounded-xl border transition-all active:scale-90 flex items-center justify-center shadow-sm hover-lift ${
                     isWishlisted
                       ? "bg-rose-500 text-white border-rose-400"
                       : "bg-white border-[#ded1be] text-[#554737] hover:text-rose-500"

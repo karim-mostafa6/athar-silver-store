@@ -197,12 +197,12 @@ export default function CollectionPage() {
 
           <div className="absolute inset-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-10 sm:pb-12 text-right">
             {collectionInfo.englishTitle && (
-              <div className="text-[11px] font-mono tracking-[0.25em] text-white/80 uppercase mb-2">
+              <div className="text-[11px] font-sans tracking-[0.25em] text-white/80 uppercase mb-2 font-light">
                 {collectionInfo.englishTitle}
               </div>
             )}
             {collectionInfo.title && (
-              <h1 className="text-3xl sm:text-5xl font-light text-[#faf8f5] font-alexandria tracking-tight">
+              <h1 className="text-3xl sm:text-5xl font-light text-[#faf8f5] font-cairo tracking-tight">
                 {collectionInfo.title}
               </h1>
             )}
@@ -219,12 +219,12 @@ export default function CollectionPage() {
           <div className="bg-[#f5efe6] border-b border-[#e2d5c2] py-8 sm:py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-right">
               {collectionInfo.englishTitle && (
-                <div className="text-[11px] font-mono tracking-[0.25em] text-[#8c7865] uppercase mb-1">
+                <div className="text-[11px] font-sans tracking-[0.25em] text-[#8c7865] uppercase mb-1 font-light">
                   {collectionInfo.englishTitle}
                 </div>
               )}
               {collectionInfo.title && (
-                <h1 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-alexandria tracking-tight">
+                <h1 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-cairo tracking-tight">
                   {collectionInfo.title}
                 </h1>
               )}
@@ -238,14 +238,14 @@ export default function CollectionPage() {
         )
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in-up">
         {/* Breadcrumb Bar */}
-        <nav className="flex items-center gap-2 text-xs text-[#705e4d] mb-8 font-medium">
+        <nav className="flex items-center gap-2 text-xs text-[#705e4d] mb-8 font-light">
           <Link href="/" className="hover:text-[#1c1815] transition-colors">
             الرئيسية
           </Link>
-          <span>/</span>
-          <span className="text-[#1c1815] font-bold">{collectionInfo.title}</span>
+          <span className="text-[#c4b5a5]">/</span>
+          <span className="text-[#1c1815] font-normal">{collectionInfo.title}</span>
         </nav>
 
         {/* Filters and Controls */}
@@ -256,10 +256,10 @@ export default function CollectionPage() {
               <button
                 key={sub.id}
                 onClick={() => setSelectedSubCategory(sub.id)}
-                className={`px-4 py-2 rounded-full transition-all active:scale-95 whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full transition-all duration-200 active:scale-95 whitespace-nowrap hover-lift ${
                   selectedSubCategory === sub.id
-                    ? "bg-[#1c1815] text-[#faf8f5] font-bold shadow-sm"
-                    : "bg-white text-[#5c4d3f] border border-[#e2d5c2] hover:bg-[#ede3d3]"
+                    ? "bg-[#1c1815] text-[#faf8f5] font-medium shadow-sm"
+                    : "bg-white text-[#5c4d3f] border border-[#e2d5c2] hover:bg-[#ede3d3] font-light"
                 }`}
               >
                 {sub.label}
@@ -269,16 +269,16 @@ export default function CollectionPage() {
 
           {/* Sort Dropdown & Product Count */}
           <div className="flex items-center justify-between sm:justify-end gap-4 text-xs">
-            <span className="text-[#705e4d]">
-              عرض <strong className="text-[#1c1815] font-mono">{products.length}</strong> قطعة
+            <span className="text-[#705e4d] font-light">
+              عرض <strong className="text-[#1c1815] font-medium font-sans">{products.length}</strong> قطعة
             </span>
 
-            <div className="flex items-center gap-1.5 bg-white border border-[#ded2c0] px-3 py-1.5 rounded-full shadow-sm">
+            <div className="flex items-center gap-1.5 bg-white border border-[#ded2c0] px-3 py-1.5 rounded-full shadow-sm hover-lift">
               <ArrowUpDown className="w-3.5 h-3.5 text-[#7d6852]" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as "popular" | "price-asc" | "price-desc" | "newest")}
-                className="bg-transparent text-[#1c1815] font-bold focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#1c1815] font-medium focus:outline-none cursor-pointer"
               >
                 <option value="popular">الأكثر طلباً</option>
                 <option value="newest">الأحدث وصولاً</option>

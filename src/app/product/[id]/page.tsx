@@ -123,21 +123,21 @@ export default function ProductDetailPage() {
   ).slice(0, 5);
 
   return (
-    <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-[#705e4d] mb-8 font-medium">
+      <nav className="flex items-center gap-2 text-xs text-[#7d6c5c] mb-8 font-light">
         <Link href="/" className="hover:text-[#1c1815] transition-colors">
           الرئيسية
         </Link>
-        <span>/</span>
+        <span className="text-[#c4b5a5]">/</span>
         <Link
           href={`/collection/${product.gender === "women" ? "women" : product.gender === "men" ? "men" : "all"}`}
           className="hover:text-[#1c1815] transition-colors"
         >
           {product.gender === "women" ? "تشكيلة نسائية" : product.gender === "men" ? "تشكيلة رجالية" : "كافة القطع"}
         </Link>
-        <span>/</span>
-        <span className="text-[#1c1815] font-bold line-clamp-1">{product.arabicName}</span>
+        <span className="text-[#c4b5a5]">/</span>
+        <span className="text-[#1c1815] font-normal line-clamp-1">{product.arabicName}</span>
       </nav>
 
       {/* Main 2-Column Product Grid */}
@@ -149,17 +149,17 @@ export default function ProductDetailPage() {
             <img
               src={product.images[activeImageIdx] || product.images[0]}
               alt={product.arabicName}
-              className="w-full h-full object-cover object-center transition-all duration-500"
+              className="w-full h-full object-cover object-center transition-all duration-700 ease-out"
             />
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
-              <span className="bg-white/95 backdrop-blur-md text-[#1c1815] border border-[#ded1be] text-[11px] font-mono font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+              <span className="bg-white/95 backdrop-blur-md text-[#1c1815] border border-[#ded1be] text-[11px] font-sans font-medium px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 tracking-wider">
                 <Sparkles className="w-3 h-3 text-amber-600" />
                 925 STERLING SILVER
               </span>
               {discountPercent > 0 && (
-                <span className="bg-rose-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                <span className="bg-[#1c1815] text-[#faf8f5] text-[10px] font-medium px-2.5 py-0.5 rounded-full shadow-sm tracking-wider">
                   خصم {discountPercent}%
                 </span>
               )}
@@ -196,7 +196,7 @@ export default function ProductDetailPage() {
                 <button
                   key={idx}
                   onClick={() => setActiveImageIdx(idx)}
-                  className={`relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 border-2 transition-all ${
+                  className={`relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
                     activeImageIdx === idx
                       ? "border-[#1c1815] scale-105 shadow-md"
                       : "border-[#e8ded0] opacity-70 hover:opacity-100"
@@ -210,33 +210,33 @@ export default function ProductDetailPage() {
 
           {/* 4 Mini Trust Badges Below Gallery */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#eee5d8] text-center">
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
+            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
               <ShieldCheck className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-bold text-[#1c1815]">فضة 925 أصلية</div>
-              <div className="text-[9px] text-[#705e4d] truncate" title={product.warrantyDuration || storeSettings.warrantyPolicyText}>
+              <div className="text-[11px] font-medium text-[#1c1815]">فضة 925 أصلية</div>
+              <div className="text-[10px] text-[#705e4d] font-light truncate" title={product.warrantyDuration || storeSettings.warrantyPolicyText}>
                 {product.warrantyDuration || storeSettings.warrantyPolicyText || "ضمان رسمي معتمد"}
               </div>
             </div>
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
+            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
               <Truck className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-bold text-[#1c1815]">شحن لجميع مصر</div>
-              <div className="text-[9px] text-[#705e4d] truncate" title={storeSettings.shippingPolicyTimeline}>
+              <div className="text-[11px] font-medium text-[#1c1815]">شحن لجميع مصر</div>
+              <div className="text-[10px] text-[#705e4d] font-light truncate" title={storeSettings.shippingPolicyTimeline}>
                 {storeSettings.shippingPolicyTimeline || "2-4 أيام عمل"}
               </div>
             </div>
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
+            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
               <RotateCcw className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-bold text-[#1c1815]">
-                استرجاع واستبدال مضمون
+              <div className="text-[11px] font-medium text-[#1c1815]">
+                استرجاع واستبدال
               </div>
-              <div className="text-[9px] text-[#705e4d]">
+              <div className="text-[10px] text-[#705e4d] font-light">
                 خلال {storeSettings.returnPolicyDays || 14} يوماً
               </div>
             </div>
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1">
+            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
               <Gift className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-bold text-[#1c1815]">تغليف ملكي مجاني</div>
-              <div className="text-[9px] text-[#705e4d]">علبة وكارت إهداء</div>
+              <div className="text-[11px] font-medium text-[#1c1815]">تغليف ملكي مجاني</div>
+              <div className="text-[10px] text-[#705e4d] font-light">علبة وكارت إهداء</div>
             </div>
           </div>
         </div>
@@ -245,35 +245,44 @@ export default function ProductDetailPage() {
         <div className="lg:col-span-6 space-y-6 text-right">
           <div>
             {/* Hallmark Tag */}
-            <div className="text-[11px] font-mono tracking-widest text-[#8a7663] uppercase mb-2">
+            <div className="text-[11px] font-sans tracking-[0.2em] text-[#8a7663] uppercase mb-2 font-light">
               ATHAR EXCLUSIVE • {product.purity}
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl sm:text-3xl font-light text-[#1c1815] font-alexandria leading-snug">
+            <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-light text-[#1c1815] font-cairo leading-relaxed tracking-tight">
               {product.arabicName}
             </h1>
 
             {/* English Title & Hallmark */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-2 pt-2 border-t border-[#eee5d8]">
-              <span className="text-xs text-[#705e4d] font-mono">{product.name}</span>
-              <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded text-[11px] font-bold border border-emerald-200">
-                ✓ فضة إسترليني أصلية عيار 925
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-2 pt-3 border-t border-[#eee5d8]">
+              <span className="text-xs text-[#705e4d] font-sans font-light tracking-wide">{product.name}</span>
+              <span className="inline-flex items-center gap-1.5 text-[#524436] bg-[#f8f5f0] px-3 py-1 rounded-full text-[11px] font-normal border border-[#ded1be]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                فضة إسترليني أصلية عيار 925
               </span>
             </div>
           </div>
 
           {/* Pricing Section */}
-          <div className="p-5 rounded-2xl bg-white border border-[#ece4d8]">
-            <div className="text-right">
-              {product.originalPrice && (
-                <span className="text-xs text-[#8c7a67] line-through block mb-1">
-                  EGP {product.originalPrice.toLocaleString("en-US")}
+          <div className="p-5 rounded-2xl bg-white border border-[#ece4d8] shadow-[0_2px_15px_rgba(28,24,21,0.02)]">
+            <div className="flex items-baseline justify-between flex-wrap gap-2">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-light text-[#1c1815] font-cairo tracking-tight">
+                  {product.price.toLocaleString("en-US")}
+                </span>
+                <span className="text-xs font-normal text-[#8c7865] tracking-wider">ج.م</span>
+                {product.originalPrice && (
+                  <span className="text-xs text-[#9e8d7c] line-through mr-2 font-light">
+                    {product.originalPrice.toLocaleString("en-US")} ج.م
+                  </span>
+                )}
+              </div>
+              {discountPercent > 0 && (
+                <span className="text-[11px] font-normal text-rose-700 bg-rose-50 border border-rose-200/70 px-2.5 py-0.5 rounded-full">
+                  وفر {discountPercent}%
                 </span>
               )}
-              <div className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria">
-                EGP {product.price.toLocaleString("en-US")}
-              </div>
             </div>
           </div>
 
@@ -281,11 +290,11 @@ export default function ProductDetailPage() {
           {product.sizes && product.sizes.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#1c1815]">اختر المقاس:</span>
+                <span className="font-medium text-[#1c1815]">اختر المقاس:</span>
                 <button
                   type="button"
                   onClick={() => setIsSizeGuideOpen(true)}
-                  className="text-[#7d6852] hover:text-[#1c1815] underline decoration-[#d8c8b4] flex items-center gap-1 font-semibold"
+                  className="text-[#7d6852] hover:text-[#1c1815] underline decoration-[#d8c8b4] flex items-center gap-1 font-normal transition-colors"
                 >
                   <Ruler className="w-3.5 h-3.5" />
                   <span>دليل مقاسات الخواتم</span>
@@ -297,7 +306,7 @@ export default function ProductDetailPage() {
                     key={s}
                     type="button"
                     onClick={() => setSelectedSize(s)}
-                    className={`min-w-[48px] py-2 px-3.5 rounded-xl text-xs font-bold border transition-all active:scale-95 ${
+                    className={`min-w-[46px] py-2 px-3.5 rounded-xl text-xs font-medium border transition-all duration-300 active:scale-95 ${
                       selectedSize === s
                         ? "bg-[#1c1815] text-[#faf8f5] border-[#1c1815] shadow-sm"
                         : "bg-white text-[#5c4d3f] border-[#ded2c0] hover:border-[#8f7a62]"
@@ -314,11 +323,11 @@ export default function ProductDetailPage() {
           {product.customEngravingAvailable && (
             <div className="p-4 rounded-2xl bg-[#faf6f0] border border-[#e2d5c2] space-y-2 text-right">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#1c1815] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-700" />
+                <span className="text-xs font-medium text-[#1c1815] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#8c7865]" />
                   <span>خدمة النقش والحفر بالليزر على الفضة:</span>
                 </span>
-                <span className="text-[10px] text-[#8c7865] font-mono">
+                <span className="text-[10px] text-[#8c7865] font-sans">
                   {(product.customEngravingMaxChars || 12) - engravingText.length} حرف متبقي
                 </span>
               </div>
@@ -328,9 +337,9 @@ export default function ProductDetailPage() {
                 value={engravingText}
                 onChange={(e) => setEngravingText(e.target.value)}
                 placeholder="اكتب الاسم أو التاريخ أو الحرف المطلوب نقشه..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs text-[#1c1815] focus:outline-none focus:border-[#1c1815]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-normal text-[#1c1815] placeholder:text-[#a09080] placeholder:font-light focus:outline-none focus:border-[#1c1815] transition-colors"
               />
-              <p className="text-[10px] text-[#705e4d]">
+              <p className="text-[10px] text-[#705e4d] font-light">
                 ✨ حفر دقيق عالي الجودة داخل أو على جسم القطعة يخلد ذكرياتك.
               </p>
             </div>
@@ -344,17 +353,17 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
                 >
                   -
                 </button>
-                <span className="w-10 text-center font-bold text-sm text-[#1c1815] font-mono">
+                <span className="w-10 text-center font-normal text-sm text-[#1c1815] font-sans">
                   {quantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
                 >
                   +
                 </button>
@@ -365,10 +374,10 @@ export default function ProductDetailPage() {
                 type="button"
                 onClick={handleAddToCart}
                 disabled={isAdded}
-                className={`flex-1 py-4 px-6 rounded-2xl font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 active:scale-95 shadow-lg flex items-center justify-center gap-2 ${
+                className={`flex-1 py-4 px-6 rounded-2xl font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-lg hover-lift flex items-center justify-center gap-2 ${
                   isAdded
                     ? "bg-emerald-600 text-white"
-                    : "bg-[#1c1815] hover:bg-[#302822] text-[#faf8f5] shadow-[#1c1815]/15"
+                    : "bg-[#1c1815] hover:bg-[#2c241e] text-[#faf8f5] shadow-[#1c1815]/15"
                 }`}
               >
                 {isAdded ? (
@@ -389,7 +398,7 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={handleWhatsAppOrder}
-              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700/95 hover:bg-emerald-700 text-white text-xs font-medium tracking-wide transition-all shadow-md active:scale-95 hover-lift flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-4 h-4" />
               <span>اطلب فوراً عبر واتساب • ORDER VIA WHATSAPP</span>
@@ -399,17 +408,17 @@ export default function ProductDetailPage() {
           {/* Expandable Accordions */}
           <div className="border-t border-[#eee5d8] pt-4 space-y-3">
             {/* Spec Accordion */}
-            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden">
+            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden transition-all duration-300">
               <button
                 type="button"
                 onClick={() => setOpenAccordion(openAccordion === "specs" ? null : "specs")}
-                className="w-full p-4 text-right flex items-center justify-between text-xs font-bold text-[#1c1815]"
+                className="w-full p-4 text-right flex items-center justify-between text-xs sm:text-sm font-medium text-[#1c1815]"
               >
                 <span>مواصفات القطعة وتفاصيل الصياغة</span>
                 {openAccordion === "specs" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {openAccordion === "specs" && (
-                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed">
+                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed font-light animate-fade-in">
                   <p>{product.description}</p>
                   <ul className="list-disc list-inside space-y-1 pt-1 text-[#5c4b3a]">
                     {product.features.map((f, i) => (
@@ -418,7 +427,7 @@ export default function ProductDetailPage() {
                     <li>الوزن التقريبي: ~{product.weightGrams} جرام من الفضة النقية</li>
                     <li>عيار الفضة: 925 إسترليني معتمد ومختوم</li>
                     {product.warrantyDuration && (
-                      <li className="font-bold text-emerald-800">الضمان: {product.warrantyDuration}</li>
+                      <li className="font-medium text-emerald-800">الضمان: {product.warrantyDuration}</li>
                     )}
                   </ul>
                 </div>
@@ -426,27 +435,27 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Shipping Accordion */}
-            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden">
+            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden transition-all duration-300">
               <button
                 type="button"
                 onClick={() => setOpenAccordion(openAccordion === "shipping" ? null : "shipping")}
-                className="w-full p-4 text-right flex items-center justify-between text-xs font-bold text-[#1c1815]"
+                className="w-full p-4 text-right flex items-center justify-between text-xs sm:text-sm font-medium text-[#1c1815]"
               >
                 <span>الشحن وسياسة الاستبدال</span>
                 {openAccordion === "shipping" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {openAccordion === "shipping" && (
-                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed">
+                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed font-light animate-fade-in">
                   <p>
-                    • <strong>تغليف محكم ومؤمن:</strong>{" "}
+                    • <strong className="font-medium text-[#1c1815]">تغليف محكم ومؤمن:</strong>{" "}
                     تصلك الشحنة في بوكس أثر المخملي الملكي ومغلفة بشرائط أمان محكمة لضمان وصول القطعة جديدة وبأعلى درجات الخصوصية.
                   </p>
                   <p>
-                    • <strong>مدة التوصيل:</strong>{" "}
+                    • <strong className="font-medium text-[#1c1815]">مدة التوصيل:</strong>{" "}
                     {storeSettings.shippingPolicyTimeline || "24-48 ساعة للقاهرة والجيزة، و2-4 أيام لباقي محافظات مصر."}
                   </p>
                   <p>
-                    • <strong>الاستبدال والاسترجاع:</strong>{" "}
+                    • <strong className="font-medium text-[#1c1815]">الاستبدال والاسترجاع:</strong>{" "}
                     {product.returnPolicyNote ||
                       storeSettings.returnPolicyText ||
                       `متاح مجاناً خلال ${storeSettings.returnPolicyDays || 14} يوماً من الاستلام.`}
@@ -456,17 +465,17 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Care Accordion */}
-            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden">
+            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden transition-all duration-300">
               <button
                 type="button"
                 onClick={() => setOpenAccordion(openAccordion === "care" ? null : "care")}
-                className="w-full p-4 text-right flex items-center justify-between text-xs font-bold text-[#1c1815]"
+                className="w-full p-4 text-right flex items-center justify-between text-xs sm:text-sm font-medium text-[#1c1815]"
               >
                 <span>إرشادات الحفاظ على لمعان الفضة</span>
                 {openAccordion === "care" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               {openAccordion === "care" && (
-                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed">
+                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed font-light animate-fade-in">
                   <p>• تجنب رش العطور أو مستحضرات التجميل الكيميائية المباشرة على الفضة.</p>
                   <p>• احفظ قطعتك في علبة مخملية جافة أو كيس محكم لحمايتها من الرطوبة عند عدم ارتدائها.</p>
                   <p>• استخدم منديل تلميع الفضة المجاني المرفق في شحنتك لاستعادة البريق فوراً.</p>
@@ -481,10 +490,10 @@ export default function ProductDetailPage() {
       {relatedProducts.length > 0 && (
         <section className="mt-20 pt-16 border-t border-[#e8ded0]">
           <div className="text-center mb-10 space-y-2">
-            <span className="text-[11px] font-mono tracking-[0.25em] text-[#8a7663] uppercase">
+            <span className="text-[11px] font-sans tracking-[0.25em] text-[#8a7663] uppercase font-light">
               RECOMMENDED FOR YOU
             </span>
-            <h2 className="text-2xl sm:text-3xl font-light text-[#1c1815] font-alexandria">
+            <h2 className="text-2xl sm:text-3xl font-light text-[#1c1815] font-cairo tracking-tight">
               قطع أخرى قد تنال إعجابك
             </h2>
           </div>

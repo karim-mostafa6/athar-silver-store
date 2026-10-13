@@ -72,10 +72,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       href={`/product/${product.id}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group flex flex-col cursor-pointer select-none text-center block"
+      className="group flex flex-col cursor-pointer select-none text-center block transition-all duration-300 hover-lift"
     >
       {/* Product Image Container with Dual-Hover Swap */}
-      <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#f5f1eb] mb-3.5 transition-shadow duration-300 group-hover:shadow-[0_12px_30px_-8px_rgba(30,25,20,0.12)]">
+      <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#f5f1eb] mb-3 transition-all duration-500 group-hover:shadow-[0_14px_30px_-8px_rgba(30,25,20,0.12)]">
         {/* Primary Image */}
         <img
           src={primaryImage}
@@ -111,15 +111,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Minimal Badges: Top Left */}
         <div className="absolute top-3 left-3 z-10 pointer-events-none flex flex-col gap-1 items-start">
           {product.customBadge ? (
-            <span className="bg-[#1c1815] text-[#ded1be] border border-[#524436] text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider shadow-sm">
+            <span className="bg-[#1c1815] text-[#ded1be] border border-[#524436] text-[10px] font-medium px-2.5 py-0.5 rounded-full tracking-wider shadow-sm">
               {product.customBadge}
             </span>
           ) : product.isNew ? (
-            <span className="bg-[#1c1815] text-[#faf8f5] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+            <span className="bg-[#1c1815] text-[#faf8f5] text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
               NEW
             </span>
           ) : product.isBestSeller ? (
-            <span className="bg-white text-[#1c1815] border border-[#ded1be] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+            <span className="bg-white text-[#1c1815] border border-[#ded1be] text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
               BEST SELLER
             </span>
           ) : null}
@@ -146,7 +146,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             type="button"
             onClick={handleQuickViewClick}
-            className="flex-1 py-2 rounded-full bg-white/95 backdrop-blur-md text-[#1c1815] text-[11px] font-bold hover:bg-white shadow-md active:scale-95 transition-all flex items-center justify-center gap-1 border border-[#e8ded0]"
+            className="flex-1 py-2 rounded-full bg-white/95 backdrop-blur-md text-[#1c1815] text-[11px] font-medium hover:bg-white shadow-md active:scale-95 transition-all flex items-center justify-center gap-1 border border-[#e8ded0]"
           >
             <Eye className="w-3 h-3 text-[#73604e]" />
             <span>معاينة</span>
@@ -156,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             type="button"
             onClick={handleAdd}
             disabled={isAdded}
-            className={`flex-1 py-2 rounded-full text-[11px] font-bold shadow-md active:scale-95 transition-all flex items-center justify-center gap-1 ${
+            className={`flex-1 py-2 rounded-full text-[11px] font-medium shadow-md active:scale-95 transition-all flex items-center justify-center gap-1 ${
               isAdded
                 ? "bg-emerald-600 text-white"
                 : "bg-[#1c1815] text-[#faf8f5] hover:bg-[#332a23]"
@@ -180,20 +180,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Centered Minimal Product Details */}
       <div className="flex flex-col items-center space-y-1 px-1">
         {/* Product Title */}
-        <h3 className="text-xs sm:text-sm font-medium text-[#1c1815] group-hover:text-[#80684f] transition-colors line-clamp-1 max-w-[95%]">
+        <h3 className="text-xs sm:text-sm font-normal text-[#1c1815] group-hover:text-[#9e7a4f] transition-colors duration-300 line-clamp-1 max-w-[95%] leading-relaxed">
           {product.arabicName}
         </h3>
 
-        {/* Centered Price */}
-        <div className="flex items-center justify-center gap-2 pt-0.5">
+        {/* Centered Minimal Price */}
+        <div className="flex items-center justify-center gap-1.5 pt-0.5">
+          <span className="text-xs sm:text-sm font-normal text-[#1c1815] font-cairo tracking-tight">
+            {product.price.toLocaleString("en-US")}
+          </span>
+          <span className="text-[10px] text-[#8c7865] font-light">ج.م</span>
           {product.originalPrice && (
-            <span className="text-[11px] text-[#9c8976] line-through">
-              {product.originalPrice} ج.م
+            <span className="text-[10px] text-[#a59584] line-through font-light mr-1">
+              {product.originalPrice.toLocaleString("en-US")} ج.م
             </span>
           )}
-          <span className="text-xs sm:text-sm font-bold text-[#1c1815] font-alexandria">
-            EGP {product.price.toLocaleString("en-US")}
-          </span>
         </div>
       </div>
     </Link>

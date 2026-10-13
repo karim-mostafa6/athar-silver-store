@@ -89,12 +89,12 @@ export default function Home() {
         {(storeSettings.productsSectionBadge || storeSettings.productsSectionTitle || storeSettings.productsSectionSubtitle) && (
           <div className="text-center mb-8 space-y-2">
             {storeSettings.productsSectionBadge?.trim() && (
-              <span className="text-[11px] font-mono tracking-[0.25em] text-[#8a7663] uppercase block">
+              <span className="text-[11px] font-sans tracking-[0.25em] text-[#8a7663] uppercase block font-light">
                 {storeSettings.productsSectionBadge}
               </span>
             )}
             {storeSettings.productsSectionTitle?.trim() && (
-              <h2 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-alexandria tracking-tight">
+              <h2 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-cairo tracking-tight">
                 {storeSettings.productsSectionTitle}
               </h2>
             )}
@@ -112,10 +112,10 @@ export default function Home() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-5 py-2.5 rounded-full transition-all duration-200 whitespace-nowrap active:scale-95 ${
+              className={`px-5 py-2.5 rounded-full transition-all duration-200 whitespace-nowrap active:scale-95 hover-lift ${
                 selectedCategory === cat.id
-                  ? "bg-[#1c1815] text-[#faf8f5] font-bold shadow-md"
-                  : "bg-white/80 text-[#5c4d3f] border border-[#e2d5c2] hover:bg-[#ede3d3] hover:text-[#1c1815] font-medium"
+                  ? "bg-[#1c1815] text-[#faf8f5] font-medium shadow-md"
+                  : "bg-white/80 text-[#5c4d3f] border border-[#e2d5c2] hover:bg-[#ede3d3] hover:text-[#1c1815] font-light"
               }`}
             >
               {cat.label}
