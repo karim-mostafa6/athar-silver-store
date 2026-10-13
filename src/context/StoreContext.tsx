@@ -543,8 +543,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [appliedPromo, setAppliedPromo] = useState("");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount, then sync authoritative central data from /api/data
   useEffect(() => {
+    // 1. Fast local cache load
     try {
       const savedProducts = localStorage.getItem("athar_custom_products");
       if (savedProducts) {
@@ -569,9 +570,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       const savedOrders = localStorage.getItem("athar_orders");
-      if (savedOrders) {
-        setOrders(JSON.parse(savedOrders));
-      }
+      if (savedOrders) setOrders(JSON.parse(savedOrders));
 
       const savedCart = localStorage.getItem("athar_cart");
       if (savedCart) setCartItems(JSON.parse(savedCart));
@@ -581,6 +580,80 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } catch {
       // Ignore
     }
+
+    // 2. Fetch Central Server Data (Synchronizes Chrome, Safari, mobile devices, and multiple tabs)
+    const syncWithServer = () => {
+      fetch("/api/data", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            // If server is brand new / uncustomized (isDefault: true), check if this browser already had custom products in localStorage
+            if (data.isDefault) {
+              try {
+                const localProductsRaw = localStorage.getItem("athar_custom_products");
+                if (localProductsRaw) {
+                  const localProds = JSON.parse(localProductsRaw);
+                  if (Array.isArray(localProds) && localProds.length > 0) {
+                    // Upload this browser's custom products to server so all other browsers get them
+                    fetch("/api/products", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ products: localProds }),
+                    }).catch(() => {});
+                    setProducts(localProds);
+                    return;
+                  }
+                }
+              } catch {}
+            }
+
+            if (Array.isArray(data.products) && data.products.length > 0) {
+              setProducts(data.products);
+              try {
+                localStorage.setItem("athar_custom_products", JSON.stringify(data.products));
+              } catch {}
+            }
+            if (data.settings && typeof data.settings === "object") {
+              setStoreSettings((prev) => {
+                const merged = {
+                  ...prev,
+                  ...data.settings,
+                  categories:
+                    Array.isArray(data.settings.categories) && data.settings.categories.length > 0
+                      ? data.settings.categories
+                      : prev.categories,
+                  governorateShippingRates: {
+                    ...prev.governorateShippingRates,
+                    ...(data.settings.governorateShippingRates || {}),
+                  },
+                };
+                try {
+                  localStorage.setItem("athar_store_settings", JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
+            if (Array.isArray(data.orders)) {
+              setOrders(data.orders);
+              try {
+                localStorage.setItem("athar_orders", JSON.stringify(data.orders));
+              } catch {}
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn("Could not sync with /api/data:", err);
+        });
+    };
+
+    syncWithServer();
+
+    // Re-sync when user switches back to this browser window/tab
+    const onWindowFocus = () => syncWithServer();
+    window.addEventListener("focus", onWindowFocus);
+    return () => {
+      window.removeEventListener("focus", onWindowFocus);
+    };
   }, []);
 
   // Listen for storage changes across tabs (e.g. customer confirms in /confirm-order, admin tab updates instantly)
@@ -657,33 +730,75 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Helper to sync products to server
+  const syncProductsToServer = (prods: Product[]) => {
+    fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ products: prods }),
+    }).catch((err) => console.warn("Could not sync products to server:", err));
+  };
+
+  // Helper to sync orders to server
+  const syncOrdersToServer = (ords: Order[]) => {
+    fetch("/api/orders", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orders: ords }),
+    }).catch((err) => console.warn("Could not sync orders to server:", err));
+  };
+
+  // Helper to sync settings to server
+  const syncSettingsToServer = (stngs: Partial<StoreSettings>) => {
+    fetch("/api/admin/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ settings: stngs }),
+    }).catch((err) => console.warn("Could not sync settings to server:", err));
+  };
+
   // Products CRUD
   const addProduct = (newProduct: Product) => {
-    setProducts((prev) => [newProduct, ...prev]);
+    setProducts((prev) => {
+      const updated = [newProduct, ...prev];
+      syncProductsToServer(updated);
+      return updated;
+    });
     addToast("إدارة المنتجات", `تمت إضافة القطعة "${newProduct.arabicName}" بنجاح`, "info");
   };
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updated } : p))
-    );
+    setProducts((prev) => {
+      const updatedList = prev.map((p) => (p.id === id ? { ...p, ...updated } : p));
+      syncProductsToServer(updatedList);
+      return updatedList;
+    });
     addToast("إدارة المنتجات", "تم تحديث بيانات القطعة بنجاح", "info");
   };
 
   const deleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      syncProductsToServer(updated);
+      return updated;
+    });
     addToast("إدارة المنتجات", "تم حذف القطعة من المتجر", "info");
   };
 
   const resetProductsToDefault = () => {
     setProducts(PRODUCTS);
     localStorage.removeItem("athar_custom_products");
+    syncProductsToServer(PRODUCTS);
     addToast("إدارة المنتجات", "تمت استعادة كتالوج المنتجات الافتراضي", "info");
   };
 
   // Store Settings
   const updateStoreSettings = (newSettings: Partial<StoreSettings>) => {
-    setStoreSettings((prev) => ({ ...prev, ...newSettings }));
+    setStoreSettings((prev) => {
+      const merged = { ...prev, ...newSettings };
+      syncSettingsToServer(merged);
+      return merged;
+    });
     addToast("إعدادات المتجر", "تم حفظ إعدادات المتجر بنجاح", "info");
   };
 
@@ -696,13 +811,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       createdAt: new Date().toISOString(),
       status: "pending",
     };
-    setOrders((prev) => [newOrder, ...prev]);
+    setOrders((prev) => {
+      const updated = [newOrder, ...prev];
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: newOrder }),
+      }).catch((err) => console.warn("Could not sync order to server:", err));
+      return updated;
+    });
     return newId;
   };
 
   const updateOrderStatus = (orderId: string, status: Order["status"], cancellationReason?: string) => {
-    setOrders((prev) =>
-      prev.map((o) =>
+    setOrders((prev) => {
+      const updated = prev.map((o) =>
         o.id === orderId
           ? {
               ...o,
@@ -711,48 +834,56 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               cancelledAt: status === "cancelled" ? (o.cancelledAt || new Date().toISOString()) : undefined,
             }
           : o
-      )
-    );
+      );
+      syncOrdersToServer(updated);
+      return updated;
+    });
     addToast("الطلبات", `تم تحديث حالة الطلب #${orderId}`, "info");
   };
 
   const cancelOrder = (orderId: string, reason: string, adminNotes?: string) => {
-    setOrders((prev) =>
-      prev.map((o) =>
+    setOrders((prev) => {
+      const updated: Order[] = prev.map((o) =>
         o.id === orderId
           ? {
               ...o,
-              status: "cancelled",
+              status: "cancelled" as Order["status"],
               cancellationReason: reason,
               cancelledAt: new Date().toISOString(),
               adminNotes: adminNotes !== undefined ? adminNotes : o.adminNotes,
             }
           : o
-      )
-    );
+      );
+      syncOrdersToServer(updated);
+      return updated;
+    });
     addToast("إلغاء الطلب", `تم تسجيل إلغاء الطلب #${orderId} وحفظ السبب`, "info");
   };
 
   const restoreOrder = (orderId: string) => {
-    setOrders((prev) =>
-      prev.map((o) =>
+    setOrders((prev) => {
+      const updated: Order[] = prev.map((o) =>
         o.id === orderId
           ? {
               ...o,
-              status: "pending",
+              status: "pending" as Order["status"],
               cancellationReason: undefined,
               cancelledAt: undefined,
             }
           : o
-      )
-    );
+      );
+      syncOrdersToServer(updated);
+      return updated;
+    });
     addToast("استعادة الطلب", `تمت استعادة الطلب #${orderId} إلى قيد التأكيد`, "info");
   };
 
   const updateOrderAdminNotes = (orderId: string, adminNotes: string) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, adminNotes } : o))
-    );
+    setOrders((prev) => {
+      const updated = prev.map((o) => (o.id === orderId ? { ...o, adminNotes } : o));
+      syncOrdersToServer(updated);
+      return updated;
+    });
     addToast("ملاحظات الطلب", `تم حفظ الملاحظة للطلب #${orderId}`, "info");
   };
 

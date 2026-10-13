@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSettings, saveServerSettings } from "@/lib/serverSettings";
+import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const settings = getServerSettings();
+    const emailSettings = getServerSettings();
+    const storeData = await getServerStoreData();
+
     return NextResponse.json({
       success: true,
-      senderEmail: settings.senderEmail,
-      senderEmailName: settings.senderEmailName,
-      hasAppPassword: Boolean(settings.gmailAppPassword && settings.gmailAppPassword.length >= 10),
-      gmailAppPassword: settings.gmailAppPassword,
+      senderEmail: emailSettings.senderEmail,
+      senderEmailName: emailSettings.senderEmailName,
+      hasAppPassword: Boolean(emailSettings.gmailAppPassword && emailSettings.gmailAppPassword.length >= 10),
+      gmailAppPassword: emailSettings.gmailAppPassword,
+      settings: storeData.settings,
     });
   } catch (error: unknown) {
     return NextResponse.json(
@@ -22,20 +28,24 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { senderEmail, senderEmailName, gmailAppPassword } = body;
+    const { senderEmail, senderEmailName, gmailAppPassword, settings } = body;
 
-    const saved = saveServerSettings({
-      senderEmail,
-      senderEmailName,
-      gmailAppPassword,
+    const savedEmail = saveServerSettings({
+      senderEmail: senderEmail || (settings && settings.senderEmail),
+      senderEmailName: senderEmailName || (settings && settings.senderEmailName),
+      gmailAppPassword: gmailAppPassword || (settings && settings.gmailAppPassword),
     });
+
+    if (settings && typeof settings === "object") {
+      await saveServerStoreData({ settings });
+    }
 
     return NextResponse.json({
       success: true,
-      message: "تم حفظ إعدادات البريد وكلمة المرور في السيرفر بنجاح!",
-      senderEmail: saved.senderEmail,
-      senderEmailName: saved.senderEmailName,
-      hasAppPassword: Boolean(saved.gmailAppPassword && saved.gmailAppPassword.length >= 10),
+      message: "تم حفظ الإعدادات وتحديثها مركزياً بنجاح!",
+      senderEmail: savedEmail.senderEmail,
+      senderEmailName: savedEmail.senderEmailName,
+      hasAppPassword: Boolean(savedEmail.gmailAppPassword && savedEmail.gmailAppPassword.length >= 10),
     });
   } catch (error: unknown) {
     return NextResponse.json(
