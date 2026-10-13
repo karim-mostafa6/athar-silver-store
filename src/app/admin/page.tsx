@@ -4380,49 +4380,353 @@ export default function AdminPage() {
                 </div>
 
                 {/* ======================================================== */}
-                {/* 10. SOCIAL MEDIA & CONTACT INFO SECTION */}
+                {/* 10. COMPREHENSIVE FOOTER & SOCIAL CUSTOMIZER SECTION */}
                 {/* ======================================================== */}
-                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
-                    <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-blue-600" />
-                      <span>10. روابط التواصل الاجتماعي والفوتر (Social & Contact)</span>
-                    </h3>
-                    <span className="text-[11px] text-[#8c7865]">تظهر في أسفل كل الصفحات</span>
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-amber-600" />
+                        <span>10. محرر الفوتر وتذييل الموقع بالكامل (Footer & Social Customizer)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تحكم شامل في نصوص، روابط، أعمدة، وشارات الدفع في أسفل المتجر (أي سطر تتركه فارغاً سيختفي تلقائياً)
+                      </p>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 self-start sm:self-auto">
+                      تحكم كامل 100%
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#1c1815] block">رابط إنستغرام (Instagram)</label>
-                      <input
-                        type="url"
-                        value={settingsForm.instagramUrl || ""}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
-                        placeholder="https://instagram.com/atharsilver"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
-                      />
+                  {/* 10.1 Brand Identity & Bio */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#f0e6d9] pb-2">
+                      <h4 className="text-xs font-bold text-[#1c1815] flex items-center gap-1.5">
+                        <span>✦</span>
+                        <span>هوية ونبذة البراند أسفل الصفحة:</span>
+                      </h4>
+                      <span className="text-[10px] text-[#8c7865]">تظهر في العمود الأيمن من الفوتر</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">اسم البراند في الفوتر:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerBrandTitle ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerBrandTitle: e.target.value })}
+                          placeholder="أَثَـر"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">السطر الإنجليزي تحت الاسم:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerEnglishTag ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerEnglishTag: e.target.value })}
+                          placeholder="ATHAR SILVER JEWELRY 925"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono tracking-wider focus:outline-none focus:border-amber-600 uppercase"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#1c1815] block">رابط تيك توك (TikTok)</label>
-                      <input
-                        type="url"
-                        value={settingsForm.tiktokUrl || ""}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, tiktokUrl: e.target.value })}
-                        placeholder="https://tiktok.com/@atharsilver"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                      <label className="text-xs font-bold text-[#1c1815] block">النبذة التعريفية للبراند (Bio):</label>
+                      <textarea
+                        rows={3}
+                        value={settingsForm.footerBrandBio ?? ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, footerBrandBio: e.target.value })}
+                        placeholder="براند مصري راقٍ متخصص في الفضة الإسترليني عيار 925 الإيطالية والتركية، نصوغ قطعاً خالدة تجمع بين أصالة المعدن النفيس والأناقة العصرية لتترك أثراً استثنائياً في كل مكان."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs leading-relaxed focus:outline-none focus:border-amber-600 resize-none"
                       />
                     </div>
 
+                    <div className="space-y-2 pt-2 border-t border-[#f0e6d9]">
+                      <label className="text-xs font-bold text-[#1c1815] block">روابط وسائل التواصل الاجتماعي:</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-[#8c7865] block">رابط إنستغرام (Instagram):</label>
+                          <input
+                            type="url"
+                            value={settingsForm.instagramUrl || ""}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
+                            placeholder="https://instagram.com/atharsilver"
+                            className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-[#8c7865] block">رابط تيك توك (TikTok):</label>
+                          <input
+                            type="url"
+                            value={settingsForm.tiktokUrl || ""}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, tiktokUrl: e.target.value })}
+                            placeholder="https://tiktok.com/@atharsilver"
+                            className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-[#8c7865] block">رابط فيسبوك (Facebook):</label>
+                          <input
+                            type="url"
+                            value={settingsForm.facebookUrl || ""}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
+                            placeholder="https://facebook.com/atharsilver"
+                            className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 10.2 Store Collections Column */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
+                    <div className="flex items-center justify-between border-b border-[#f0e6d9] pb-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="footerColCategoriesShow"
+                          checked={settingsForm.footerColCategoriesShow !== false}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerColCategoriesShow: e.target.checked })}
+                          className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                        />
+                        <label htmlFor="footerColCategoriesShow" className="text-xs font-bold text-[#1c1815] cursor-pointer">
+                          إظهار عمود (أقسام المتجر) في الفوتر
+                        </label>
+                      </div>
+                      <span className="text-[10px] text-[#8c7865]">متزامن تلقائياً مع أقسامك</span>
+                    </div>
+
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#1c1815] block">رابط فيسبوك (Facebook)</label>
+                      <label className="text-xs font-bold text-[#1c1815] block">عنوان العمود:</label>
                       <input
-                        type="url"
-                        value={settingsForm.facebookUrl || ""}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
-                        placeholder="https://facebook.com/atharsilver"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                        type="text"
+                        value={settingsForm.footerColCategoriesTitle ?? ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, footerColCategoriesTitle: e.target.value })}
+                        placeholder="أقسام المتجر"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold focus:outline-none focus:border-amber-600"
                       />
+                      <p className="text-[11px] text-[#8c7865]">
+                        💡 يتم عرض روابط الأقسام تلقائياً وفقاً للأسماء والترتيب المحدد في تبويب الأقسام والصفحات دون الحاجة لإعادة كتابتها.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 10.3 Customer Service Column */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#f0e6d9] pb-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="footerColCustomerServiceShow"
+                          checked={settingsForm.footerColCustomerServiceShow !== false}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerColCustomerServiceShow: e.target.checked })}
+                          className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                        />
+                        <label htmlFor="footerColCustomerServiceShow" className="text-xs font-bold text-[#1c1815] cursor-pointer">
+                          إظهار عمود (خدمة العملاء وروابط المساعدة) في الفوتر
+                        </label>
+                      </div>
+                      <span className="text-[10px] text-[#8c7865]">الضمان، المقاسات، والاستبدال</span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">عنوان العمود:</label>
+                      <input
+                        type="text"
+                        value={settingsForm.footerColCustomerServiceTitle ?? ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, footerColCustomerServiceTitle: e.target.value })}
+                        placeholder="خدمة العملاء"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-[#1c1815] block">نص زر دليل المقاسات:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerSizeGuideText ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerSizeGuideText: e.target.value })}
+                          placeholder="دليل مقاسات الخواتم"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-[#1c1815] block">نص رابط العناية بالفضة:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerSilverCareText ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerSilverCareText: e.target.value })}
+                          placeholder="طرق العناية بالفضة"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 pt-1">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-[#1c1815] block">نص شهادة الضمان والأصالة:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.warrantyPolicyText ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, warrantyPolicyText: e.target.value })}
+                          placeholder="ضمان رسمي مدى الحياة على أصالة وجودة الفضة."
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-[#1c1815] block">نص سياسة الاستبدال والاسترجاع:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.returnPolicyTitle ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyTitle: e.target.value })}
+                          placeholder="سياسة الاستبدال والاسترجاع"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-[#1c1815] block">نص مواعيد ومدة الشحن والتوصيل:</label>
+                        <textarea
+                          rows={2}
+                          value={settingsForm.shippingPolicyTimeline ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, shippingPolicyTimeline: e.target.value })}
+                          placeholder="توصيل سريع خلال 24 - 48 ساعة للقاهرة والجيزة والإسكندرية وخلال 2 - 3 أيام لباقي محافظات الجمهورية مع التنسيق الهاتفي لميعاد الاستلام المناسب لك."
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs leading-relaxed focus:outline-none focus:border-amber-600 resize-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 10.4 Contact & Payments Column */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#f0e6d9] pb-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="footerColContactShow"
+                          checked={settingsForm.footerColContactShow !== false}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerColContactShow: e.target.checked })}
+                          className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                        />
+                        <label htmlFor="footerColContactShow" className="text-xs font-bold text-[#1c1815] cursor-pointer">
+                          إظهار عمود (تواصل معنا وطرق الدفع) في الفوتر
+                        </label>
+                      </div>
+                      <span className="text-[10px] text-[#8c7865]">الهاتف، الإيميل، والعنوان</span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#1c1815] block">عنوان العمود:</label>
+                      <input
+                        type="text"
+                        value={settingsForm.footerColContactTitle ?? ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, footerColContactTitle: e.target.value })}
+                        placeholder="تواصل معنا"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-bold focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-[#1c1815] block">رقم الهاتف الظاهر:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.contactPhone ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, contactPhone: e.target.value })}
+                          placeholder="+20 114 383 7730"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-[#1c1815] block">البريد الإلكتروني الظاهر:</label>
+                        <input
+                          type="email"
+                          value={settingsForm.contactEmail ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })}
+                          placeholder="theathar.eg@gmail.com"
+                          className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-[#1c1815] block">العنوان أو نطاق التوصيل:</label>
+                      <input
+                        type="text"
+                        value={settingsForm.contactAddress ?? ""}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, contactAddress: e.target.value })}
+                        placeholder="القاهرة، جمهورية مصر العربية (شحن لجميع المحافظات)"
+                        className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                      />
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-[#f0e6d9]">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-[#1c1815] block">عنوان قسم طرق الدفع:</label>
+                          <input
+                            type="text"
+                            value={settingsForm.footerPaymentTitle ?? ""}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, footerPaymentTitle: e.target.value })}
+                            placeholder="طرق الدفع المعتمدة:"
+                            className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-[#1c1815] block">شارات طرق الدفع (افصل بينها بفاصلة ,):</label>
+                          <input
+                            type="text"
+                            value={settingsForm.footerPaymentBadgesText ?? ""}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, footerPaymentBadgesText: e.target.value })}
+                            placeholder="دفع عند الاستلام, فودافون كاش, إنستاباي InstaPay, Visa / Master"
+                            className="w-full px-3 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 10.5 Bottom Bar & Copyright */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
+                    <div className="flex items-center justify-between border-b border-[#f0e6d9] pb-2">
+                      <h4 className="text-xs font-bold text-[#1c1815] flex items-center gap-1.5">
+                        <span>✦</span>
+                        <span>الشريط السفلي النهائي وحقوق الملكية:</span>
+                      </h4>
+                      <span className="text-[10px] text-[#8c7865]">آخر سطر أسفل المتجر</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">نص حقوق الملكية والنشر:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerCopyrightText ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerCopyrightText: e.target.value })}
+                          placeholder="© 2026 أَثَر (ATHAR) لفضة 925. جميع الحقوق محفوظة."
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#1c1815] block">شعار الشغف والإهداء:</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerPassionTagline ?? ""}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerPassionTagline: e.target.value })}
+                          placeholder="صُنع بحرفية وشغف ❤️ ليترك أثراً لا يُمحى"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

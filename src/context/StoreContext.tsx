@@ -201,6 +201,23 @@ export interface StoreSettings {
   careTip4Title?: string;
   careTip4Desc?: string;
   careTip4Show?: boolean;
+
+  // Footer Section Copy & Controls
+  footerBrandTitle?: string;
+  footerBrandBio?: string;
+  footerEnglishTag?: string;
+  footerColCategoriesTitle?: string;
+  footerColCategoriesShow?: boolean;
+  footerColCustomerServiceTitle?: string;
+  footerColCustomerServiceShow?: boolean;
+  footerSizeGuideText?: string;
+  footerSilverCareText?: string;
+  footerColContactTitle?: string;
+  footerColContactShow?: boolean;
+  footerPaymentTitle?: string;
+  footerPaymentBadgesText?: string;
+  footerCopyrightText?: string;
+  footerPassionTagline?: string;
 }
 
 export interface CollectionPageSetting {
@@ -574,6 +591,23 @@ const DEFAULT_SETTINGS: StoreSettings = {
   careTip4Title: "الارتداء المستمر",
   careTip4Desc: "الارتداء اليومي الطبيعي يحافظ على نقاء الفضة وحيويتها.",
   careTip4Show: true,
+
+  // Footer Defaults
+  footerBrandTitle: "أَثَـر",
+  footerBrandBio: "براند مصري راقٍ متخصص في الفضة الإسترليني عيار 925 الإيطالية والتركية، نصوغ قطعاً خالدة تجمع بين أصالة المعدن النفيس والأناقة العصرية لتترك أثراً استثنائياً في كل مكان.",
+  footerEnglishTag: "ATHAR SILVER JEWELRY 925",
+  footerColCategoriesTitle: "أقسام المتجر",
+  footerColCategoriesShow: true,
+  footerColCustomerServiceTitle: "خدمة العملاء",
+  footerColCustomerServiceShow: true,
+  footerSizeGuideText: "دليل مقاسات الخواتم",
+  footerSilverCareText: "طرق العناية بالفضة",
+  footerColContactTitle: "تواصل معنا",
+  footerColContactShow: true,
+  footerPaymentTitle: "طرق الدفع المعتمدة:",
+  footerPaymentBadgesText: "دفع عند الاستلام, فودافون كاش, إنستاباي InstaPay, Visa / Master",
+  footerCopyrightText: "© 2026 أَثَر (ATHAR) لفضة 925. جميع الحقوق محفوظة.",
+  footerPassionTagline: "صُنع بحرفية وشغف ❤️ ليترك أثراً لا يُمحى",
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
