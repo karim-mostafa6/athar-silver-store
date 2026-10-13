@@ -146,8 +146,14 @@ export default function CollectionPage() {
       storeSettings?.categories && storeSettings.categories.length > 0
         ? storeSettings.categories
         : DEFAULT_CATEGORIES;
-    return [{ id: "all", label: "الكل" }, ...list.map((c) => ({ id: c.id, label: c.label }))];
-  }, [storeSettings?.categories]);
+    return [
+      { id: "all", label: "الكل" },
+      ...list.map((c) => ({
+        id: c.id,
+        label: storeSettings?.collectionPages?.[c.id]?.title || c.label,
+      })),
+    ];
+  }, [storeSettings?.categories, storeSettings?.collectionPages]);
 
   // Filtering products
   const products = useMemo(() => {

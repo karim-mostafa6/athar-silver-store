@@ -33,8 +33,14 @@ export default function Home() {
             { id: "sets", label: "أطقم ملكية" },
             { id: "earrings", label: "أقراط وحلقان" },
           ];
-    return [{ id: "all", label: "كافة القطع" }, ...list];
-  }, [storeSettings?.categories]);
+    return [
+      { id: "all", label: "كافة القطع" },
+      ...list.map((c) => ({
+        id: c.id,
+        label: storeSettings?.collectionPages?.[c.id]?.title || c.label,
+      })),
+    ];
+  }, [storeSettings?.categories, storeSettings?.collectionPages]);
 
   // Filtering
   const filteredProducts = useMemo(() => {

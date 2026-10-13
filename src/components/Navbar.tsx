@@ -54,7 +54,22 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   // Dynamic Navigation Links
-  const activeNavLinks = (storeSettings.navLinks || []).filter((l) => l.visible);
+  const activeNavLinks = (storeSettings.navLinks || [])
+    .filter((l) => l.visible)
+    .map((link) => {
+      const pageKey =
+        link.id ||
+        (link.href.startsWith("/collection/")
+          ? link.href.replace("/collection/", "")
+          : undefined);
+      const titleOverride = pageKey
+        ? storeSettings.collectionPages?.[pageKey]?.title
+        : undefined;
+      return {
+        ...link,
+        label: titleOverride || link.label,
+      };
+    });
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#faf8f5]/95 backdrop-blur-md border-b border-[#e8ded0] transition-colors">

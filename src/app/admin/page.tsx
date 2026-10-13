@@ -484,8 +484,24 @@ export default function AdminPage() {
       const currentPages = prev.collectionPages || DEFAULT_COLLECTION_PAGES;
       const currentPageSetting = currentPages[slug] || DEFAULT_COLLECTION_PAGES[slug] || {};
       const newPageSetting = { ...currentPageSetting, ...updated };
+
+      let newCategories = prev.categories || DEFAULT_CATEGORIES;
+      let newNavLinks = prev.navLinks || [];
+
+      if (updated.title !== undefined && updated.title.trim()) {
+        const newTitle = updated.title.trim();
+        newCategories = newCategories.map((c) =>
+          c.id === slug || c.slug === slug ? { ...c, label: newTitle } : c
+        );
+        newNavLinks = newNavLinks.map((l) =>
+          l.id === slug || l.href === `/collection/${slug}` ? { ...l, label: newTitle } : l
+        );
+      }
+
       return {
         ...prev,
+        categories: newCategories,
+        navLinks: newNavLinks,
         collectionPages: {
           ...currentPages,
           [slug]: newPageSetting,
@@ -515,12 +531,32 @@ export default function AdminPage() {
   };
 
   const updateNavLinkLabel = (id: string, label: string) => {
-    setSettingsForm((prev) => ({
-      ...prev,
-      navLinks: (prev.navLinks || []).map((link) =>
-        link.id === id ? { ...link, label } : link
-      ),
-    }));
+    setSettingsForm((prev) => {
+      let newCategories = prev.categories;
+      let newCollectionPages = prev.collectionPages;
+      if (newCategories) {
+        newCategories = newCategories.map((c) =>
+          c.id === id || c.slug === id ? { ...c, label } : c
+        );
+      }
+      if (newCollectionPages && newCollectionPages[id]) {
+        newCollectionPages = {
+          ...newCollectionPages,
+          [id]: {
+            ...newCollectionPages[id],
+            title: label,
+          },
+        };
+      }
+      return {
+        ...prev,
+        categories: newCategories,
+        collectionPages: newCollectionPages,
+        navLinks: (prev.navLinks || []).map((link) =>
+          link.id === id ? { ...link, label } : link
+        ),
+      };
+    });
   };
 
   const updateNavLinkHref = (id: string, href: string) => {
@@ -808,10 +844,15 @@ export default function AdminPage() {
 
   // Available Categories Derived from StoreSettings
   const availableCategories: StoreCategory[] = useMemo(() => {
-    return settingsForm.categories && settingsForm.categories.length > 0
-      ? settingsForm.categories
-      : DEFAULT_CATEGORIES;
-  }, [settingsForm.categories]);
+    const list =
+      settingsForm.categories && settingsForm.categories.length > 0
+        ? settingsForm.categories
+        : DEFAULT_CATEGORIES;
+    return list.map((c) => ({
+      ...c,
+      label: settingsForm.collectionPages?.[c.id]?.title || c.label,
+    }));
+  }, [settingsForm.categories, settingsForm.collectionPages]);
 
   // Handle Add New Category
   const handleAddCategory = (e: React.FormEvent) => {
@@ -878,7 +919,28 @@ export default function AdminPage() {
         : c
     );
 
-    const updatedSettings = { ...settingsForm, categories: updatedCategories };
+    const currentPages = settingsForm.collectionPages || DEFAULT_COLLECTION_PAGES;
+    const existingPage = currentPages[editingCategoryId] || DEFAULT_COLLECTION_PAGES[editingCategoryId] || {};
+    const updatedPages = {
+      ...currentPages,
+      [editingCategoryId]: {
+        ...existingPage,
+        title: cleanLabel,
+      },
+    };
+
+    const updatedNavLinks = (settingsForm.navLinks || []).map((l) =>
+      l.id === editingCategoryId || l.href === `/collection/${editingCategoryId}`
+        ? { ...l, label: cleanLabel }
+        : l
+    );
+
+    const updatedSettings = {
+      ...settingsForm,
+      categories: updatedCategories,
+      navLinks: updatedNavLinks,
+      collectionPages: updatedPages,
+    };
     setSettingsForm(updatedSettings);
     updateStoreSettings(updatedSettings);
 
@@ -987,8 +1049,8 @@ export default function AdminPage() {
   };
 
   // Save Settings
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = async (e?: React.FormEvent | React.MouseEvent) => {
+    e?.preventDefault?.();
     updateStoreSettings(settingsForm);
     try {
       await fetch("/api/admin/settings", {
@@ -1874,17 +1936,20 @@ export default function AdminPage() {
                 </label>
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                   {[
-                    { slug: "women", label: "التشكيلة النسائية 🌸" },
-                    { slug: "men", label: "التشكيلة الرجالية ⚔️" },
-                    { slug: "rings", label: "خواتم وسوليتير 💍" },
-                    { slug: "chains", label: "سلاسل إيطالي ⛓️" },
-                    { slug: "bracelets", label: "أساور وتنس ✨" },
-                    { slug: "sets", label: "أطقم ملكية 👑" },
-                    { slug: "earrings", label: "أقراط وحلقان 💎" },
-                    { slug: "all", label: "كافة روائع أَثَـر ✦" },
+                    { slug: "women", label: `${settingsForm.collectionPages?.["women"]?.title || "التشكيلة النسائية"} 🌸` },
+                    { slug: "men", label: `${settingsForm.collectionPages?.["men"]?.title || "التشكيلة الرجالية"} ⚔️` },
+                    { slug: "rings", label: `${settingsForm.collectionPages?.["rings"]?.title || "خواتم وسوليتير"} 💍` },
+                    { slug: "chains", label: `${settingsForm.collectionPages?.["chains"]?.title || "سلاسل إيطالي"} ⛓️` },
+                    { slug: "bracelets", label: `${settingsForm.collectionPages?.["bracelets"]?.title || "أساور وتنس"} ✨` },
+                    { slug: "sets", label: `${settingsForm.collectionPages?.["sets"]?.title || "أطقم ملكية"} 👑` },
+                    { slug: "earrings", label: `${settingsForm.collectionPages?.["earrings"]?.title || "أقراط وحلقان"} 💎` },
+                    { slug: "all", label: `${settingsForm.collectionPages?.["all"]?.title || "كافة روائع أَثَـر"} ✦` },
                     ...availableCategories
                       .filter((c) => !["women", "men", "rings", "chains", "bracelets", "sets", "earrings", "all"].includes(c.id))
-                      .map((c) => ({ slug: c.id, label: `${c.label} ${c.icon || "✨"}` })),
+                      .map((c) => ({
+                        slug: c.id,
+                        label: `${settingsForm.collectionPages?.[c.id]?.title || c.label} ${c.icon || "✨"}`,
+                      })),
                   ].map((p) => {
                     const isSelected = selectedPageSlug === p.slug;
                     return (
