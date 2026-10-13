@@ -710,70 +710,70 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Background Central Server Sync (High-speed & non-blocking)
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
-    // Throttle frequent focus events (minimum 20s between checks unless forced)
-    if (!force && now - lastSyncTimestampRef.current < 20000) return;
+    // Allow checks every 3.5 seconds or immediately if forced
+    if (!force && now - lastSyncTimestampRef.current < 3500) return;
     if (isSyncingRef.current) return;
 
     isSyncingRef.current = true;
     lastSyncTimestampRef.current = now;
 
-    fetch("/api/data", { cache: "no-store" })
+    // Cache-busting query parameter (?t=...) prevents Mobile Safari and Android browsers from serving stale cache
+    fetch(`/api/data?t=${now}`, {
+      cache: "no-store",
+      headers: {
+        "Pragma": "no-cache",
+        "Cache-Control": "no-cache",
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (!data.success) return;
 
-        // If the server data hasn't changed since our last check, avoid re-rendering
+        // If the server data hasn't changed since our last check, avoid unnecessary re-rendering
         if (data.updatedAt && data.updatedAt === lastServerUpdatedRef.current && !force) {
           return;
         }
         lastServerUpdatedRef.current = data.updatedAt || "";
 
-        // If server is brand new / uncustomized (isDefault: true), check if this browser already had custom products in localStorage
-        if (data.isDefault) {
+        if (Array.isArray(data.products) && data.products.length > 0) {
+          setProducts(data.products);
           try {
-            const localProductsRaw = localStorage.getItem("athar_custom_products");
-            if (localProductsRaw) {
-              const localProds = JSON.parse(localProductsRaw);
-              if (Array.isArray(localProds) && localProds.length > 0) {
-                fetch("/api/products", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ products: localProds }),
-                }).catch(() => {});
-                setProducts(localProds);
-                return;
-              }
-            }
+            localStorage.setItem("athar_custom_products", JSON.stringify(data.products));
           } catch {}
         }
 
-        if (Array.isArray(data.products) && data.products.length > 0) {
-          setProducts(data.products);
-        }
-
         if (data.settings && typeof data.settings === "object") {
-          setStoreSettings((prev) => ({
-            ...prev,
-            ...data.settings,
-            categories:
-              Array.isArray(data.settings.categories) && data.settings.categories.length > 0
-                ? data.settings.categories
-                : prev.categories,
-            collectionPages: {
-              ...prev.collectionPages,
-              ...DEFAULT_COLLECTION_PAGES,
-              ...(data.settings.collectionPages || {}),
-            },
-            governorateShippingRates: {
-              ...prev.governorateShippingRates,
-              ...(data.settings.governorateShippingRates || {}),
-            },
-          }));
+          setStoreSettings((prev) => {
+            const merged = {
+              ...prev,
+              ...data.settings,
+              categories:
+                Array.isArray(data.settings.categories) && data.settings.categories.length > 0
+                  ? data.settings.categories
+                  : prev.categories,
+              collectionPages: {
+                ...prev.collectionPages,
+                ...DEFAULT_COLLECTION_PAGES,
+                ...(data.settings.collectionPages || {}),
+              },
+              governorateShippingRates: {
+                ...prev.governorateShippingRates,
+                ...(data.settings.governorateShippingRates || {}),
+              },
+            };
+            try {
+              localStorage.setItem("athar_store_settings", JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
         }
 
         if (Array.isArray(data.orders)) {
           const cleanedOrders = sanitizeOrders(data.orders);
           setOrders(cleanedOrders);
+          try {
+            localStorage.setItem("athar_orders", JSON.stringify(cleanedOrders));
+          } catch {}
         }
       })
       .catch((err) => {
@@ -784,26 +784,53 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       });
   }, []);
 
-  // Initial sync on mount
+  // Real-time synchronization heartbeat across all devices
   useEffect(() => {
+    // 1. Initial sync immediately on mount
     syncWithServer(true);
 
-    const onWindowFocus = () => syncWithServer(false);
+    // 2. High-speed heartbeat: checks for live changes every 5 seconds when tab is open
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        syncWithServer(false);
+      }
+    }, 5000);
+
+    // 3. Instant sync on focus / app switch
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        syncWithServer(true);
+      }
+    };
+    const onWindowFocus = () => syncWithServer(true);
+
     window.addEventListener("focus", onWindowFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     return () => {
+      clearInterval(interval);
       window.removeEventListener("focus", onWindowFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [syncWithServer]);
 
-  // Listen for storage changes across tabs (e.g. customer confirms in /confirm-order, admin tab updates instantly)
+  // Instant cross-tab sync on same device (0ms latency between admin tab & storefront tab)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "athar_orders" && e.newValue) {
         try {
-          setOrders(JSON.parse(e.newValue));
-        } catch {
-          // Ignore
-        }
+          setOrders(sanitizeOrders(JSON.parse(e.newValue)));
+        } catch {}
+      } else if (e.key === "athar_custom_products" && e.newValue) {
+        try {
+          const prods = JSON.parse(e.newValue);
+          if (Array.isArray(prods) && prods.length > 0) setProducts(prods);
+        } catch {}
+      } else if (e.key === "athar_store_settings" && e.newValue) {
+        try {
+          const stngs = JSON.parse(e.newValue);
+          if (stngs && typeof stngs === "object") setStoreSettings((prev) => ({ ...prev, ...stngs }));
+        } catch {}
       }
     };
     window.addEventListener("storage", handleStorageChange);
@@ -875,7 +902,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ products: prods }),
-    }).catch((err) => console.warn("Could not sync products to server:", err));
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+      })
+      .catch((err) => console.warn("Could not sync products to server:", err));
   };
 
   // Helper to sync orders to server
@@ -884,7 +916,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orders: ords }),
-    }).catch((err) => console.warn("Could not sync orders to server:", err));
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+      })
+      .catch((err) => console.warn("Could not sync orders to server:", err));
   };
 
   // Helper to sync settings to server
@@ -893,7 +930,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ settings: stngs }),
-    }).catch((err) => console.warn("Could not sync settings to server:", err));
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+      })
+      .catch((err) => console.warn("Could not sync settings to server:", err));
   };
 
   // Products CRUD

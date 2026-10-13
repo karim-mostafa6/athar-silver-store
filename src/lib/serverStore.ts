@@ -11,39 +11,55 @@ export interface ServerStoreData {
   isDefault?: boolean;
 }
 
-// File path detection: prefer process.cwd()/store-data.json, fallback to /tmp/store-data.json if read-only
+// ----------------------------------------------------
+// DEDICATED HIGH-SPEED CLOUD REDIS STORE (UPSTASH / VERCEL KV)
+// ----------------------------------------------------
+const FALLBACK_CLOUD_URL = "https://select-viper-229752.upstash.io";
+const FALLBACK_CLOUD_TOKEN = "gQAAAAAAA4F4AQIgcDE4YmYyZTdiZDRjMWQ0ZWVkODYyMTk2MDliYjQ1NGQxNw";
+
+function getCloudCredentials(): { url: string; token: string } {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || FALLBACK_CLOUD_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || FALLBACK_CLOUD_TOKEN;
+  return { url, token };
+}
+
+// File path detection for local development
 function getStoreFilePath(): string {
   const rootPath = path.join(process.cwd(), "store-data.json");
   try {
-    // Check if writable or readable
     if (fs.existsSync(rootPath)) return rootPath;
     fs.writeFileSync(rootPath, "", { flag: "a" });
     return rootPath;
   } catch {
-    // If process.cwd() is read-only (e.g. serverless environment), use /tmp
     return path.join("/tmp", "store-data.json");
   }
 }
 
 // ----------------------------------------------------
-// UPSTASH / VERCEL KV CLOUD STORAGE (If configured)
+// READ FROM CENTRAL CLOUD DATABASE
 // ----------------------------------------------------
 async function getCloudData(): Promise<ServerStoreData | null> {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-
+  const { url, token } = getCloudCredentials();
   if (!url || !token) return null;
 
   try {
-    const res = await fetch(`${url}/get/athar_ecommerce_store_data`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(["GET", "athar_ecommerce_store_data"]),
       cache: "no-store",
     });
+
     if (!res.ok) return null;
     const json = await res.json();
-    if (json.result) {
+    if (json && json.result) {
       const parsed = typeof json.result === "string" ? JSON.parse(json.result) : json.result;
-      return parsed;
+      if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn("Failed to fetch from Cloud KV:", err);
@@ -51,26 +67,32 @@ async function getCloudData(): Promise<ServerStoreData | null> {
   return null;
 }
 
+// ----------------------------------------------------
+// WRITE TO CENTRAL CLOUD DATABASE
+// ----------------------------------------------------
 async function saveCloudData(data: ServerStoreData): Promise<boolean> {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-
+  const { url, token } = getCloudCredentials();
   if (!url || !token) return false;
 
   try {
-    await fetch(`${url}/set/athar_ecommerce_store_data`, {
+    const payload = JSON.stringify(data);
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(["SET", "athar_ecommerce_store_data", payload]),
+      cache: "no-store",
     });
-    return true;
+
+    if (res.ok) {
+      return true;
+    }
   } catch (err) {
     console.warn("Failed to save to Cloud KV:", err);
-    return false;
   }
+  return false;
 }
 
 const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
@@ -83,14 +105,14 @@ function cleanOrders(orders: unknown): Order[] {
 // GET STORE DATA (Cloud -> Local File -> Defaults)
 // ----------------------------------------------------
 export async function getServerStoreData(): Promise<ServerStoreData> {
-  // 1. Try Cloud KV first if available
+  // 1. Try Central Cloud Redis first (Synchronized across all phones and regions)
   const cloudData = await getCloudData();
   if (cloudData && Array.isArray(cloudData.products) && cloudData.products.length > 0) {
     cloudData.orders = cleanOrders(cloudData.orders);
     return cloudData;
   }
 
-  // 2. Try Local File Storage
+  // 2. Try Local File Storage (For offline development)
   const filePath = getStoreFilePath();
   try {
     if (fs.existsSync(filePath)) {
@@ -99,6 +121,8 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
         const parsed = JSON.parse(raw) as ServerStoreData;
         if (Array.isArray(parsed.products) && parsed.products.length > 0) {
           parsed.orders = cleanOrders(parsed.orders);
+          // Seed cloud database in background so next request is instant
+          saveCloudData(parsed).catch(() => {});
           return parsed;
         }
       }
@@ -107,7 +131,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     console.warn("Error reading store-data.json:", err);
   }
 
-  // 3. Fallback to Initial Default State
+  // 3. Fallback to Initial Default State & Seed Cloud
   const defaultData: ServerStoreData = {
     products: PRODUCTS,
     settings: {
@@ -117,21 +141,23 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     },
     orders: [],
     updatedAt: new Date().toISOString(),
-    isDefault: true,
+    isDefault: false,
   };
 
-  // Save initial file so it's persistent
+  // Seed the central cloud database immediately so all phones see it
+  await saveCloudData(defaultData);
+
   try {
     fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2), "utf-8");
   } catch {
-    // Ignore if not writable
+    // Ignore if read-only
   }
 
   return defaultData;
 }
 
 // ----------------------------------------------------
-// SAVE STORE DATA (Local File + Cloud Sync)
+// SAVE STORE DATA (Cloud Sync + Local File)
 // ----------------------------------------------------
 export async function saveServerStoreData(
   updates: Partial<ServerStoreData>
@@ -146,16 +172,16 @@ export async function saveServerStoreData(
     isDefault: false,
   };
 
-  // 1. Save to Local File
+  // 1. Await saving to Central Cloud Redis (Must await so serverless lambda does not terminate before network write finishes!)
+  await saveCloudData(updated);
+
+  // 2. Also save to local file if writable
   try {
     const filePath = getStoreFilePath();
     fs.writeFileSync(filePath, JSON.stringify(updated, null, 2), "utf-8");
   } catch (err) {
     console.warn("Failed to write store-data.json:", err);
   }
-
-  // 2. Save to Cloud KV (in parallel / non-blocking)
-  saveCloudData(updated).catch(() => {});
 
   return updated;
 }
