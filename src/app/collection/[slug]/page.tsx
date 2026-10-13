@@ -19,93 +19,126 @@ export default function CollectionPage() {
 
   // Collection metadata
   const collectionInfo = useMemo(() => {
+    let base = {
+      title: "كافة روائع أَثَـر",
+      englishTitle: "THE COMPLETE COLLECTION",
+      subtitle: "تشكيلة الفضة الإسترليني عيار 925 الإيطالية والتركية الكاملة",
+      bannerImage: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
+      showBanner: true,
+      filterGender: undefined as string | undefined,
+      filterCategory: undefined as string | undefined,
+    };
+
     switch (slug) {
       case "women":
-        return {
+        base = {
           title: "التشكيلة النسائية",
           englishTitle: "WOMEN'S COLLECTION",
           subtitle: "مجوهرات رقيقة صُممت لتبرز أنوثتك وتترك أثراً استثنائياً في كل إطلالة",
-          bannerImage:
-            "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=85",
+          bannerImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=85",
+          showBanner: true,
           filterGender: "women",
+          filterCategory: undefined,
         };
+        break;
       case "men":
-        return {
+        base = {
           title: "التشكيلة الرجالية",
           englishTitle: "MEN'S COLLECTION",
           subtitle: "صياغة ثقيلة وتصاميم عصرية تعكس الهيبة والأصالة بالفضة الإسترليني 925",
-          bannerImage:
-            "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=1600&q=85",
+          bannerImage: "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=1600&q=85",
+          showBanner: true,
           filterGender: "men",
+          filterCategory: undefined,
         };
+        break;
       case "rings":
-        return {
+        base = {
           title: "خواتم وسوليتير",
           englishTitle: "RINGS & SOLITAIRES",
           subtitle: "خواتم سوليتير مرصعة بالزركون السويسري وعقيق يماني طبيعي عيار 925",
-          bannerImage:
-            "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1600&q=85",
+          bannerImage: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1600&q=85",
+          showBanner: true,
+          filterGender: undefined,
           filterCategory: "rings",
         };
+        break;
       case "chains":
-        return {
+        base = {
           title: "سلاسل إيطالي ودلايات",
           englishTitle: "ITALIAN CHAINS",
           subtitle: "سلاسل كبح وحبل مجدولة بتشطيب إيطالي بلاتيني مقاوم لتغير اللون",
-          bannerImage:
-            "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1600&q=85",
+          bannerImage: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1600&q=85",
+          showBanner: true,
+          filterGender: undefined,
           filterCategory: "chains",
         };
+        break;
       case "bracelets":
-        return {
+        base = {
           title: "أساور وتنس",
           englishTitle: "BRACELETS & TENNIS",
           subtitle: "أساور تنس متلألئة وبناجر فضة وجلد طبيعي لإطلالة معصم ساحرة",
-          bannerImage:
-            "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=1600&q=85",
+          bannerImage: "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=1600&q=85",
+          showBanner: true,
+          filterGender: undefined,
           filterCategory: "bracelets",
         };
+        break;
       case "sets":
-        return {
+        base = {
           title: "أطقم ملكية وهدايا",
           englishTitle: "ROYAL GIFT SETS",
           subtitle: "أطقم متكاملة فاخرة للمناسبات الكبرى وشبكة الفضة مع تغليف ملكي",
-          bannerImage:
-            "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=85",
+          bannerImage: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=85",
+          showBanner: true,
+          filterGender: undefined,
           filterCategory: "sets",
         };
+        break;
       case "earrings":
-        return {
+        base = {
           title: "أقراط وحلقان",
           englishTitle: "EARRINGS",
           subtitle: "أقراط فضة إسترليني 925 متدلية ونواعم بتصاميم ساحرة",
-          bannerImage:
-            "https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=1600&q=85",
+          bannerImage: "https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=1600&q=85",
+          showBanner: true,
+          filterGender: undefined,
           filterCategory: "earrings",
         };
+        break;
       default: {
         const catList = storeSettings?.categories && storeSettings.categories.length > 0 ? storeSettings.categories : DEFAULT_CATEGORIES;
         const matched = catList.find((c) => c.id === slug || c.slug === slug);
         if (matched) {
-          return {
+          base = {
             title: matched.label,
             englishTitle: (matched.slug || matched.id).toUpperCase(),
             subtitle: matched.description || `تشكيلة ${matched.label} الفاخرة من الفضة الإسترليني عيار 925`,
-            bannerImage:
-              "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
+            bannerImage: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
+            showBanner: true,
+            filterGender: undefined,
             filterCategory: matched.id,
           };
         }
-        return {
-          title: "كافة روائع أَثَـر",
-          englishTitle: "THE COMPLETE COLLECTION",
-          subtitle: "تشكيلة الفضة الإسترليني عيار 925 الإيطالية والتركية الكاملة",
-          bannerImage:
-            "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
-        };
+        break;
       }
     }
-  }, [slug, storeSettings?.categories]);
+
+    // Merge with custom overrides from storeSettings.collectionPages
+    const custom = storeSettings?.collectionPages?.[slug];
+    if (custom) {
+      return {
+        ...base,
+        title: custom.title !== undefined ? custom.title : base.title,
+        englishTitle: custom.englishTitle !== undefined ? custom.englishTitle : base.englishTitle,
+        subtitle: custom.subtitle !== undefined ? custom.subtitle : base.subtitle,
+        bannerImage: custom.bannerImage ? custom.bannerImage : base.bannerImage,
+        showBanner: custom.showBanner !== undefined ? custom.showBanner : base.showBanner,
+      };
+    }
+    return base;
+  }, [slug, storeSettings?.categories, storeSettings?.collectionPages]);
 
   // Subcategories
   const subCategories = useMemo(() => {
@@ -146,27 +179,58 @@ export default function CollectionPage() {
 
   return (
     <div>
-      {/* Editorial Collection Banner */}
-      <div className="relative w-full h-[320px] sm:h-[400px] overflow-hidden bg-[#1c1815] select-none">
-        <img
-          src={collectionInfo.bannerImage}
-          alt={collectionInfo.title}
-          className="w-full h-full object-cover object-center brightness-[0.7] contrast-[1.05]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+      {/* Editorial Collection Banner or Clean Header */}
+      {collectionInfo.showBanner !== false && collectionInfo.bannerImage ? (
+        <div className="relative w-full h-[280px] sm:h-[380px] overflow-hidden bg-[#1c1815] select-none">
+          <img
+            src={collectionInfo.bannerImage}
+            alt={collectionInfo.title || "تشكيلة أَثَر"}
+            className="w-full h-full object-cover object-center brightness-[0.7] contrast-[1.05]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
 
-        <div className="absolute inset-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-12 text-right">
-          <div className="text-[11px] font-mono tracking-[0.25em] text-white/80 uppercase mb-2">
-            {collectionInfo.englishTitle}
+          <div className="absolute inset-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-10 sm:pb-12 text-right">
+            {collectionInfo.englishTitle && (
+              <div className="text-[11px] font-mono tracking-[0.25em] text-white/80 uppercase mb-2">
+                {collectionInfo.englishTitle}
+              </div>
+            )}
+            {collectionInfo.title && (
+              <h1 className="text-3xl sm:text-5xl font-light text-[#faf8f5] font-alexandria tracking-tight">
+                {collectionInfo.title}
+              </h1>
+            )}
+            {collectionInfo.subtitle && (
+              <p className="text-xs sm:text-sm text-white/85 font-light mt-2 max-w-xl">
+                {collectionInfo.subtitle}
+              </p>
+            )}
           </div>
-          <h1 className="text-3xl sm:text-5xl font-light text-[#faf8f5] font-alexandria tracking-tight">
-            {collectionInfo.title}
-          </h1>
-          <p className="text-xs sm:text-sm text-white/85 font-light mt-2 max-w-xl">
-            {collectionInfo.subtitle}
-          </p>
         </div>
-      </div>
+      ) : (
+        /* Minimal Banner if Banner Image Hidden or Disabled */
+        (collectionInfo.title || collectionInfo.englishTitle || collectionInfo.subtitle) && (
+          <div className="bg-[#f5efe6] border-b border-[#e2d5c2] py-8 sm:py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-right">
+              {collectionInfo.englishTitle && (
+                <div className="text-[11px] font-mono tracking-[0.25em] text-[#8c7865] uppercase mb-1">
+                  {collectionInfo.englishTitle}
+                </div>
+              )}
+              {collectionInfo.title && (
+                <h1 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-alexandria tracking-tight">
+                  {collectionInfo.title}
+                </h1>
+              )}
+              {collectionInfo.subtitle && (
+                <p className="text-xs sm:text-sm text-[#705e4d] font-light mt-2 max-w-xl">
+                  {collectionInfo.subtitle}
+                </p>
+              )}
+            </div>
+          </div>
+        )
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Breadcrumb Bar */}

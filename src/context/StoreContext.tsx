@@ -147,6 +147,68 @@ export interface StoreSettings {
 
   // Custom Categories & Collections
   categories?: StoreCategory[];
+
+  // Individual Collection / Page Customizer
+  collectionPages?: Record<string, CollectionPageSetting>;
+
+  // Products Section on Homepage
+  productsSectionBadge?: string;
+  productsSectionTitle?: string;
+  productsSectionSubtitle?: string;
+
+  // Gender Split Showcase Copy
+  splitTopButtonText?: string;
+  splitTopButtonShow?: boolean;
+  splitWomenTag?: string;
+  splitWomenEnglishTitle?: string;
+  splitWomenButtonText?: string;
+  splitMenTag?: string;
+  splitMenEnglishTitle?: string;
+  splitMenButtonText?: string;
+
+  // Brand Story Section Copy
+  storySectionShow?: boolean;
+  storyBadge?: string;
+  storyTitle?: string;
+  storySubtitle?: string;
+  storyPillar1Title?: string;
+  storyPillar1Desc?: string;
+  storyPillar1Show?: boolean;
+  storyPillar2Title?: string;
+  storyPillar2Desc?: string;
+  storyPillar2Show?: boolean;
+  storyPillar3Title?: string;
+  storyPillar3Desc?: string;
+  storyPillar3Show?: boolean;
+  storyPillar4Title?: string;
+  storyPillar4Desc?: string;
+  storyPillar4Show?: boolean;
+
+  // Silver Care Section Copy
+  careSectionShow?: boolean;
+  careBadge?: string;
+  careTitle?: string;
+  careSubtitle?: string;
+  careTip1Title?: string;
+  careTip1Desc?: string;
+  careTip1Show?: boolean;
+  careTip2Title?: string;
+  careTip2Desc?: string;
+  careTip2Show?: boolean;
+  careTip3Title?: string;
+  careTip3Desc?: string;
+  careTip3Show?: boolean;
+  careTip4Title?: string;
+  careTip4Desc?: string;
+  careTip4Show?: boolean;
+}
+
+export interface CollectionPageSetting {
+  title?: string;
+  englishTitle?: string;
+  subtitle?: string;
+  bannerImage?: string;
+  showBanner?: boolean;
 }
 
 export interface OrderItem {
@@ -251,6 +313,65 @@ interface StoreContextType {
   addToast: (title: string, message: string, type?: "cart" | "wishlist" | "promo" | "info") => void;
   removeToast: (id: string) => void;
 }
+
+export const DEFAULT_COLLECTION_PAGES: Record<string, CollectionPageSetting> = {
+  women: {
+    title: "التشكيلة النسائية",
+    englishTitle: "WOMEN'S COLLECTION",
+    subtitle: "مجوهرات رقيقة صُممت لتبرز أنوثتك وتترك أثراً استثنائياً في كل إطلالة",
+    bannerImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+  men: {
+    title: "التشكيلة الرجالية",
+    englishTitle: "MEN'S COLLECTION",
+    subtitle: "صياغة ثقيلة وتصاميم عصرية تعكس الهيبة والأصالة بالفضة الإسترليني 925",
+    bannerImage: "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+  rings: {
+    title: "خواتم وسوليتير",
+    englishTitle: "RINGS & SOLITAIRES",
+    subtitle: "خواتم سوليتير مرصعة بالزركون السويسري وعقيق يماني طبيعي عيار 925",
+    bannerImage: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+  chains: {
+    title: "سلاسل إيطالي ودلايات",
+    englishTitle: "ITALIAN CHAINS",
+    subtitle: "سلاسل كبح وحبل مجدولة بتشطيب إيطالي بلاتيني مقاوم لتغير اللون",
+    bannerImage: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+  bracelets: {
+    title: "أساور وتنس",
+    englishTitle: "BRACELETS & TENNIS",
+    subtitle: "أساور تنس متلألئة وبناجر فضة وجلد طبيعي لإطلالة معصم ساحرة",
+    bannerImage: "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+  sets: {
+    title: "أطقم ملكية وهدايا",
+    englishTitle: "ROYAL GIFT SETS",
+    subtitle: "أطقم متكاملة فاخرة للمناسبات الكبرى وشبكة الفضة مع تغليف ملكي",
+    bannerImage: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+  earrings: {
+    title: "أقراط وحلقان",
+    englishTitle: "EARRINGS",
+    subtitle: "أقراط فضة إسترليني 925 متدلية ونواعم بتصاميم ساحرة",
+    bannerImage: "https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+  all: {
+    title: "كافة روائع أَثَـر",
+    englishTitle: "THE COMPLETE COLLECTION",
+    subtitle: "تشكيلة الفضة الإسترليني عيار 925 الإيطالية والتركية الكاملة",
+    bannerImage: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
+    showBanner: true,
+  },
+};
 
 const DEFAULT_SETTINGS: StoreSettings = {
   whatsappNumber: "01143837730",
@@ -399,6 +520,60 @@ const DEFAULT_SETTINGS: StoreSettings = {
     "البحر الأحمر (الغردقة)": 75,
     "الوادي الجديد": 85,
   },
+
+  // Individual Collection / Page Customizer Defaults
+  collectionPages: DEFAULT_COLLECTION_PAGES,
+
+  // Products Section on Homepage
+  productsSectionBadge: "SIGNATURE PIECES • روائع أَثَـر",
+  productsSectionTitle: "المجموعة الملكية المختارة",
+  productsSectionSubtitle: "صيغت بعناية من الفضة الإسترليني عيار 925 لتترك أثراً استثنائياً في كل حضور",
+
+  // Gender Split Showcase Copy
+  splitTopButtonText: "VIEW ALL • كافة القطع",
+  splitTopButtonShow: true,
+  splitWomenTag: "COLLECTION FOR HER",
+  splitWomenEnglishTitle: "Women's",
+  splitWomenButtonText: "EXPLORE NOW",
+  splitMenTag: "COLLECTION FOR HIM",
+  splitMenEnglishTitle: "Men's",
+  splitMenButtonText: "EXPLORE NOW",
+
+  // Brand Story Section Copy
+  storySectionShow: true,
+  storyBadge: "ABOUT ATHAR • عن أَثَر",
+  storyTitle: "أناقة صُممت لتترك أثراً",
+  storySubtitle: "قطع استثنائية من الفضة النقية تلائم كل تفاصيل يومك ومناسباتك.",
+  storyPillar1Title: "فضة 925 معتمدة",
+  storyPillar1Desc: "نقاء إسترليني أصلي مختوم مع بطاقة ضمان رسمية.",
+  storyPillar1Show: true,
+  storyPillar2Title: "معالجة روديوم إيطالية",
+  storyPillar2Desc: "حماية فائقة من الخدش ولمعان دائم لا يتغير.",
+  storyPillar2Show: true,
+  storyPillar3Title: "تغليف إهداء فاخر",
+  storyPillar3Desc: "علبة مخملية أنيقة، كيس هدايا، ومنديل عناية مجاني.",
+  storyPillar3Show: true,
+  storyPillar4Title: "استبدال واسترجاع سلس",
+  storyPillar4Desc: "استبدال مقاس واسترجاع مضمون وسهل خلال 14 يوماً.",
+  storyPillar4Show: true,
+
+  // Silver Care Section Copy
+  careSectionShow: true,
+  careBadge: "CARE GUIDE • العناية",
+  careTitle: "العناية بالفضة الإسترليني 925",
+  careSubtitle: "خطوات بسيطة وسريعة لتظل قطعتك متألقة مدى الحياة.",
+  careTip1Title: "العطور والمواد الكيميائية",
+  careTip1Desc: "ارتدِ قطعتك بعد رش العطر لحماية الفضة من التفاعل.",
+  careTip1Show: true,
+  careTip2Title: "الحفظ في العلبة",
+  careTip2Desc: "احفظها في علبة أَثَر المبطنة بمكان جاف عند عدم ارتدائها.",
+  careTip2Show: true,
+  careTip3Title: "المنديل الخاص المرفق",
+  careTip3Desc: "مسحة لطيفة بمنديل التلميع المجاني تعيد بريقها فوراً.",
+  careTip3Show: true,
+  careTip4Title: "الارتداء المستمر",
+  careTip4Desc: "الارتداء اليومي الطبيعي يحافظ على نقاء الفضة وحيويتها.",
+  careTip4Show: true,
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -440,6 +615,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             Array.isArray(parsed.categories) && parsed.categories.length > 0
               ? parsed.categories
               : DEFAULT_CATEGORIES,
+          collectionPages: {
+            ...DEFAULT_COLLECTION_PAGES,
+            ...(parsed.collectionPages || {}),
+          },
           governorateShippingRates: {
             ...DEFAULT_SETTINGS.governorateShippingRates,
             ...(parsed.governorateShippingRates || {}),
@@ -546,6 +725,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               Array.isArray(data.settings.categories) && data.settings.categories.length > 0
                 ? data.settings.categories
                 : prev.categories,
+            collectionPages: {
+              ...prev.collectionPages,
+              ...DEFAULT_COLLECTION_PAGES,
+              ...(data.settings.collectionPages || {}),
+            },
             governorateShippingRates: {
               ...prev.governorateShippingRates,
               ...(data.settings.governorateShippingRates || {}),

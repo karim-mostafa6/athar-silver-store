@@ -118,19 +118,25 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Centered Editorial Content */}
         <div className={`relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16 sm:pb-20 ${alignClass}`}>
           {/* Tagline */}
-          <div className="text-white/90 text-xs sm:text-sm font-semibold tracking-[0.25em] uppercase mb-3 flex items-center gap-2">
-            <span className="w-6 h-px bg-white/40" />
-            <span>{storeSettings.heroTagline || "بصمةٌ تُميّز حضورك • 925 STERLING SILVER"}</span>
-            <span className="w-6 h-px bg-white/40" />
-          </div>
+          {storeSettings.heroTagline?.trim() && (
+            <div className="text-white/90 text-xs sm:text-sm font-semibold tracking-[0.25em] uppercase mb-3 flex items-center gap-2">
+              <span className="w-6 h-px bg-white/40" />
+              <span>{storeSettings.heroTagline}</span>
+              <span className="w-6 h-px bg-white/40" />
+            </div>
+          )}
 
           {/* Main Title */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-[#faf8f5] tracking-tight font-alexandria max-w-3xl leading-tight drop-shadow-md">
-            {storeSettings.heroTitle}
-          </h1>
-          <p className="text-sm sm:text-base text-white/90 font-light mt-2.5 max-w-xl drop-shadow">
-            {storeSettings.heroSubtitle}
-          </p>
+          {storeSettings.heroTitle?.trim() && (
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-[#faf8f5] tracking-tight font-alexandria max-w-3xl leading-tight drop-shadow-md">
+              {storeSettings.heroTitle}
+            </h1>
+          )}
+          {storeSettings.heroSubtitle?.trim() && (
+            <p className="text-sm sm:text-base text-white/90 font-light mt-2.5 max-w-xl drop-shadow">
+              {storeSettings.heroSubtitle}
+            </p>
+          )}
 
           {/* Minimalist Pill Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -188,35 +194,41 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         >
           <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-5 sm:gap-10">
             {/* Item 1 */}
-            <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-              {renderTrustIcon(storeSettings.trustItem1Icon || "shield")}
-              <span className="font-medium">
-                {storeSettings.trustItem1 || "فضة إسترليني معتمدة عيار 925 ومختومة رسمياً"}
-              </span>
-            </div>
+            {storeSettings.trustItem1?.trim() && (
+              <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
+                {renderTrustIcon(storeSettings.trustItem1Icon || "shield")}
+                <span className="font-medium">
+                  {storeSettings.trustItem1}
+                </span>
+              </div>
+            )}
 
             {/* Item 2 */}
-            <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-              {renderTrustIcon(storeSettings.trustItem2Icon || "truck")}
-              <span className="font-medium">
-                {storeSettings.trustItem2 || "شحن سريع وتغليف آمن ومحكم لكافة المحافظات"}
-              </span>
-            </div>
+            {storeSettings.trustItem2?.trim() && (
+              <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
+                {renderTrustIcon(storeSettings.trustItem2Icon || "truck")}
+                <span className="font-medium">
+                  {storeSettings.trustItem2}
+                </span>
+              </div>
+            )}
 
             {/* Item 3 */}
-            <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-              {renderTrustIcon(storeSettings.trustItem3Icon || "refresh")}
-              <span className="font-medium">
-                {storeSettings.trustItem3 || "استبدال واسترجاع سلس خلال 14 يوماً"}
-              </span>
-            </div>
+            {storeSettings.trustItem3?.trim() && (
+              <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
+                {renderTrustIcon(storeSettings.trustItem3Icon || "refresh")}
+                <span className="font-medium">
+                  {storeSettings.trustItem3}
+                </span>
+              </div>
+            )}
 
             {/* Item 4 (Optional) */}
-            {storeSettings.trustItem4Show && (
+            {storeSettings.trustItem4Show && storeSettings.trustItem4?.trim() && (
               <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
                 {renderTrustIcon(storeSettings.trustItem4Icon || "gift")}
                 <span className="font-medium">
-                  {storeSettings.trustItem4 || "تغليف هدايا ملكي وعلبة فاخرة مجاناً"}
+                  {storeSettings.trustItem4}
                 </span>
               </div>
             )}

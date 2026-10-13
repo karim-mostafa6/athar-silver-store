@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useStore, StoreSettings, Order, NavLinkItem } from "@/context/StoreContext";
+import { useStore, StoreSettings, Order, NavLinkItem, CollectionPageSetting, DEFAULT_COLLECTION_PAGES } from "@/context/StoreContext";
 import { Product, StoreCategory, DEFAULT_CATEGORIES, GOVERNORATES } from "@/data/products";
 import { playRoyalOrderChime } from "@/lib/sound";
 import {
@@ -84,8 +84,9 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState<string>("");
   const [rememberMe, setRememberMe] = useState<boolean>(true);
 
-  // Active Main Tabs: Dedicated Orders Command Center, Products, Theme, Policies, Settings
-  const [activeTab, setActiveTab] = useState<"orders" | "products" | "theme" | "policies" | "settings">("orders");
+  // Active Main Tabs: Dedicated Orders Command Center, Products, Pages, Theme, Policies, Settings
+  const [activeTab, setActiveTab] = useState<"orders" | "products" | "pages" | "theme" | "policies" | "settings">("orders");
+  const [selectedPageSlug, setSelectedPageSlug] = useState<string>("women");
 
   // Product Filter & Search
   const [productSearch, setProductSearch] = useState<string>("");
@@ -103,6 +104,7 @@ export default function AdminPage() {
   const womenFileInputRef = useRef<HTMLInputElement>(null);
   const menFileInputRef = useRef<HTMLInputElement>(null);
   const logoFileInputRef = useRef<HTMLInputElement>(null);
+  const pageBannerFileInputRef = useRef<HTMLInputElement>(null);
 
   // Header Nav Links Editor State
   const [newNavLabel, setNewNavLabel] = useState<string>("");
@@ -456,6 +458,49 @@ export default function AdminPage() {
       alert("فشل رفع الصورة");
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Dedicated upload for Collection Page Banner
+  const handlePageBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const url = await uploadImageFile(file);
+      handleUpdatePageSetting(selectedPageSlug, { bannerImage: url });
+      addToast("تم تحديث بنر الصفحة", "تم رفع صورة البنر بنجاح، اضغط حفظ لتطبيق التعديلات", "info");
+    } catch {
+      alert("فشل رفع صورة البنر");
+    } finally {
+      setIsUploading(false);
+      if (pageBannerFileInputRef.current) pageBannerFileInputRef.current.value = "";
+    }
+  };
+
+  const handleUpdatePageSetting = (slug: string, updated: Partial<CollectionPageSetting>) => {
+    setSettingsForm((prev) => {
+      const currentPages = prev.collectionPages || DEFAULT_COLLECTION_PAGES;
+      const currentPageSetting = currentPages[slug] || DEFAULT_COLLECTION_PAGES[slug] || {};
+      const newPageSetting = { ...currentPageSetting, ...updated };
+      return {
+        ...prev,
+        collectionPages: {
+          ...currentPages,
+          [slug]: newPageSetting,
+        },
+      };
+    });
+  };
+
+  const handleResetPageSetting = (slug: string) => {
+    if (confirm(`هل ترغب في استعادة الإعدادات الأصلية الافتراضية لهذه الصفحة؟`)) {
+      const defaultSetting = DEFAULT_COLLECTION_PAGES[slug];
+      if (defaultSetting) {
+        handleUpdatePageSetting(slug, defaultSetting);
+        addToast("تمت الاستعادة", "تمت استعادة الإعدادات الافتراضية للصفحة بنجاح", "info");
+      }
     }
   };
 
@@ -1455,6 +1500,19 @@ export default function AdminPage() {
 
                 <button
                   type="button"
+                  onClick={() => setActiveTab("pages")}
+                  className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "pages"
+                      ? "bg-[#faf8f5] text-[#1c1815] shadow-sm font-black"
+                      : "text-[#c7b59e] hover:text-white"
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5 text-amber-500" />
+                  <span>الصفحات والتشكيلات 📄</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setActiveTab("theme")}
                   className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === "theme"
@@ -1767,6 +1825,291 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* TAB: INDIVIDUAL PAGES & COLLECTIONS MANAGER (محرر الصفحات والتشكيلات) */}
+        {/* ======================================================== */}
+        {activeTab === "pages" && (
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#ebdcca] shadow-sm">
+              <div className="border-b border-[#ebdcca] pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-bold font-alexandria text-[#1c1815] flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-amber-600" />
+                    <span>محرر وتخصيص الصفحات والتشكيلات (Pages & Collections Customizer)</span>
+                  </h2>
+                  <p className="text-xs text-[#8c7865] mt-1">
+                    تحكم فردي في كل صفحة وتشكيلة: غيّر صورة البنر، العنوان بالعربية والإنجليزية، والوصف، أو امسح أي سطر تريده
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/collection/${selectedPageSlug}`}
+                    target="_blank"
+                    className="px-4 py-2 rounded-xl bg-[#2a241e] hover:bg-[#382f27] text-white text-xs font-bold flex items-center gap-1.5 transition-colors border border-[#483d32]"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                    <span>معاينة الصفحة كزائر</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveSettings}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-[#14110e] text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>حفظ التعديلات 💾</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Page Selection Bar */}
+              <div className="mb-6 space-y-2">
+                <label className="text-xs font-bold text-[#1c1815] block">
+                  اختر الصفحة أو التشكيلة التي تريد تعديلها:
+                </label>
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  {[
+                    { slug: "women", label: "التشكيلة النسائية 🌸" },
+                    { slug: "men", label: "التشكيلة الرجالية ⚔️" },
+                    { slug: "rings", label: "خواتم وسوليتير 💍" },
+                    { slug: "chains", label: "سلاسل إيطالي ⛓️" },
+                    { slug: "bracelets", label: "أساور وتنس ✨" },
+                    { slug: "sets", label: "أطقم ملكية 👑" },
+                    { slug: "earrings", label: "أقراط وحلقان 💎" },
+                    { slug: "all", label: "كافة روائع أَثَـر ✦" },
+                    ...availableCategories
+                      .filter((c) => !["women", "men", "rings", "chains", "bracelets", "sets", "earrings", "all"].includes(c.id))
+                      .map((c) => ({ slug: c.id, label: `${c.label} ${c.icon || "✨"}` })),
+                  ].map((p) => {
+                    const isSelected = selectedPageSlug === p.slug;
+                    return (
+                      <button
+                        key={p.slug}
+                        type="button"
+                        onClick={() => setSelectedPageSlug(p.slug)}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
+                          isSelected
+                            ? "bg-[#1c1815] text-[#faf8f5] shadow-md ring-2 ring-amber-500"
+                            : "bg-[#f5efe6] text-[#705e4d] hover:bg-[#ece2d3] border border-[#d8c8b4]"
+                        }`}
+                      >
+                        <span>{p.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Editor for Selected Page */}
+              {(() => {
+                const currentSetting =
+                  settingsForm.collectionPages?.[selectedPageSlug] ||
+                  DEFAULT_COLLECTION_PAGES[selectedPageSlug] || {
+                    title: "",
+                    englishTitle: "",
+                    subtitle: "",
+                    bannerImage: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
+                    showBanner: true,
+                  };
+
+                return (
+                  <div className="space-y-6 bg-[#faf8f5] p-5 sm:p-6 rounded-2xl border border-[#ebdcca]">
+                    {/* Header info */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#ebdcca] gap-2">
+                      <div>
+                        <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                          <span>تعديل محتوى وبنر صفحة:</span>
+                          <span className="text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-300 font-mono font-bold">
+                            /collection/{selectedPageSlug}
+                          </span>
+                        </h3>
+                        <p className="text-[11px] text-[#8c7865] mt-1">
+                          💡 أي سطر تمسحه وتتركه فارغاً سيتم إخفاؤه تماماً من الصفحة بدون ترك فراغات
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleResetPageSetting(selectedPageSlug)}
+                        className="px-3 py-1.5 rounded-xl border border-[#d8c8b4] hover:bg-white text-xs text-[#705e4d] transition-colors flex items-center gap-1 self-start sm:self-auto"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>استعادة الافتراضي للصفحة</span>
+                      </button>
+                    </div>
+
+                    {/* Banner Image Customizer */}
+                    <div className="p-4 sm:p-5 rounded-xl bg-white border border-[#ebdcca] space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          صورة البنر العريض أعلى الصفحة:
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-[#1c1815]">
+                          <input
+                            type="checkbox"
+                            checked={currentSetting.showBanner !== false}
+                            onChange={(e) =>
+                              handleUpdatePageSetting(selectedPageSlug, { showBanner: e.target.checked })
+                            }
+                            className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                          />
+                          <span>عرض صورة البنر في الصفحة</span>
+                        </label>
+                      </div>
+
+                      {currentSetting.showBanner !== false && (
+                        <div className="space-y-3">
+                          <div className="relative h-44 sm:h-56 rounded-xl overflow-hidden border border-[#d8c8b4] bg-[#1c1815]">
+                            {currentSetting.bannerImage ? (
+                              <img
+                                src={currentSetting.bannerImage}
+                                alt="Page Banner Preview"
+                                className="w-full h-full object-cover brightness-[0.75]"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[#8c7865] text-xs">
+                                لا توجد صورة بنر
+                              </div>
+                            )}
+
+                            {/* Live Text Overlay Preview */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end text-right">
+                              {currentSetting.englishTitle && (
+                                <span className="text-[10px] font-mono tracking-widest text-white/80 uppercase">
+                                  {currentSetting.englishTitle}
+                                </span>
+                              )}
+                              {currentSetting.title && (
+                                <span className="text-xl sm:text-2xl font-light text-white font-alexandria">
+                                  {currentSetting.title}
+                                </span>
+                              )}
+                              {currentSetting.subtitle && (
+                                <span className="text-xs text-white/80 font-light mt-1 line-clamp-1">
+                                  {currentSetting.subtitle}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => pageBannerFileInputRef.current?.click()}
+                              className="px-4 py-2.5 rounded-xl bg-[#1c1815] hover:bg-[#382f28] text-white text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
+                            >
+                              <Upload className="w-3.5 h-3.5 text-amber-400" />
+                              <span>رفع صورة بنر جديدة من جهازك (JPG / PNG / WebP)</span>
+                            </button>
+                            <input
+                              type="file"
+                              ref={pageBannerFileInputRef}
+                              onChange={handlePageBannerUpload}
+                              accept="image/*"
+                              className="hidden"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] text-[#8c7865] block">أو اكتب رابط الصورة المباشر:</label>
+                            <input
+                              type="text"
+                              value={currentSetting.bannerImage || ""}
+                              onChange={(e) =>
+                                handleUpdatePageSetting(selectedPageSlug, { bannerImage: e.target.value })
+                              }
+                              placeholder="https://images.unsplash.com/..."
+                              className="w-full px-3.5 py-2 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs font-mono text-left focus:outline-none focus:border-amber-600"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Text Inputs for Selected Page */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Arabic Title */}
+                      <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-bold text-[#1c1815] block">
+                            عنوان الصفحة بالعربية:
+                          </label>
+                          <span className="text-[10px] text-[#8c7865]">امسحه لإخفائه</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={currentSetting.title ?? ""}
+                          onChange={(e) =>
+                            handleUpdatePageSetting(selectedPageSlug, { title: e.target.value })
+                          }
+                          placeholder="مثال: التشكيلة النسائية"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs sm:text-sm font-bold focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+
+                      {/* English Tag / Title */}
+                      <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-bold text-[#1c1815] block">
+                            العنوان الإنجليزي / الشارة (English Title):
+                          </label>
+                          <span className="text-[10px] text-[#8c7865]">امسحه لإخفائه</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={currentSetting.englishTitle ?? ""}
+                          onChange={(e) =>
+                            handleUpdatePageSetting(selectedPageSlug, { englishTitle: e.target.value })
+                          }
+                          placeholder="مثال: WOMEN'S COLLECTION"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs sm:text-sm font-mono tracking-wider focus:outline-none focus:border-amber-600 uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Subtitle / Description */}
+                    <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-bold text-[#1c1815] block">
+                          الوصف التعريفي للتشكيلة (Subtitle / Description):
+                        </label>
+                        <span className="text-[10px] text-[#8c7865]">امسحه لإخفائه بالكامل</span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        value={currentSetting.subtitle ?? ""}
+                        onChange={(e) =>
+                          handleUpdatePageSetting(selectedPageSlug, { subtitle: e.target.value })
+                        }
+                        placeholder="اكتب وصفاً جذاباً للقطع المعروضة في هذه الصفحة..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#faf8f5] border border-[#d8c8b4] text-xs sm:text-sm focus:outline-none focus:border-amber-600 resize-none leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Bottom Save Bar for Pages */}
+                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <span className="text-xs text-[#8c7865]">
+                        بمجرد الضغط على زر الحفظ، يتم تطبيق صورة ونصوص الصفحة فوراً على المتجر
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={handleSaveSettings}
+                        className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-[#14110e] font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>حفظ التعديلات على هذه الصفحة 💾</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
@@ -3288,39 +3631,132 @@ export default function AdminPage() {
                 {/* ======================================================== */}
                 {/* 6. DUAL SPLIT 50/50 SHOWCASE (Women's & Men's) */}
                 {/* ======================================================== */}
-                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
-                    <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-rose-700" />
-                      <span>6. البنر المزدوج 50/50 (Women&apos;s & Men&apos;s Showcases)</span>
-                    </h3>
-                    <span className="text-[11px] text-[#8c7865]">بنرات التشكيلات الكبرى</span>
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-rose-700" />
+                        <span>6. البنر المزدوج 50/50 (Women&apos;s & Men&apos;s Showcases)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تحكم كامل في نصوص وعناوين وبنر التشكيلات الكبرى وزر الاستعراض السريع
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-[#8c7865]">💡 مسح أي حقل يخفيه تلقائياً من البنر</span>
+                  </div>
+
+                  {/* Top "VIEW ALL" Button Customizer */}
+                  <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-[#1c1815] block">
+                        زر استعراض كافة القطع العلوي (Top Center Button):
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-[#1c1815]">
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.splitTopButtonShow !== false}
+                          onChange={(e) =>
+                            setSettingsForm({ ...settingsForm, splitTopButtonShow: e.target.checked })
+                          }
+                          className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                        />
+                        <span>إظهار الزر أعلى البنر المزدوج</span>
+                      </label>
+                    </div>
+                    {settingsForm.splitTopButtonShow !== false && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="text-[11px] text-[#8c7865] block mb-1">نص الزر:</label>
+                          <input
+                            type="text"
+                            value={settingsForm.splitTopButtonText || ""}
+                            onChange={(e) =>
+                              setSettingsForm({ ...settingsForm, splitTopButtonText: e.target.value })
+                            }
+                            placeholder="VIEW ALL • كافة القطع"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                        </div>
+                        <div className="flex items-end text-xs text-[#8c7865]">
+                          <span>يربط الزر تلقائياً بصفحة كافة القطع (/collection/all)</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Women's Showcase Customizer */}
                     <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
-                      <span className="text-xs font-bold text-rose-800 block">🌸 قسم التشكيلة النسائية</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-rose-800 block">🌸 قسم التشكيلة النسائية</span>
+                        <Link
+                          href="/collection/women"
+                          target="_blank"
+                          className="text-[11px] text-amber-700 hover:underline flex items-center gap-1"
+                        >
+                          <span>معاينة</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+
                       <div className="space-y-1">
-                        <label className="text-[11px] text-[#8c7865] block">العنوان</label>
+                        <label className="text-[11px] text-[#8c7865] block">الشارة الإنجليزية العلوية (Top Tag)</label>
                         <input
                           type="text"
-                          value={settingsForm.splitWomenTitle}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenTitle: e.target.value })}
-                          className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          value={settingsForm.splitWomenTag ?? "COLLECTION FOR HER"}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenTag: e.target.value })}
+                          placeholder="COLLECTION FOR HER"
+                          className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-mono uppercase"
                         />
                       </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-[#8c7865] block">العنوان الإنجليزي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.splitWomenEnglishTitle ?? "Women's"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenEnglishTitle: e.target.value })}
+                            placeholder="Women's"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-[#8c7865] block">العنوان العربي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.splitWomenTitle}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenTitle: e.target.value })}
+                            placeholder="التشكيلة النسائية"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                        </div>
+                      </div>
+
                       <div className="space-y-1">
-                        <label className="text-[11px] text-[#8c7865] block">الوصف</label>
+                        <label className="text-[11px] text-[#8c7865] block">الوصف المصاحب</label>
                         <input
                           type="text"
                           value={settingsForm.splitWomenSubtitle}
                           onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenSubtitle: e.target.value })}
+                          placeholder="مجوهرات رقيقة تبرز أنوثتك..."
                           className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] text-[#8c7865] block">صورة البنر</label>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-[#8c7865] block">نص زر التوجيه (Button Text)</label>
+                        <input
+                          type="text"
+                          value={settingsForm.splitWomenButtonText ?? "EXPLORE NOW"}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenButtonText: e.target.value })}
+                          placeholder="EXPLORE NOW"
+                          className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-mono uppercase"
+                        />
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-[#f2ece1]">
+                        <label className="text-[11px] text-[#8c7865] block">صورة البنر النسائي</label>
                         <div className="relative h-28 rounded-lg overflow-hidden border border-[#d8c8b4]">
                           <img
                             src={settingsForm.splitWomenImage}
@@ -3348,27 +3784,76 @@ export default function AdminPage() {
 
                     {/* Men's Showcase Customizer */}
                     <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-3">
-                      <span className="text-xs font-bold text-[#1c1815] block">⚔️ قسم التشكيلة الرجالية</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#1c1815] block">⚔️ قسم التشكيلة الرجالية</span>
+                        <Link
+                          href="/collection/men"
+                          target="_blank"
+                          className="text-[11px] text-amber-700 hover:underline flex items-center gap-1"
+                        >
+                          <span>معاينة</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+
                       <div className="space-y-1">
-                        <label className="text-[11px] text-[#8c7865] block">العنوان</label>
+                        <label className="text-[11px] text-[#8c7865] block">الشارة الإنجليزية العلوية (Top Tag)</label>
                         <input
                           type="text"
-                          value={settingsForm.splitMenTitle}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, splitMenTitle: e.target.value })}
-                          className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          value={settingsForm.splitMenTag ?? "COLLECTION FOR HIM"}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, splitMenTag: e.target.value })}
+                          placeholder="COLLECTION FOR HIM"
+                          className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-mono uppercase"
                         />
                       </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-[#8c7865] block">العنوان الإنجليزي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.splitMenEnglishTitle ?? "Men's"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, splitMenEnglishTitle: e.target.value })}
+                            placeholder="Men's"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] text-[#8c7865] block">العنوان العربي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.splitMenTitle}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, splitMenTitle: e.target.value })}
+                            placeholder="التشكيلة الرجالية"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                        </div>
+                      </div>
+
                       <div className="space-y-1">
-                        <label className="text-[11px] text-[#8c7865] block">الوصف</label>
+                        <label className="text-[11px] text-[#8c7865] block">الوصف المصاحب</label>
                         <input
                           type="text"
                           value={settingsForm.splitMenSubtitle}
                           onChange={(e) => setSettingsForm({ ...settingsForm, splitMenSubtitle: e.target.value })}
+                          placeholder="صياغة ثقيلة وتصاميم عصرية..."
                           className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] text-[#8c7865] block">صورة البنر</label>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-[#8c7865] block">نص زر التوجيه (Button Text)</label>
+                        <input
+                          type="text"
+                          value={settingsForm.splitMenButtonText ?? "EXPLORE NOW"}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, splitMenButtonText: e.target.value })}
+                          placeholder="EXPLORE NOW"
+                          className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-mono uppercase"
+                        />
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-[#f2ece1]">
+                        <label className="text-[11px] text-[#8c7865] block">صورة البنر الرجالي</label>
                         <div className="relative h-28 rounded-lg overflow-hidden border border-[#d8c8b4]">
                           <img
                             src={settingsForm.splitMenImage}
@@ -3397,13 +3882,446 @@ export default function AdminPage() {
                 </div>
 
                 {/* ======================================================== */}
-                {/* 7. SOCIAL MEDIA & CONTACT INFO SECTION */}
+                {/* 7. HOMEPAGE PRODUCTS SECTION HEADER */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-amber-600" />
+                        <span>7. عنوان ونصوص قسم المنتجات في الصفحة الرئيسية (Products Section Header)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تحكم في العنوان والسطر الوصفي والشارة الترحيبية فوق شبكة المنتجات
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-[#8c7865]">💡 مسح أي سطر يخفيه تلقائياً</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-[#1c1815] block">الشارة العلوية (Badge)</label>
+                      <input
+                        type="text"
+                        value={settingsForm.productsSectionBadge ?? "SIGNATURE PIECES • روائع أَثَـر"}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, productsSectionBadge: e.target.value })}
+                        placeholder="ATHAR SIGNATURE • روائع الفضة"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-[#1c1815] block">العنوان الرئيسي للقسم</label>
+                      <input
+                        type="text"
+                        value={settingsForm.productsSectionTitle ?? "المجموعة الملكية المختارة"}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, productsSectionTitle: e.target.value })}
+                        placeholder="تشكيلة أَثَـر الخالدة"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs sm:text-sm font-bold"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-[#1c1815] block">السطر الوصفي المصاحب</label>
+                      <input
+                        type="text"
+                        value={settingsForm.productsSectionSubtitle ?? "صيغت بعناية من الفضة الإسترليني عيار 925 لتترك أثراً استثنائياً في كل حضور"}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, productsSectionSubtitle: e.target.value })}
+                        placeholder="صيغت بعناية من الفضة الإسترليني..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ======================================================== */}
+                {/* 8. BRAND STORY & 4 PILLARS SECTION */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span>8. قسم قصة أَثَـر والركائز الأربعة (Brand Story & Pillars)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تحكم في نصوص الركائز الأربعة للبراند وإمكانية تفعيل أو إخفاء أي ركيزة
+                      </p>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3.5 py-1.5 rounded-xl border border-[#d8c8b4] shadow-sm select-none">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.storySectionShow !== false}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, storySectionShow: e.target.checked })}
+                        className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                      />
+                      <span className="text-xs font-bold text-[#1c1815]">
+                        {settingsForm.storySectionShow !== false ? "القسم مرئي في الصفحة 🟢" : "القسم مخفي تماماً ⚪"}
+                      </span>
+                    </label>
+                  </div>
+
+                  {settingsForm.storySectionShow !== false && (
+                    <div className="space-y-5">
+                      {/* Story Header */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-white border border-[#ebdcca]">
+                        <div>
+                          <label className="text-[11px] font-bold text-[#8c7865] block mb-1">الشارة العلوية</label>
+                          <input
+                            type="text"
+                            value={settingsForm.storyBadge ?? "ABOUT ATHAR • عن أَثَر"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyBadge: e.target.value })}
+                            placeholder="ABOUT ATHAR • عن أَثَر"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-mono uppercase"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-[#8c7865] block mb-1">العنوان الرئيسي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.storyTitle ?? "أناقة صُممت لتترك أثراً"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyTitle: e.target.value })}
+                            placeholder="أناقة صُممت لتترك أثراً"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-[#8c7865] block mb-1">السطر الوصفي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.storySubtitle ?? "قطع استثنائية من الفضة النقية تلائم كل تفاصيل يومك ومناسباتك."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storySubtitle: e.target.value })}
+                            placeholder="قطع استثنائية من الفضة النقية..."
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 4 Pillars Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Pillar 1 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">الركيزة 1 (فضة معتمدة)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.storyPillar1Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar1Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar1Title ?? "فضة 925 معتمدة"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar1Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar1Desc ?? "نقاء إسترليني أصلي مختوم مع بطاقة ضمان رسمية."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar1Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+
+                        {/* Pillar 2 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">الركيزة 2 (معالجة الروديوم)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.storyPillar2Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar2Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar2Title ?? "معالجة روديوم إيطالية"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar2Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar2Desc ?? "حماية فائقة من الخدش ولمعان دائم لا يتغير."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar2Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+
+                        {/* Pillar 3 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">الركيزة 3 (تغليف الإهداء)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.storyPillar3Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar3Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar3Title ?? "تغليف إهداء فاخر"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar3Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar3Desc ?? "علبة مخملية أنيقة، كيس هدايا، ومنديل عناية مجاني."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar3Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+
+                        {/* Pillar 4 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">الركيزة 4 (الاستبدال والاسترجاع)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.storyPillar4Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar4Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar4Title ?? "استبدال واسترجاع سلس"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar4Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.storyPillar4Desc ?? "استبدال مقاس واسترجاع مضمون وسهل خلال 14 يوماً."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar4Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ======================================================== */}
+                {/* 9. SILVER CARE GUIDE SECTION */}
+                {/* ======================================================== */}
+                <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#ebdcca] pb-3 gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-600" />
+                        <span>9. قسم دليل العناية بالفضة الإسترليني 925 (Silver Care Guide)</span>
+                      </h3>
+                      <p className="text-[11px] text-[#8c7865] mt-0.5">
+                        تحكم في نصائح العناية بالفضة المعروضة لزيادة رضا العملاء والحفاظ على قطعهم
+                      </p>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3.5 py-1.5 rounded-xl border border-[#d8c8b4] shadow-sm select-none">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.careSectionShow !== false}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, careSectionShow: e.target.checked })}
+                        className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-4 h-4"
+                      />
+                      <span className="text-xs font-bold text-[#1c1815]">
+                        {settingsForm.careSectionShow !== false ? "القسم مرئي في الصفحة 🟢" : "القسم مخفي تماماً ⚪"}
+                      </span>
+                    </label>
+                  </div>
+
+                  {settingsForm.careSectionShow !== false && (
+                    <div className="space-y-5">
+                      {/* Care Header */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-white border border-[#ebdcca]">
+                        <div>
+                          <label className="text-[11px] font-bold text-[#8c7865] block mb-1">الشارة العلوية</label>
+                          <input
+                            type="text"
+                            value={settingsForm.careBadge ?? "CARE GUIDE • العناية"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careBadge: e.target.value })}
+                            placeholder="CARE GUIDE • العناية"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-mono uppercase"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-[#8c7865] block mb-1">العنوان الرئيسي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.careTitle ?? "العناية بالفضة الإسترليني 925"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTitle: e.target.value })}
+                            placeholder="العناية بالفضة الإسترليني 925"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-[#8c7865] block mb-1">السطر الوصفي</label>
+                          <input
+                            type="text"
+                            value={settingsForm.careSubtitle ?? "خطوات بسيطة وسريعة لتظل قطعتك متألقة مدى الحياة."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careSubtitle: e.target.value })}
+                            placeholder="خطوات بسيطة وسريعة..."
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      {/* 4 Tips Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Tip 1 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">النصيحة 1 (العطور)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.careTip1Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, careTip1Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.careTip1Title ?? "العطور والمواد الكيميائية"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip1Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.careTip1Desc ?? "ارتدِ قطعتك بعد رش العطر لحماية الفضة من التفاعل."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip1Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+
+                        {/* Tip 2 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">النصيحة 2 (الحفظ بالعلبة)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.careTip2Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, careTip2Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.careTip2Title ?? "الحفظ في العلبة"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip2Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.careTip2Desc ?? "احفظها في علبة أَثَر المبطنة بمكان جاف عند عدم ارتدائها."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip2Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+
+                        {/* Tip 3 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">النصيحة 3 (المنديل الخاص)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.careTip3Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, careTip3Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.careTip3Title ?? "المنديل الخاص المرفق"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip3Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.careTip3Desc ?? "مسحة لطيفة بمنديل التلميع المجاني تعيد بريقها فوراً."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip3Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+
+                        {/* Tip 4 */}
+                        <div className="p-4 rounded-xl bg-white border border-[#ebdcca] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#1c1815]">النصيحة 4 (الارتداء المستمر)</span>
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs select-none">
+                              <input
+                                type="checkbox"
+                                checked={settingsForm.careTip4Show !== false}
+                                onChange={(e) => setSettingsForm({ ...settingsForm, careTip4Show: e.target.checked })}
+                                className="rounded border-[#d8c8b4] text-amber-600 focus:ring-0 w-3.5 h-3.5"
+                              />
+                              <span className="text-[11px]">مفعلة</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            value={settingsForm.careTip4Title ?? "الارتداء المستمر"}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip4Title: e.target.value })}
+                            placeholder="العنوان"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            value={settingsForm.careTip4Desc ?? "الارتداء اليومي الطبيعي يحافظ على نقاء الفضة وحيويتها."}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, careTip4Desc: e.target.value })}
+                            placeholder="الوصف"
+                            className="w-full px-3 py-1.5 rounded-lg border border-[#d8c8b4] text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ======================================================== */}
+                {/* 10. SOCIAL MEDIA & CONTACT INFO SECTION */}
                 {/* ======================================================== */}
                 <div className="p-6 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] space-y-4">
                   <div className="flex items-center justify-between border-b border-[#ebdcca] pb-3">
                     <h3 className="font-bold text-sm text-[#1c1815] flex items-center gap-2">
                       <Globe className="w-4 h-4 text-blue-600" />
-                      <span>7. روابط التواصل الاجتماعي والفوتر (Social & Contact)</span>
+                      <span>10. روابط التواصل الاجتماعي والفوتر (Social & Contact)</span>
                     </h3>
                     <span className="text-[11px] text-[#8c7865]">تظهر في أسفل كل الصفحات</span>
                   </div>

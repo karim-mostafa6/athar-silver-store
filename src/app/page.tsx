@@ -80,17 +80,25 @@ export default function Home() {
         className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#e8ded0]"
       >
         {/* Centered Luxury Section Header */}
-        <div className="text-center mb-8 space-y-2">
-          <span className="text-[11px] font-mono tracking-[0.25em] text-[#8a7663] uppercase">
-            ATHAR SIGNATURE • روائع الفضة
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-alexandria tracking-tight">
-            تشكيلة أَثَـر الخالدة
-          </h2>
-          <p className="text-xs sm:text-sm text-[#705e4d] font-light">
-            صيغت بعناية من الفضة الإسترليني عيار 925 لتترك أثراً استثنائياً في كل حضور
-          </p>
-        </div>
+        {(storeSettings.productsSectionBadge || storeSettings.productsSectionTitle || storeSettings.productsSectionSubtitle) && (
+          <div className="text-center mb-8 space-y-2">
+            {storeSettings.productsSectionBadge?.trim() && (
+              <span className="text-[11px] font-mono tracking-[0.25em] text-[#8a7663] uppercase block">
+                {storeSettings.productsSectionBadge}
+              </span>
+            )}
+            {storeSettings.productsSectionTitle?.trim() && (
+              <h2 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-alexandria tracking-tight">
+                {storeSettings.productsSectionTitle}
+              </h2>
+            )}
+            {storeSettings.productsSectionSubtitle?.trim() && (
+              <p className="text-xs sm:text-sm text-[#705e4d] font-light">
+                {storeSettings.productsSectionSubtitle}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Category Pills */}
         <div className="flex items-center justify-center gap-2 sm:gap-3 pb-3 mb-10 overflow-x-auto scrollbar-none text-xs">
