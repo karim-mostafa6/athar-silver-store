@@ -44,7 +44,6 @@ export default function ProductDetailPage() {
     product?.defaultSize || (product?.sizes ? product.sizes[0] : undefined)
   );
   const [engravingText, setEngravingText] = useState<string>("");
-  const [selectedPlating, setSelectedPlating] = useState<"silver" | "gold" | "rosegold">("silver");
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<"specs" | "shipping" | "care" | null>("specs");
@@ -89,18 +88,20 @@ export default function ProductDetailPage() {
 
   const handleWhatsAppOrder = () => {
     const sizeText = selectedSize ? ` (المقاس: ${selectedSize})` : "";
-    const platingText =
-      selectedPlating === "gold"
-        ? " [مطلي ذهب 18K]"
-        : selectedPlating === "rosegold"
-        ? " [مطلي روز جولد]"
-        : " [فضة 925 طبيعية]";
+    const productUrl =
+      typeof window !== "undefined"
+        ? window.location.href
+        : `https://athar-silver-store.vercel.app/product/${product.id}`;
+    const cleanPhone = (storeSettings.whatsappNumber || "01143837730").replace(/\D/g, "");
+    const formattedPhone = cleanPhone.startsWith("20") ? cleanPhone : `20${cleanPhone.replace(/^0/, "")}`;
     const msg = encodeURIComponent(
-      `مرحباً براند أَثَر، أود طلب: ${product.arabicName}${sizeText}${platingText} (الكمية: ${quantity}) بسعر ${
+      `مرحباً براند أَثَر، أود طلب هذه القطعة الفاخرة:\n\n*القطعة:* ${product.arabicName}\n*الكود:* ${
+        product.id
+      }\n${sizeText ? `*المقاس:* ${selectedSize}\n` : ""}*الكمية:* ${quantity}\n*الإجمالي:* ${
         product.price * quantity
-      } ج.م.\nرابط القطعة: ${product.images[activeImageIdx] || product.images[0]}`
+      } ج.م.\n\n*رابط صفحة المنتج:* ${productUrl}`
     );
-    window.open(`https://wa.me/${storeSettings.whatsappNumber}?text=${msg}`, "_blank");
+    window.open(`https://wa.me/${formattedPhone}?text=${msg}`, "_blank");
   };
 
   const handleShare = () => {
@@ -263,7 +264,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Pricing Section */}
-          <div className="p-5 rounded-2xl bg-white border border-[#ece4d8] flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-white border border-[#ece4d8]">
             <div className="text-right">
               {product.originalPrice && (
                 <span className="text-xs text-[#8c7a67] line-through block mb-1">
@@ -273,59 +274,6 @@ export default function ProductDetailPage() {
               <div className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria">
                 EGP {product.price.toLocaleString("en-US")}
               </div>
-            </div>
-            <div className="text-left">
-              <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
-                متوفر للشحن الفوري ✓
-              </span>
-              <div className="text-[10px] text-[#705e4d] mt-1">شامل الدمغة والعلبة الفاخرة</div>
-            </div>
-          </div>
-
-          {/* Plating Finish Selector */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-[#1c1815]">
-              نوع الطلاء والتشطيب:
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedPlating("silver")}
-                className={`py-3 px-3 rounded-2xl border text-xs font-bold transition-all text-center flex items-center justify-center gap-2 ${
-                  selectedPlating === "silver"
-                    ? "bg-[#1c1815] text-[#faf8f5] border-[#1c1815] shadow-sm"
-                    : "bg-white text-[#5c4d3f] border-[#e2d5c2] hover:bg-[#f6efe4]"
-                }`}
-              >
-                <span className="w-3 h-3 rounded-full bg-slate-300 border border-slate-400" />
-                <span>فضة 925 نقية</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedPlating("gold")}
-                className={`py-3 px-3 rounded-2xl border text-xs font-bold transition-all text-center flex items-center justify-center gap-2 ${
-                  selectedPlating === "gold"
-                    ? "bg-[#1c1815] text-[#faf8f5] border-[#1c1815] shadow-sm"
-                    : "bg-white text-[#5c4d3f] border-[#e2d5c2] hover:bg-[#f6efe4]"
-                }`}
-              >
-                <span className="w-3 h-3 rounded-full bg-amber-400 border border-amber-500" />
-                <span>مطلي ذهب 18K</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedPlating("rosegold")}
-                className={`py-3 px-3 rounded-2xl border text-xs font-bold transition-all text-center flex items-center justify-center gap-2 ${
-                  selectedPlating === "rosegold"
-                    ? "bg-[#1c1815] text-[#faf8f5] border-[#1c1815] shadow-sm"
-                    : "bg-white text-[#5c4d3f] border-[#e2d5c2] hover:bg-[#f6efe4]"
-                }`}
-              >
-                <span className="w-3 h-3 rounded-full bg-rose-300 border border-rose-400" />
-                <span>مطلي روز جولد</span>
-              </button>
             </div>
           </div>
 

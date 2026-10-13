@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Product } from "@/data/products";
 import { X, ShieldCheck, ShoppingBag, MessageCircle, Heart, Sparkles, Check } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
 
 interface ProductQuickViewModalProps {
   product: Product | null;
@@ -23,6 +24,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   onOpenSizeGuide,
   onNotify,
 }) => {
+  const { storeSettings } = useStore();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     product?.defaultSize || (product?.sizes ? product.sizes[0] : undefined)
@@ -61,10 +63,16 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
     const sizeText = selectedSize ? ` (المقاس: ${selectedSize})` : "";
     const qtyText = quantity > 1 ? ` (العدد: ${quantity})` : "";
     const total = product.price * quantity;
+    const productUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/product/${product.id}`
+        : `https://athar-silver-store.vercel.app/product/${product.id}`;
+    const cleanPhone = (storeSettings?.whatsappNumber || "01143837730").replace(/\D/g, "");
+    const formattedPhone = cleanPhone.startsWith("20") ? cleanPhone : `20${cleanPhone.replace(/^0/, "")}`;
     const msg = encodeURIComponent(
-      `مرحباً براند أَثَر، أود طلب: ${product.arabicName}${sizeText}${qtyText} بإجمالي ${total} ج.م.\nرابط القطعة: ${product.images[selectedImage]}`
+      `مرحباً براند أَثَر، أود طلب: ${product.arabicName}${sizeText}${qtyText} بإجمالي ${total} ج.م.\n\n*رابط صفحة المنتج:* ${productUrl}`
     );
-    window.open(`https://wa.me/201000000000?text=${msg}`, "_blank");
+    window.open(`https://wa.me/${formattedPhone}?text=${msg}`, "_blank");
   };
 
   return (
