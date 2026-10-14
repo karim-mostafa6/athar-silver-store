@@ -997,6 +997,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const lastServerUpdatedRef = useRef<string>("");
   const isSyncingRef = useRef<boolean>(false);
   const lastSyncTimestampRef = useRef<number>(0);
+  const lastLocalOrderMutationRef = useRef<number>(0);
+  const ordersRef = useRef<Order[]>(orders);
+
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
 
   // Background Central Server Sync (High-speed & non-blocking)
   const syncWithServer = useCallback((force = false) => {
@@ -1076,11 +1082,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
 
         if (Array.isArray(data.orders)) {
-          const cleanedOrders = sanitizeOrders(data.orders);
-          setOrders(cleanedOrders);
-          try {
-            localStorage.setItem("athar_orders", JSON.stringify(cleanedOrders));
-          } catch {}
+          // Guard against overwriting local optimistic updates if an action was performed recently (<4000ms)
+          if (Date.now() - lastLocalOrderMutationRef.current > 4000) {
+            const cleanedOrders = sanitizeOrders(data.orders);
+            ordersRef.current = cleanedOrders;
+            setOrders(cleanedOrders);
+            try {
+              localStorage.setItem("athar_orders", JSON.stringify(cleanedOrders));
+            } catch {}
+          }
         }
       })
       .catch((err) => {
@@ -1185,7 +1195,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [wishlist]);
 
-  // Toast notification
+  // Toast notification (ultra-sleek, compact, capped at 2, quick 2.2s auto-dismiss)
   const addToast = (
     title: string,
     message: string,
@@ -1193,10 +1203,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   ) => {
     const id = `${Date.now()}-${Math.random()}`;
     const newToast: ToastMessage = { id, title, message, type };
-    setToasts((prev) => [...prev, newToast]);
+    setToasts((prev) => {
+      const trimmed = prev.slice(-1);
+      return [...trimmed, newToast];
+    });
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3800);
+    }, 2200);
   };
 
   const removeToast = (id: string) => {
@@ -1217,15 +1230,59 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       .catch((err) => console.warn("Could not sync products to server:", err));
   };
 
-  // Helper to sync orders to server
-  const syncOrdersToServer = (ords: Order[]) => {
+  // High-performance concurrency engine for orders:
+  // 1. Instant optimistic state mutation (0ms)
+  // 2. Instant local persistence & BroadcastChannel cross-tab notification
+  // 3. Debounced atomic cloud sync to coalesce multi-actions without race conditions
+  const orderSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isOrderSyncingRef = useRef<boolean>(false);
+  const hasPendingOrderSyncRef = useRef<boolean>(false);
+  const orderBroadcastChannelRef = useRef<BroadcastChannel | null>(null);
+
+  // BroadcastChannel for instant cross-tab order synchronization
+  useEffect(() => {
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        const channel = new BroadcastChannel("athar_orders_sync_channel");
+        orderBroadcastChannelRef.current = channel;
+
+        channel.onmessage = (event) => {
+          if (event.data?.type === "ORDERS_UPDATE" && Array.isArray(event.data.orders)) {
+            const incoming = sanitizeOrders(event.data.orders);
+            ordersRef.current = incoming;
+            setOrders(incoming);
+          }
+        };
+
+        return () => {
+          channel.close();
+        };
+      } catch (err) {
+        console.warn("BroadcastChannel error:", err);
+      }
+    }
+  }, []);
+
+  const flushOrdersSync = useCallback(() => {
+    if (isOrderSyncingRef.current) {
+      hasPendingOrderSyncRef.current = true;
+      return;
+    }
+
+    isOrderSyncingRef.current = true;
+    hasPendingOrderSyncRef.current = false;
+
+    const currentSnapshot = ordersRef.current;
+    const currentSeq = getLastOrderSeq();
+    const deletedArr = Array.from(getDeletedOrderIds());
+
     fetch("/api/orders", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orders: ords,
-        lastOrderSeq: getLastOrderSeq(),
-        deletedOrderIds: Array.from(getDeletedOrderIds()),
+        orders: currentSnapshot,
+        lastOrderSeq: currentSeq,
+        deletedOrderIds: deletedArr,
       }),
     })
       .then((res) => res.json())
@@ -1233,8 +1290,62 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
         if (data.lastOrderSeq) recordLastOrderSeq(data.lastOrderSeq);
       })
-      .catch((err) => console.warn("Could not sync orders to server:", err));
-  };
+      .catch((err) => console.warn("Could not sync orders to server:", err))
+      .finally(() => {
+        isOrderSyncingRef.current = false;
+        if (hasPendingOrderSyncRef.current) {
+          flushOrdersSync();
+        }
+      });
+  }, []);
+
+  const scheduleOrdersSync = useCallback(
+    (immediate = false) => {
+      if (orderSyncTimeoutRef.current) {
+        clearTimeout(orderSyncTimeoutRef.current);
+        orderSyncTimeoutRef.current = null;
+      }
+
+      if (immediate) {
+        flushOrdersSync();
+      } else {
+        // 180ms debounce coalesces concurrent status updates into a single atomic PUT
+        orderSyncTimeoutRef.current = setTimeout(() => {
+          flushOrdersSync();
+        }, 180);
+      }
+    },
+    [flushOrdersSync]
+  );
+
+  // Optimistic order updater: updates React state & localStorage instantaneously (0ms),
+  // broadcasts across all tabs, and schedules atomic server sync
+  const applyOrdersMutation = useCallback(
+    (mutationFn: (prev: Order[]) => Order[], immediateSync = false) => {
+      lastLocalOrderMutationRef.current = Date.now();
+      setOrders((prev) => {
+        const next = mutationFn(prev);
+        ordersRef.current = next;
+
+        try {
+          localStorage.setItem("athar_orders", JSON.stringify(next));
+        } catch {}
+
+        try {
+          orderBroadcastChannelRef.current?.postMessage({
+            type: "ORDERS_UPDATE",
+            orders: next,
+          });
+        } catch {}
+
+        return next;
+      });
+
+      scheduleOrdersSync(immediateSync);
+    },
+    [scheduleOrdersSync]
+  );
+
 
   // Helper to sync settings to server
   const syncSettingsToServer = (stngs: Partial<StoreSettings>) => {
@@ -1298,12 +1409,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     addToast("إعدادات المتجر", "تم حفظ إعدادات المتجر في السحابة بنجاح", "info");
   };
 
-  // Orders Management
+  // Orders Management (High-Performance Zero-Lag Concurrency)
   const addOrder = (orderData: Omit<Order, "id" | "createdAt" | "status">) => {
     // Generate sequential 4-digit order number starting at ATH-1000 (#ATH-1000, #ATH-1001, ...)
     const deletedArr = Array.from(getDeletedOrderIds());
     const storedLastSeq = getLastOrderSeq();
-    const newId = getNextSequentialOrderId(orders, storedLastSeq, deletedArr);
+    const newId = getNextSequentialOrderId(ordersRef.current, storedLastSeq, deletedArr);
 
     // Immediately record this sequence number so it is permanently consumed
     const seq = extractOrderSequence(newId);
@@ -1317,51 +1428,30 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       createdAt: new Date().toISOString(),
       status: "pending",
     };
-    setOrders((prev) => {
-      const updated = [newOrder, ...prev];
-      fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          order: newOrder,
-          lastOrderSeq: seq || storedLastSeq,
-          deletedOrderIds: deletedArr,
-        }),
-      }).catch((err) => console.warn("Could not sync order to server:", err));
-      return updated;
-    });
+
+    applyOrdersMutation((prev) => [newOrder, ...prev], true);
     return newId;
   };
 
   const updateOrder = (orderId: string, updates: Partial<Order>) => {
-    setOrders((prev) => {
-      const updated = prev.map((o) => (o.id === orderId ? { ...o, ...updates } : o));
-      syncOrdersToServer(updated);
-      try {
-        localStorage.setItem("athar_orders", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-    addToast("تحديث الطلب", `تم تحديث بيانات الطلب #${orderId} بنجاح`, "info");
+    applyOrdersMutation((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, ...updates } : o))
+    );
+    addToast("تحديث الطلب", `تم تحديث بيانات الطلب #${orderId}`, "info");
   };
 
   const bulkUpdateOrderStatus = (orderIds: string[], status: Order["status"]) => {
     if (!orderIds || orderIds.length === 0) return;
     const idsSet = new Set(orderIds);
-    setOrders((prev) => {
-      const updated = prev.map((o) => (idsSet.has(o.id) ? { ...o, status } : o));
-      syncOrdersToServer(updated);
-      try {
-        localStorage.setItem("athar_orders", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+    applyOrdersMutation((prev) =>
+      prev.map((o) => (idsSet.has(o.id) ? { ...o, status } : o))
+    );
     addToast("تحديث جماعي", `تم تحديث حالة ${orderIds.length} طلبات بنجاح`, "info");
   };
 
   const updateOrderStatus = (orderId: string, status: Order["status"], cancellationReason?: string) => {
-    setOrders((prev) => {
-      const updated = prev.map((o) =>
+    applyOrdersMutation((prev) =>
+      prev.map((o) =>
         o.id === orderId
           ? {
               ...o,
@@ -1370,16 +1460,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               cancelledAt: status === "cancelled" ? (o.cancelledAt || new Date().toISOString()) : undefined,
             }
           : o
-      );
-      syncOrdersToServer(updated);
-      return updated;
-    });
+      )
+    );
     addToast("الطلبات", `تم تحديث حالة الطلب #${orderId}`, "info");
   };
 
   const cancelOrder = (orderId: string, reason: string, adminNotes?: string) => {
-    setOrders((prev) => {
-      const updated: Order[] = prev.map((o) =>
+    applyOrdersMutation((prev) =>
+      prev.map((o) =>
         o.id === orderId
           ? {
               ...o,
@@ -1389,16 +1477,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               adminNotes: adminNotes !== undefined ? adminNotes : o.adminNotes,
             }
           : o
-      );
-      syncOrdersToServer(updated);
-      return updated;
-    });
+      )
+    );
     addToast("إلغاء الطلب", `تم تسجيل إلغاء الطلب #${orderId} وحفظ السبب`, "info");
   };
 
   const restoreOrder = (orderId: string) => {
-    setOrders((prev) => {
-      const updated: Order[] = prev.map((o) =>
+    applyOrdersMutation((prev) =>
+      prev.map((o) =>
         o.id === orderId
           ? {
               ...o,
@@ -1407,25 +1493,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               cancelledAt: undefined,
             }
           : o
-      );
-      syncOrdersToServer(updated);
-      return updated;
-    });
+      )
+    );
     addToast("استعادة الطلب", `تمت استعادة الطلب #${orderId} إلى قيد التأكيد`, "info");
   };
 
   const updateOrderAdminNotes = (orderId: string, adminNotes: string) => {
-    setOrders((prev) => {
-      const updated = prev.map((o) => (o.id === orderId ? { ...o, adminNotes } : o));
-      syncOrdersToServer(updated);
-      return updated;
-    });
+    applyOrdersMutation((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, adminNotes } : o))
+    );
     addToast("ملاحظات الطلب", `تم حفظ الملاحظة للطلب #${orderId}`, "info");
   };
 
   const confirmOrderViaPhone = (orderId: string, phoneNotes?: string) => {
     const nowIso = new Date().toISOString();
-    setOrders((prev) =>
+    applyOrdersMutation((prev) =>
       prev.map((o) =>
         o.id === orderId
           ? {
@@ -1446,7 +1528,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const confirmOrderViaWhatsApp = (orderId: string) => {
     const nowIso = new Date().toISOString();
-    setOrders((prev) =>
+    applyOrdersMutation((prev) =>
       prev.map((o) =>
         o.id === orderId
           ? {
@@ -1466,7 +1548,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const cancelOrderViaWhatsApp = (orderId: string, reason: string) => {
     const nowIso = new Date().toISOString();
-    setOrders((prev) =>
+    applyOrdersMutation((prev) =>
       prev.map((o) =>
         o.id === orderId
           ? {
@@ -1492,17 +1574,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (seq !== null) {
       recordLastOrderSeq(seq);
     }
-    setOrders((prev) => {
-      const updated = prev.filter((o) => o.id !== orderId);
-      syncOrdersToServer(updated);
-      fetch(`/api/orders?id=${encodeURIComponent(orderId)}`, {
-        method: "DELETE",
-      }).catch((err) => console.warn("Error deleting order from server:", err));
-      try {
-        localStorage.setItem("athar_orders", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+    applyOrdersMutation((prev) => prev.filter((o) => o.id !== orderId), true);
+    fetch(`/api/orders?id=${encodeURIComponent(orderId)}`, {
+      method: "DELETE",
+    }).catch((err) => console.warn("Error deleting order from server:", err));
     addToast("الطلبات", `تم حذف الطلب #${orderId} نهائياً وحفظ تسلسله لعدم التكرار`, "info");
   };
 
