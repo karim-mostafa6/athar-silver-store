@@ -778,23 +778,83 @@ function recordDeletedOrderId(orderId: string) {
 const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
 const DEMO_NAMES = new Set(["مريم خالد", "سارة أحمد", "محمود إبراهيم", "كريم يوسف"]);
 
-// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
-export function getNextSequentialOrderId(ordersList: Order[]): string {
-  let maxSeq = 999;
-  for (const o of ordersList) {
-    if (!o || !o.id) continue;
-    const m = o.id.match(/(?:#?ATH-?)(\d+)/i);
-    if (m) {
-      const n = parseInt(m[1], 10);
-      // Sequential numbers start at 1000 up to 99999 (ignores any legacy 6-digit demo IDs)
-      if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(o.id)) {
-        if (n > maxSeq) {
-          maxSeq = n;
+// Monotonic sequence tracking: sequence counter NEVER decreases even if orders are deleted
+export function getLastOrderSeq(): number {
+  if (typeof window === "undefined") return 999;
+  try {
+    const raw = localStorage.getItem("athar_last_order_seq");
+    if (raw) {
+      const n = parseInt(raw, 10);
+      if (!isNaN(n) && n >= 999) return n;
+    }
+  } catch {}
+  return 999;
+}
+
+export function recordLastOrderSeq(seq: number): number {
+  if (typeof window === "undefined") return seq;
+  try {
+    const curr = getLastOrderSeq();
+    const highest = Math.max(curr, seq);
+    localStorage.setItem("athar_last_order_seq", String(highest));
+    return highest;
+  } catch {
+    return seq;
+  }
+}
+
+export function extractOrderSequence(id: string): number | null {
+  if (!id) return null;
+  const m = id.match(/(?:#?ATH-?)(\d+)/i);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(id)) {
+      return n;
+    }
+  }
+  return null;
+}
+
+export function calculateHighestOrderSeq(
+  ordersList: Order[] = [],
+  storedLastSeq?: number,
+  deletedIds: string[] = []
+): number {
+  let highest = Math.max(999, Number(storedLastSeq) || 999);
+
+  if (Array.isArray(ordersList)) {
+    for (const o of ordersList) {
+      if (o && o.id) {
+        const seq = extractOrderSequence(o.id);
+        if (seq !== null && seq > highest) {
+          highest = seq;
         }
       }
     }
   }
-  return `ATH-${maxSeq + 1}`;
+
+  if (Array.isArray(deletedIds)) {
+    for (const id of deletedIds) {
+      if (!id) continue;
+      const seq = extractOrderSequence(String(id));
+      if (seq !== null && seq > highest) {
+        highest = seq;
+      }
+    }
+  }
+
+  return highest;
+}
+
+// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
+// Strictly monotonic: even if orders are deleted, this sequence never goes backward
+export function getNextSequentialOrderId(
+  ordersList: Order[] = [],
+  storedLastSeq?: number,
+  deletedIds: string[] = []
+): string {
+  const highest = calculateHighestOrderSeq(ordersList, storedLastSeq, deletedIds);
+  return `ATH-${highest + 1}`;
 }
 
 // Helper to filter out any old demo/mock sample orders or explicitly deleted orders
@@ -969,6 +1029,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           });
         }
 
+        if (typeof data.lastOrderSeq === "number") {
+          recordLastOrderSeq(data.lastOrderSeq);
+        }
+
+        if (Array.isArray(data.deletedOrderIds)) {
+          data.deletedOrderIds.forEach((id: string) => recordDeletedOrderId(id));
+        }
+
         if (Array.isArray(data.orders)) {
           const cleanedOrders = sanitizeOrders(data.orders);
           setOrders(cleanedOrders);
@@ -1116,11 +1184,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     fetch("/api/orders", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orders: ords }),
+      body: JSON.stringify({
+        orders: ords,
+        lastOrderSeq: getLastOrderSeq(),
+        deletedOrderIds: Array.from(getDeletedOrderIds()),
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+        if (data.lastOrderSeq) recordLastOrderSeq(data.lastOrderSeq);
       })
       .catch((err) => console.warn("Could not sync orders to server:", err));
   };
@@ -1190,7 +1263,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Orders Management
   const addOrder = (orderData: Omit<Order, "id" | "createdAt" | "status">) => {
     // Generate sequential 4-digit order number starting at ATH-1000 (#ATH-1000, #ATH-1001, ...)
-    const newId = getNextSequentialOrderId(orders);
+    const deletedArr = Array.from(getDeletedOrderIds());
+    const storedLastSeq = getLastOrderSeq();
+    const newId = getNextSequentialOrderId(orders, storedLastSeq, deletedArr);
+
+    // Immediately record this sequence number so it is permanently consumed
+    const seq = extractOrderSequence(newId);
+    if (seq !== null) {
+      recordLastOrderSeq(seq);
+    }
+
     const newOrder: Order = {
       ...orderData,
       id: newId,
@@ -1202,7 +1284,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: newOrder }),
+        body: JSON.stringify({
+          order: newOrder,
+          lastOrderSeq: seq || storedLastSeq,
+          deletedOrderIds: deletedArr,
+        }),
       }).catch((err) => console.warn("Could not sync order to server:", err));
       return updated;
     });
@@ -1337,6 +1423,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const deleteOrder = (orderId: string) => {
     recordDeletedOrderId(orderId);
+    // Crucial: preserve sequence number of deleted order so it can NEVER be reused
+    const seq = extractOrderSequence(orderId);
+    if (seq !== null) {
+      recordLastOrderSeq(seq);
+    }
     setOrders((prev) => {
       const updated = prev.filter((o) => o.id !== orderId);
       syncOrdersToServer(updated);
@@ -1348,7 +1439,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       } catch {}
       return updated;
     });
-    addToast("الطلبات", `تم حذف الطلب #${orderId} نهائياً من السيرفر`, "info");
+    addToast("الطلبات", `تم حذف الطلب #${orderId} نهائياً وحفظ تسلسله لعدم التكرار`, "info");
   };
 
   // Cart operations

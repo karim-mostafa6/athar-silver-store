@@ -22,6 +22,8 @@ export async function GET() {
         products: data.products,
         settings: data.settings,
         orders: data.orders,
+        lastOrderSeq: data.lastOrderSeq || 999,
+        deletedOrderIds: data.deletedOrderIds || [],
         updatedAt: data.updatedAt,
       },
       {
@@ -39,12 +41,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { products, settings, orders } = body;
+    const { products, settings, orders, lastOrderSeq, deletedOrderIds } = body;
 
     const saved = await saveServerStoreData({
       products: Array.isArray(products) ? products : undefined,
       settings: settings && typeof settings === "object" ? settings : undefined,
       orders: Array.isArray(orders) ? orders : undefined,
+      lastOrderSeq: typeof lastOrderSeq === "number" ? lastOrderSeq : undefined,
+      deletedOrderIds: Array.isArray(deletedOrderIds) ? deletedOrderIds : undefined,
     });
 
     return NextResponse.json(
@@ -53,6 +57,7 @@ export async function POST(request: NextRequest) {
         message: "تم حفظ البيانات وتحديثها مركزياً بنجاح!",
         productsCount: saved.products.length,
         ordersCount: saved.orders.length,
+        lastOrderSeq: saved.lastOrderSeq,
         updatedAt: saved.updatedAt,
       },
       {

@@ -7,6 +7,8 @@ export interface ServerStoreData {
   products: Product[];
   settings: Partial<StoreSettings>;
   orders: Order[];
+  lastOrderSeq?: number;
+  deletedOrderIds?: string[];
   updatedAt: string;
   isDefault?: boolean;
 }
@@ -101,22 +103,60 @@ export function cleanOrders(orders: unknown): Order[] {
   return (orders as Order[]).filter((o) => o && o.id && !DEMO_ORDER_IDS.has(o.id));
 }
 
-// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
-export function getNextSequentialOrderId(ordersList: Order[]): string {
-  let maxSeq = 999;
-  for (const o of ordersList) {
-    if (!o || !o.id) continue;
-    const m = o.id.match(/(?:#?ATH-?)(\d+)/i);
-    if (m) {
-      const n = parseInt(m[1], 10);
-      if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(o.id)) {
-        if (n > maxSeq) {
-          maxSeq = n;
+// Extract numeric sequence from an order ID (e.g. "ATH-1002" -> 1002)
+export function extractOrderSequence(id: string): number | null {
+  if (!id) return null;
+  const m = id.match(/(?:#?ATH-?)(\d+)/i);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(id)) {
+      return n;
+    }
+  }
+  return null;
+}
+
+// Calculate the absolute highest sequence number ever used across active orders, stored sequence, and deleted orders
+export function calculateHighestOrderSeq(
+  ordersList: Order[] = [],
+  storedLastSeq?: number,
+  deletedIds: string[] = []
+): number {
+  let highest = Math.max(999, Number(storedLastSeq) || 999);
+
+  if (Array.isArray(ordersList)) {
+    for (const o of ordersList) {
+      if (o && o.id) {
+        const seq = extractOrderSequence(o.id);
+        if (seq !== null && seq > highest) {
+          highest = seq;
         }
       }
     }
   }
-  return `ATH-${maxSeq + 1}`;
+
+  if (Array.isArray(deletedIds)) {
+    for (const id of deletedIds) {
+      if (!id) continue;
+      const seq = extractOrderSequence(String(id));
+      if (seq !== null && seq > highest) {
+        highest = seq;
+      }
+    }
+  }
+
+  return highest;
+}
+
+// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
+// Strictly monotonic: even if orders are deleted, this sequence never goes backward
+export function getNextSequentialOrderId(
+  ordersList: Order[] = [],
+  storedLastSeq?: number,
+  deletedIds: string[] = []
+): string {
+  const highest = calculateHighestOrderSeq(ordersList, storedLastSeq, deletedIds);
+  return `ATH-${highest + 1}`;
 }
 
 // ----------------------------------------------------
@@ -127,6 +167,12 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
   const cloudData = await getCloudData();
   if (cloudData && Array.isArray(cloudData.products) && cloudData.products.length > 0) {
     cloudData.orders = cleanOrders(cloudData.orders);
+    cloudData.deletedOrderIds = Array.isArray(cloudData.deletedOrderIds) ? cloudData.deletedOrderIds : [];
+    cloudData.lastOrderSeq = calculateHighestOrderSeq(
+      cloudData.orders,
+      cloudData.lastOrderSeq,
+      cloudData.deletedOrderIds
+    );
     return cloudData;
   }
 
@@ -139,6 +185,12 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
         const parsed = JSON.parse(raw) as ServerStoreData;
         if (Array.isArray(parsed.products) && parsed.products.length > 0) {
           parsed.orders = cleanOrders(parsed.orders);
+          parsed.deletedOrderIds = Array.isArray(parsed.deletedOrderIds) ? parsed.deletedOrderIds : [];
+          parsed.lastOrderSeq = calculateHighestOrderSeq(
+            parsed.orders,
+            parsed.lastOrderSeq,
+            parsed.deletedOrderIds
+          );
           // Seed cloud database in background so next request is instant
           saveCloudData(parsed).catch(() => {});
           return parsed;
@@ -158,6 +210,8 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       senderEmailName: process.env.GMAIL_SENDER_NAME || "أَثَـر للفضة 925",
     },
     orders: [],
+    lastOrderSeq: 999,
+    deletedOrderIds: [],
     updatedAt: new Date().toISOString(),
     isDefault: false,
   };
@@ -182,10 +236,28 @@ export async function saveServerStoreData(
 ): Promise<ServerStoreData> {
   const current = await getServerStoreData();
 
+  const combinedDeletedIds = Array.from(
+    new Set([
+      ...(current.deletedOrderIds || []),
+      ...(updates.deletedOrderIds || []),
+    ])
+  );
+
+  const cleanUpdatedOrders = updates.orders !== undefined ? cleanOrders(updates.orders) : current.orders;
+
+  // Strict monotonicity: sequence counter can only increase, never decrease
+  const newLastOrderSeq = calculateHighestOrderSeq(
+    cleanUpdatedOrders,
+    Math.max(current.lastOrderSeq || 999, updates.lastOrderSeq || 999),
+    combinedDeletedIds
+  );
+
   const updated: ServerStoreData = {
     products: updates.products !== undefined ? updates.products : current.products,
     settings: updates.settings !== undefined ? { ...current.settings, ...updates.settings } : current.settings,
-    orders: updates.orders !== undefined ? cleanOrders(updates.orders) : current.orders,
+    orders: cleanUpdatedOrders,
+    lastOrderSeq: newLastOrderSeq,
+    deletedOrderIds: combinedDeletedIds,
     updatedAt: new Date().toISOString(),
     isDefault: false,
   };
