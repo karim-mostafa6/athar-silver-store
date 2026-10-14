@@ -9,7 +9,8 @@ import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
   Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image as ImageIcon,
-  RotateCw, X, Smartphone, Monitor, BookOpen, Printer, ChevronUp, ChevronDown
+  RotateCw, X, Smartphone, Monitor, BookOpen, Printer, ChevronUp, ChevronDown,
+  Lock, Unlock, PhoneCall
 } from "lucide-react";
 
 type ActiveTab =
@@ -85,6 +86,17 @@ export default function AdminPage() {
 
   // Active Main Tab (14 tabs)
   const [activeTab, setActiveTab] = useState<ActiveTab>("orders");
+
+  // Settings Security Lock State (Protected by password: Kk5019Kk@#$&)
+  const [isSettingsUnlocked, setIsSettingsUnlocked] = useState<boolean>(false);
+  const [isSettingsPasswordModalOpen, setIsSettingsPasswordModalOpen] = useState<boolean>(false);
+  const [settingsPasswordInput, setSettingsPasswordInput] = useState<string>("");
+  const [showSettingsPassword, setShowSettingsPassword] = useState<boolean>(false);
+  const [settingsPasswordError, setSettingsPasswordError] = useState<string>("");
+  const [pendingTabAfterUnlock, setPendingTabAfterUnlock] = useState<ActiveTab | null>(null);
+
+  // Selected Order for Full Details Modal (Inside View)
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
 
   // Shopify-style Live Split Preview State
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
@@ -203,6 +215,10 @@ export default function AdminPage() {
     if (session === "true") {
       setIsAuthenticated(true);
     }
+    const unlocked = sessionStorage.getItem("athar_settings_unlocked");
+    if (unlocked === "true") {
+      setIsSettingsUnlocked(true);
+    }
   }, []);
 
   // Sync settings when storeSettings updates from context
@@ -270,10 +286,60 @@ export default function AdminPage() {
   // Logout Handler
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setIsSettingsUnlocked(false);
+    sessionStorage.removeItem("athar_settings_unlocked");
     localStorage.removeItem("athar_admin_auth");
     localStorage.removeItem("athar_admin_token");
     setUsernameInput("");
     setPasswordInput("");
+  };
+
+  // Tab click with Settings Security Gate
+  const handleTabClick = (tabId: ActiveTab) => {
+    if (tabId === "orders") {
+      setActiveTab("orders");
+      return;
+    }
+    if (isSettingsUnlocked) {
+      setActiveTab(tabId);
+    } else {
+      setPendingTabAfterUnlock(tabId);
+      setSettingsPasswordError("");
+      setSettingsPasswordInput("");
+      setIsSettingsPasswordModalOpen(true);
+    }
+  };
+
+  // Unlock Settings with Password (Kk5019Kk@#$&)
+  const handleUnlockSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (settingsPasswordInput.trim() === "Kk5019Kk@#$&") {
+      setIsSettingsUnlocked(true);
+      sessionStorage.setItem("athar_settings_unlocked", "true");
+      setIsSettingsPasswordModalOpen(false);
+      setSettingsPasswordError("");
+      const targetTab = pendingTabAfterUnlock || "products";
+      setActiveTab(targetTab);
+      addToast("تم فتح الإعدادات", "تم تأكيد كلمة المرور بنجاح، يمكنك الآن تعديل كافة إعدادات المتجر", "info");
+    } else {
+      setSettingsPasswordError("كلمة المرور غير صحيحة، يرجى إدخال كلمة المرور الصحيحة للوصول للإعدادات.");
+    }
+  };
+
+  // Lock Settings
+  const handleLockSettings = () => {
+    setIsSettingsUnlocked(false);
+    sessionStorage.removeItem("athar_settings_unlocked");
+    setActiveTab("orders");
+    addToast("تم قفل الإعدادات", "تم قفل إعدادات المتجر بنجاح لحماية البيانات", "info");
+  };
+
+  // Helper to retrieve product thumbnail for order items
+  const getItemImage = (item: { productId: string; arabicName: string; image?: string }) => {
+    if (item.image && item.image.trim().length > 0) return item.image;
+    const prod = products.find((p) => p.id === item.productId || p.arabicName === item.arabicName);
+    if (prod && prod.images && prod.images.length > 0) return prod.images[0];
+    return "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=400&q=80";
   };
 
   // Professional Order Invoice Printing
@@ -995,9 +1061,8 @@ export default function AdminPage() {
     }));
   };
 
-  // 17 Sidebar Tabs Navigation Configuration (Shopify-like)
-  const sidebarTabs: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { id: "orders", label: "الطلبات والمبيعات", icon: <ShoppingBag className="w-4 h-4" />, badge: orderMetrics.pending },
+  // 16 Settings Tabs Configuration (Protected by security password: Kk5019Kk@#$&)
+  const settingsTabs: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: "products", label: "إدارة المنتجات", icon: <Package className="w-4 h-4" /> },
     { id: "collections", label: "الكولكشن والمجموعات", icon: <Layers className="w-4 h-4" /> },
     { id: "pages", label: "الصفحات المستقلة", icon: <BookOpen className="w-4 h-4" /> },
@@ -1131,6 +1196,34 @@ export default function AdminPage() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Store Settings Gear Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isSettingsUnlocked) {
+                  if (activeTab === "orders") setActiveTab("products");
+                  else setActiveTab("orders");
+                } else {
+                  setPendingTabAfterUnlock("products");
+                  setIsSettingsPasswordModalOpen(true);
+                }
+              }}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 shadow-sm active:scale-95 ${
+                activeTab !== "orders"
+                  ? "bg-[#161412] text-[#c5a880] border-[#161412]"
+                  : "bg-white border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3]"
+              }`}
+              title="إعدادات وتخصيصات المتجر (محمية بكلمة مرور)"
+            >
+              <Settings className={`w-3.5 h-3.5 ${activeTab !== "orders" ? "rotate-45 text-[#c5a880]" : "text-[#8c7865]"} transition-transform`} />
+              <span className="hidden sm:inline">إعدادات المتجر</span>
+              {isSettingsUnlocked ? (
+                <Unlock className="w-3 h-3 text-emerald-500" />
+              ) : (
+                <Lock className="w-3 h-3 text-amber-500" />
+              )}
+            </button>
+
             <button
               onClick={handleSaveSettings}
               disabled={isSavingSettings}
@@ -1192,10 +1285,29 @@ export default function AdminPage() {
 
         {/* MOBILE HORIZONTAL TABS (< md) */}
         <div className="md:hidden flex items-center gap-1 mt-2.5 pt-2 border-t border-[#e8ded0] overflow-x-auto scrollbar-none text-xs">
-          {sidebarTabs.map((tab) => (
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+              activeTab === "orders"
+                ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                : "text-[#5c4f42] hover:bg-white/60"
+            }`}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span>الطلبات والمبيعات</span>
+            {orderMetrics.pending > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">
+                {orderMetrics.pending}
+              </span>
+            )}
+          </button>
+
+          <div className="w-px h-5 bg-[#ded2c0] mx-1 shrink-0" />
+
+          {settingsTabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
                 activeTab === tab.id
                   ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
@@ -1204,11 +1316,7 @@ export default function AdminPage() {
             >
               {tab.icon}
               <span>{tab.label}</span>
-              {typeof tab.badge === "number" && tab.badge > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">
-                  {tab.badge}
-                </span>
-              )}
+              {!isSettingsUnlocked && <Lock className="w-2.5 h-2.5 text-[#baa996]" />}
             </button>
           ))}
         </div>
@@ -1216,44 +1324,114 @@ export default function AdminPage() {
 
       {/* DASHBOARD BODY: FIXED-WIDTH SIDEBAR + MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col md:flex-row w-full">
-        {/* DESKTOP SIDEBAR (w-60, sticky, scrolls independently) */}
-        <aside className="hidden md:block w-60 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-l border-[#e8ded0] bg-[#f7f4ee]/80 p-3 space-y-1">
-          <div className="text-[11px] font-bold text-[#8c7865] px-3 py-2 uppercase tracking-wider flex items-center gap-1.5">
-            <Settings className="w-3.5 h-3.5 text-[#c5a880]" />
-            <span>أقسام لوحة الإدارة</span>
+        {/* DESKTOP SIDEBAR (w-64, sticky, scrolls independently) */}
+        <aside className="hidden md:block w-64 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-l border-[#e8ded0] bg-[#f7f4ee]/80 p-3 space-y-3">
+          {/* Section 1: Orders (Direct & Accessible) */}
+          <div className="space-y-1">
+            <div className="text-[11px] font-bold text-[#8c7865] px-3 py-1 uppercase tracking-wider flex items-center gap-1.5">
+              <ShoppingBag className="w-3.5 h-3.5 text-[#c5a880]" />
+              <span>الطلبات والمبيعات</span>
+            </div>
+
+            <button
+              onClick={() => setActiveTab("orders")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
+                activeTab === "orders"
+                  ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                  : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className={activeTab === "orders" ? "text-[#c5a880]" : "text-[#8c7865]"}>
+                  <ShoppingBag className="w-4 h-4" />
+                </span>
+                <span>الطلبات والعملاء</span>
+              </div>
+
+              {orderMetrics.pending > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-[#161412]">
+                  {orderMetrics.pending}
+                </span>
+              )}
+            </button>
           </div>
 
-          {sidebarTabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
+          {/* Section 2: Store Settings with Gear Icon & Security Lock */}
+          <div className="pt-2 border-t border-[#e8ded0] space-y-1">
+            <div className="px-3 py-2 bg-white/90 rounded-xl border border-[#ded2c0] flex items-center justify-between shadow-xs">
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
-                  isActive
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
-                }`}
+                type="button"
+                onClick={() => {
+                  if (isSettingsUnlocked) {
+                    if (activeTab === "orders") setActiveTab("products");
+                  } else {
+                    setPendingTabAfterUnlock("products");
+                    setIsSettingsPasswordModalOpen(true);
+                  }
+                }}
+                className="flex items-center gap-2 text-xs font-bold text-[#161412] hover:text-[#8c6b3e] transition-colors"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className={isActive ? "text-[#c5a880]" : "text-[#8c7865]"}>
-                    {tab.icon}
-                  </span>
-                  <span>{tab.label}</span>
+                <div className="p-1 rounded-lg bg-[#f7f4ee] text-[#161412] border border-[#e4dcce]">
+                  <Settings className={`w-3.5 h-3.5 ${isSettingsUnlocked ? "text-[#c5a880]" : "text-[#8c7865]"}`} />
                 </div>
-
-                {typeof tab.badge === "number" && tab.badge > 0 && (
-                  <span
-                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive ? "bg-amber-400 text-[#161412]" : "bg-amber-500 text-[#161412]"
-                    }`}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
+                <span>إعدادات المتجر</span>
               </button>
-            );
-          })}
+
+              {isSettingsUnlocked ? (
+                <button
+                  type="button"
+                  onClick={handleLockSettings}
+                  className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-rose-50 hover:text-rose-700 border border-emerald-200 hover:border-rose-200 transition-colors text-[10px] flex items-center gap-1 font-bold"
+                  title="انقر لقفل الإعدادات"
+                >
+                  <Unlock className="w-3 h-3 text-emerald-600" />
+                  <span>مفتوحة</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPendingTabAfterUnlock("products");
+                    setIsSettingsPasswordModalOpen(true);
+                  }}
+                  className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 transition-colors text-[10px] flex items-center gap-1 font-bold"
+                  title="محمية بكلمة مرور، انقر للفتح"
+                >
+                  <Lock className="w-3 h-3 text-amber-600" />
+                  <span>محمية</span>
+                </button>
+              )}
+            </div>
+
+            {/* Settings Tabs List */}
+            <div className="space-y-0.5 pt-1">
+              {settingsTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all text-right ${
+                      isActive
+                        ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                        : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                    } ${!isSettingsUnlocked ? "opacity-75" : ""}`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={isActive ? "text-[#c5a880]" : "text-[#8c7865]"}>
+                        {tab.icon}
+                      </span>
+                      <span>{tab.label}</span>
+                    </div>
+
+                    {!isSettingsUnlocked && (
+                      <Lock className="w-3 h-3 text-[#baa996]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </aside>
 
         {/* MAIN CONTENT AREA */}
@@ -1335,134 +1513,132 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   {filteredOrders.map((order) => {
                     const whatsappLink = `https://wa.me/20${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-                      `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أَثَـر للفضة 925 بخصوص تأكيد طلبك رقم (${order.id}) بقيمة ${order.total} ج.م. هل العنوان مناسب للشحن؟`
+                      `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أَثَـر للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
                     )}`;
+                    const totalItemsCount = order.items.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
                     return (
                       <div
                         key={order.id}
-                        className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm hover:border-[#b8a892] transition-colors"
+                        onClick={() => setSelectedOrderForDetails(order)}
+                        className="bg-white rounded-xl p-4 sm:p-5 border border-[#e8ded0] shadow-sm hover:border-[#c5a880] hover:shadow-md transition-all cursor-pointer group"
                       >
-                        <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-[#f0e8dc]">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-xs text-[#161412] bg-[#f7f4ee] px-2 py-0.5 rounded border border-[#ded2c0]">
-                                {order.id}
-                              </span>
-                              <span className="text-xs text-[#8c7865]">
-                                {new Date(order.createdAt).toLocaleString("ar-EG")}
-                              </span>
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                          {/* Order Overview Right */}
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-11 h-11 rounded-xl bg-[#f7f4ee] border border-[#ded2c0] flex items-center justify-center text-[#161412] group-hover:bg-[#161412] group-hover:text-[#c5a880] transition-colors shrink-0">
+                              <ShoppingBag className="w-5 h-5" />
                             </div>
-                            <h4 className="text-base font-bold text-[#161412] mt-1.5">
-                              {order.customerName}
-                            </h4>
-                            <div className="flex flex-wrap items-center gap-4 text-xs text-[#756555] mt-1">
-                              <a
-                                href={whatsappLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"
-                              >
-                                <Phone className="w-3 h-3 text-emerald-600" />
-                                <span className="dir-ltr">{order.phone}</span>
-                                <MessageCircle className="w-3 h-3" />
-                              </a>
-                              <span>{order.governorate} - {order.address}</span>
-                              {order.paymentMethod && (
-                                <span className="bg-[#f7f4ee] px-2 py-0.5 rounded text-[11px] text-[#5c4f42]">
-                                  طريقة الدفع: {order.paymentMethod === "cod" ? "عند الاستلام" : order.paymentMethod === "wallet" ? "محفظة إلكترونية" : "بطاقة بنكية"}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-mono font-bold text-xs text-[#161412] bg-[#f7f4ee] px-2.5 py-0.5 rounded border border-[#ded2c0]">
+                                  #{order.id}
                                 </span>
-                              )}
+                                <span className="text-[11px] text-[#8c7865]">
+                                  {new Date(order.createdAt).toLocaleDateString("ar-EG", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                                {order.paymentMethod && (
+                                  <span className="text-[10px] font-semibold bg-[#faf8f5] px-2 py-0.5 rounded border border-[#e8ded0] text-[#756555]">
+                                    {order.paymentMethod === "cod" ? "عند الاستلام" : order.paymentMethod === "wallet" ? "محفظة إلكترونية" : "بطاقة بنكية"}
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="text-sm font-bold text-[#161412] mt-1 truncate group-hover:text-[#8c6b3e] transition-colors">
+                                {order.customerName}
+                              </h4>
+                              <div className="flex items-center gap-2 text-xs text-[#756555] mt-0.5 flex-wrap">
+                                <span className="font-medium text-[#161412]">{order.governorate}</span>
+                                <span>•</span>
+                                <span className="bg-[#f7f4ee] px-1.5 py-0.5 rounded text-[11px] text-[#161412] font-bold">
+                                  {totalItemsCount} {totalItemsCount === 1 ? "قطعة" : "قطع"}
+                                </span>
+                                <span>•</span>
+                                <span className="dir-ltr text-[11px] text-[#8c7865]">{order.phone}</span>
+                              </div>
                             </div>
                           </div>
 
-                          {/* Status Switcher & Delete */}
-                          <div className="flex items-center gap-2">
-                            <select
-                              value={order.status}
-                              onChange={(e) => updateOrderStatus(order.id, e.target.value as Order["status"])}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold border focus:outline-none ${
-                                order.status === "pending"
-                                  ? "bg-amber-50 text-amber-900 border-amber-300"
-                                  : order.status.startsWith("confirmed")
-                                  ? "bg-blue-50 text-blue-900 border-blue-300"
-                                  : order.status === "shipped"
-                                  ? "bg-purple-50 text-purple-900 border-purple-300"
-                                  : order.status === "completed"
-                                  ? "bg-emerald-50 text-emerald-900 border-emerald-300"
-                                  : "bg-gray-100 text-gray-700 border-gray-300"
-                              }`}
-                            >
-                              <option value="pending">قيد الانتظار</option>
-                              <option value="confirmed_phone">تم التأكيد هاتفياً</option>
-                              <option value="confirmed_whatsapp">تم التأكيد واتساب</option>
-                              <option value="processing">جاري التجهيز</option>
-                              <option value="shipped">تم الشحن</option>
-                              <option value="completed">تم التوصيل بنجاح</option>
-                              <option value="cancelled">ملغي</option>
-                            </select>
+                          {/* Order Financials & Quick Actions Left */}
+                          <div className="flex items-center justify-between lg:justify-end gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#f0e8dc]">
+                            <div className="text-right lg:text-left pl-2">
+                              <span className="block text-[10px] text-[#8c7865]">إجمالي الطلب:</span>
+                              <span className="text-base font-bold text-[#161412] font-mono">
+                                {order.total.toLocaleString("en-US")} <span className="text-xs font-normal">ج.م</span>
+                              </span>
+                            </div>
 
+                            {/* Status dropdown */}
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <select
+                                value={order.status}
+                                onChange={(e) => updateOrderStatus(order.id, e.target.value as Order["status"])}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border focus:outline-none cursor-pointer ${
+                                  order.status === "pending"
+                                    ? "bg-amber-50 text-amber-900 border-amber-300"
+                                    : order.status.startsWith("confirmed")
+                                    ? "bg-blue-50 text-blue-900 border-blue-300"
+                                    : order.status === "shipped"
+                                    ? "bg-purple-50 text-purple-900 border-purple-300"
+                                    : order.status === "completed"
+                                    ? "bg-emerald-50 text-emerald-900 border-emerald-300"
+                                    : "bg-gray-100 text-gray-700 border-gray-300"
+                                }`}
+                              >
+                                <option value="pending">قيد الانتظار</option>
+                                <option value="confirmed_phone">تم التأكيد هاتفياً</option>
+                                <option value="confirmed_whatsapp">تم التأكيد واتساب</option>
+                                <option value="processing">جاري التجهيز</option>
+                                <option value="shipped">تم الشحن</option>
+                                <option value="completed">تم التوصيل بنجاح</option>
+                                <option value="cancelled">ملغي</option>
+                              </select>
+                            </div>
+
+                            {/* Open Details Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedOrderForDetails(order);
+                              }}
+                              className="px-3.5 py-1.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shrink-0"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-[#c5a880]" />
+                              <span>التفاصيل</span>
+                            </button>
+
+                            {/* WhatsApp link */}
                             <a
-                              href={getWhatsAppInvoiceUrl(order)}
+                              href={whatsappLink}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors"
-                              title="إرسال الفاتورة وتفاصيل الطلب للعميل عبر واتساب"
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors shrink-0"
+                              title="محادثة واتساب سريعة"
                             >
                               <MessageCircle className="w-4 h-4" />
                             </a>
 
+                            {/* Delete Button */}
                             <button
                               type="button"
-                              onClick={() => handlePrintOrder(order)}
-                              className="p-1.5 rounded-lg bg-[#f7f4ee] border border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3] transition-colors"
-                              title="طباعة بوليصة / فاتورة الشحن"
-                            >
-                              <Printer className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (confirm(`هل أنت متأكد من حذف الطلب #${order.id} نهائياً؟`)) {
                                   deleteOrder(order.id);
                                 }
                               }}
-                              className="p-1.5 text-[#baa894] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                              className="p-1.5 text-[#baa894] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
                               title="حذف الطلب نهائياً"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
-                          </div>
-                        </div>
-
-                        {/* Items Preview */}
-                        <div className="pt-4 flex flex-wrap items-center justify-between gap-4">
-                          <div className="flex flex-wrap items-center gap-3">
-                            {order.items.map((item, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center gap-2 bg-[#f7f4ee] px-3 py-1.5 rounded-lg border border-[#e4dcce] text-xs"
-                              >
-                                <span className="font-bold text-[#161412]">{item.arabicName}</span>
-                                {item.selectedSize && (
-                                  <span className="text-[10px] text-[#8c7865] bg-white px-1.5 py-0.5 rounded border border-[#ded2c0]">
-                                    {item.selectedSize}
-                                  </span>
-                                )}
-                                <span className="text-[#8c7865]">× {item.quantity}</span>
-                                <span className="font-medium text-[#161412]">
-                                  {(item.price * item.quantity).toLocaleString("en-US")} ج.م
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="text-right">
-                            <span className="text-xs text-[#756555] ml-2">الإجمالي مع الشحن:</span>
-                            <span className="text-base font-bold text-[#161412]">
-                              {order.total.toLocaleString("en-US")} ج.م
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -5823,6 +5999,410 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* ========================================================
+          SETTINGS SECURITY PASSWORD MODAL (Password: Kk5019Kk@#$&)
+          ======================================================== */}
+      {isSettingsPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-white rounded-2xl border border-[#ded2c0] shadow-2xl p-6 sm:p-8 text-right font-cairo"
+          >
+            <div className="w-12 h-12 mx-auto rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 mb-4 shadow-xs">
+              <Lock className="w-6 h-6" />
+            </div>
+
+            <h3 className="font-amiri text-xl font-bold text-[#161412] text-center mb-1">
+              إعدادات المتجر محمية
+            </h3>
+            <p className="text-xs text-[#756555] text-center mb-6">
+              يرجى إدخال رمز الأمان للوصول إلى كافة إعدادات وتخصيصات المتجر.
+            </p>
+
+            {settingsPasswordError && (
+              <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                {settingsPasswordError}
+              </div>
+            )}
+
+            <form onSubmit={handleUnlockSettings} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-[#161412] mb-1.5">
+                  كلمة المرور
+                </label>
+                <div className="relative">
+                  <input
+                    type={showSettingsPassword ? "text" : "password"}
+                    autoFocus
+                    required
+                    value={settingsPasswordInput}
+                    onChange={(e) => setSettingsPasswordInput(e.target.value)}
+                    placeholder="أدخل كلمة المرور"
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSettingsPassword(!showSettingsPassword)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8c7865] hover:text-[#161412]"
+                  >
+                    {showSettingsPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md"
+                >
+                  تأكيد وفتح الإعدادات
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSettingsPasswordModalOpen(false);
+                    setSettingsPasswordError("");
+                    setSettingsPasswordInput("");
+                  }}
+                  className="px-4 py-2.5 rounded-lg bg-[#f7f4ee] hover:bg-[#ede3d3] text-xs font-semibold text-[#5c4f42] border border-[#ded2c0]"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          FULL ORDER DETAILS MODAL (Inside View with Product Images)
+          ======================================================== */}
+      {selectedOrderForDetails && (() => {
+        const order = orders.find((o) => o.id === selectedOrderForDetails.id) || selectedOrderForDetails;
+        const whatsappLink = `https://wa.me/20${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+          `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أَثَـر للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
+        )}`;
+
+        return (
+          <div
+            onClick={() => setSelectedOrderForDetails(null)}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#faf8f5] rounded-3xl max-w-3xl w-full border border-[#d8c8b4] shadow-2xl p-5 sm:p-7 space-y-6 my-6 max-h-[92vh] overflow-y-auto text-right font-cairo custom-scrollbar"
+            >
+              {/* Modal Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#e8ded0]">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-sm text-[#161412] bg-white px-2.5 py-0.5 rounded-lg border border-[#ded2c0]">
+                      #{order.id}
+                    </span>
+                    <span className="text-xs text-[#8c7865]">
+                      {new Date(order.createdAt).toLocaleString("ar-EG", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <h3 className="font-amiri text-xl font-bold text-[#161412] mt-1.5 flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-[#c5a880]" />
+                    <span>تفاصيل الطلب الكاملة</span>
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Status Dropdown */}
+                  <select
+                    value={order.status}
+                    onChange={(e) => updateOrderStatus(order.id, e.target.value as Order["status"])}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border focus:outline-none cursor-pointer ${
+                      order.status === "pending"
+                        ? "bg-amber-50 text-amber-900 border-amber-300"
+                        : order.status.startsWith("confirmed")
+                        ? "bg-blue-50 text-blue-900 border-blue-300"
+                        : order.status === "shipped"
+                        ? "bg-purple-50 text-purple-900 border-purple-300"
+                        : order.status === "completed"
+                        ? "bg-emerald-50 text-emerald-900 border-emerald-300"
+                        : "bg-gray-100 text-gray-700 border-gray-300"
+                    }`}
+                  >
+                    <option value="pending">قيد الانتظار</option>
+                    <option value="confirmed_phone">تم التأكيد هاتفياً</option>
+                    <option value="confirmed_whatsapp">تم التأكيد واتساب</option>
+                    <option value="processing">جاري التجهيز</option>
+                    <option value="shipped">تم الشحن</option>
+                    <option value="completed">تم التوصيل بنجاح</option>
+                    <option value="cancelled">ملغي</option>
+                  </select>
+
+                  <button
+                    onClick={() => setSelectedOrderForDetails(null)}
+                    className="p-1.5 rounded-xl bg-white border border-[#ded2c0] text-[#756555] hover:text-[#161412] hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Customer & Delivery Information Card */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-3">
+                <div className="text-xs font-bold text-[#161412] flex items-center gap-2 pb-2 border-b border-[#f0e8dc]">
+                  <User className="w-3.5 h-3.5 text-[#c5a880]" />
+                  <span>بيانات العميل والشحن والتوصيل</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="block text-[11px] text-[#8c7865] mb-0.5">اسم العميل:</span>
+                    <span className="font-bold text-[#161412] text-sm">{order.customerName}</span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-[#8c7865] mb-0.5">رقم الهاتف والتواصل:</span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="font-bold text-[#161412] font-mono dir-ltr">{order.phone}</span>
+                      <a
+                        href={`tel:${order.phone}`}
+                        className="px-2 py-0.5 rounded-md bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[10px] font-bold text-[#161412] flex items-center gap-1"
+                        title="اتصال هاتفي"
+                      >
+                        <PhoneCall className="w-2.5 h-2.5 text-[#c5a880]" />
+                        <span>اتصال</span>
+                      </a>
+                      <a
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-bold text-emerald-800 flex items-center gap-1"
+                        title="محادثة واتساب"
+                      >
+                        <MessageCircle className="w-2.5 h-2.5 text-emerald-600" />
+                        <span>واتساب</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-[#8c7865] mb-0.5">المحافظة:</span>
+                    <span className="font-semibold text-[#161412]">{order.governorate}</span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-[#8c7865] mb-0.5">العنوان التفصيلي:</span>
+                    <span className="font-medium text-[#161412]">{order.address}</span>
+                  </div>
+
+                  {order.notes && (
+                    <div className="sm:col-span-2 bg-[#f7f4ee] p-2.5 rounded-xl border border-[#ded2c0]">
+                      <span className="block text-[11px] font-bold text-[#756555] mb-0.5">ملاحظات العميل:</span>
+                      <p className="text-xs text-[#161412]">{order.notes}</p>
+                    </div>
+                  )}
+
+                  {order.isGift && (
+                    <div className="sm:col-span-2 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200">
+                      <span className="block text-[11px] font-bold text-amber-900 mb-0.5">طلب هدية وتغليف مخصص:</span>
+                      <p className="text-xs text-amber-800">{order.giftMessage || "تغليف كهدية فاخرة بدون طباعة السعر"}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Payment Details Card */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-3">
+                <div className="text-xs font-bold text-[#161412] flex items-center gap-2 pb-2 border-b border-[#f0e8dc]">
+                  <CreditCard className="w-3.5 h-3.5 text-[#c5a880]" />
+                  <span>طريقة الدفع والتحويل</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="block text-[11px] text-[#8c7865] mb-0.5">طريقة الدفع المختارة:</span>
+                    <span className="font-bold text-[#161412]">
+                      {order.paymentMethod === "cod"
+                        ? "الدفع عند الاستلام (COD)"
+                        : order.paymentMethod === "wallet"
+                        ? "محفظة إلكترونية (إنستاباي / فودافون كاش)"
+                        : "بطاقة دفع إلكتروني (فيزا / ماستركارد)"}
+                    </span>
+                  </div>
+
+                  {order.senderWalletNumber && (
+                    <div>
+                      <span className="block text-[11px] text-[#8c7865] mb-0.5">رقم محفظة المحول:</span>
+                      <span className="font-mono font-bold text-[#161412] dir-ltr">{order.senderWalletNumber}</span>
+                    </div>
+                  )}
+
+                  {order.paymentReceiptImage && (
+                    <div className="sm:col-span-2 space-y-1.5 pt-1">
+                      <span className="block text-[11px] font-bold text-[#756555]">إيصال التحويل المرفق من العميل:</span>
+                      <div className="relative inline-block border border-[#ded2c0] rounded-xl overflow-hidden bg-black max-w-xs shadow-sm">
+                        <img
+                          src={order.paymentReceiptImage}
+                          alt="إيصال التحويل"
+                          className="max-h-56 object-contain cursor-pointer hover:opacity-95"
+                          onClick={() => window.open(order.paymentReceiptImage, "_blank")}
+                        />
+                      </div>
+                      <span className="block text-[10px] text-[#8c7865]">انقر على الصورة لفتح الإيصال بالحجم الكامل</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Ordered Products with Images */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-4">
+                <div className="text-xs font-bold text-[#161412] flex items-center justify-between pb-2 border-b border-[#f0e8dc]">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-3.5 h-3.5 text-[#c5a880]" />
+                    <span>القطع والمنتجات المطلوبة ({order.items.length})</span>
+                  </div>
+                  <span className="text-[11px] text-[#8c7865]">
+                    إجمالي القطع: {order.items.reduce((s, i) => s + (i.quantity || 1), 0)}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {order.items.map((item, idx) => {
+                    const itemImg = getItemImage(item);
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between gap-3 p-3 bg-[#faf8f5] rounded-xl border border-[#e8ded0] text-xs"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Product Image */}
+                          <div className="w-14 h-14 rounded-lg bg-black/5 overflow-hidden border border-[#ded2c0] shrink-0">
+                            <img
+                              src={itemImg}
+                              alt={item.arabicName}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          <div className="min-w-0">
+                            <h5 className="font-bold text-[#161412] truncate text-xs sm:text-sm">
+                              {item.arabicName}
+                            </h5>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              {item.selectedSize && (
+                                <span className="bg-white border border-[#ded2c0] text-[#756555] px-2 py-0.5 rounded-md text-[10px] font-semibold">
+                                  مقاس: {item.selectedSize}
+                                </span>
+                              )}
+                              <span className="text-[#8c7865] text-[11px]">
+                                الكمية: <b className="text-[#161412]">{item.quantity}</b>
+                              </span>
+                              <span className="text-[#8c7865] text-[11px]">
+                                سعر القطعة: <b className="text-[#161412]">{item.price.toLocaleString("en-US")} ج.م</b>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Item line total */}
+                        <div className="text-left shrink-0 font-bold text-sm text-[#161412] font-mono">
+                          {(item.price * item.quantity).toLocaleString("en-US")} <span className="text-xs font-normal">ج.م</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Financial Breakdown */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-2 text-xs">
+                <div className="text-xs font-bold text-[#161412] pb-2 border-b border-[#f0e8dc] flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-[#c5a880]" />
+                  <span>الفاتورة المالية والملخص</span>
+                </div>
+
+                <div className="flex justify-between items-center text-[#756555] py-1">
+                  <span>مجموع المنتجات (المجموع الفرعي):</span>
+                  <span className="font-bold font-mono text-[#161412]">
+                    {(order.subtotal || order.items.reduce((s, i) => s + (i.price * i.quantity), 0)).toLocaleString("en-US")} ج.م
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-[#756555] py-1">
+                  <span>مصاريف الشحن ({order.governorate}):</span>
+                  <span className="font-bold font-mono text-[#161412]">
+                    {order.shippingFee === 0 ? "شحن مجاني" : `${order.shippingFee.toLocaleString("en-US")} ج.م`}
+                  </span>
+                </div>
+
+                {order.discount > 0 && (
+                  <div className="flex justify-between items-center text-emerald-700 py-1 font-semibold">
+                    <span>قيمة الخصم والكوبون:</span>
+                    <span className="font-mono">-{order.discount.toLocaleString("en-US")} ج.م</span>
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-[#ded2c0] flex justify-between items-center text-sm font-bold text-[#161412]">
+                  <span className="font-amiri text-base">الإجمالي النهائي المستحق:</span>
+                  <span className="text-lg text-[#161412] font-mono bg-[#f7f4ee] px-3 py-1 rounded-xl border border-[#ded2c0]">
+                    {order.total.toLocaleString("en-US")} ج.م
+                  </span>
+                </div>
+              </div>
+
+              {/* Modal Actions Footer */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#ded2c0]">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <a
+                    href={getWhatsAppInvoiceUrl(order)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>إرسال الفاتورة عبر واتساب</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePrintOrder(order)}
+                    className="px-4 py-2 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                  >
+                    <Printer className="w-4 h-4 text-[#c5a880]" />
+                    <span>طباعة الفاتورة والبوليصة</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`هل أنت متأكد من حذف الطلب #${order.id} نهائياً؟`)) {
+                        deleteOrder(order.id);
+                        setSelectedOrderForDetails(null);
+                      }
+                    }}
+                    className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>حذف الطلب</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrderForDetails(null)}
+                  className="px-5 py-2 rounded-xl bg-[#e8ded0] hover:bg-[#ded2c0] text-[#161412] text-xs font-bold transition-all"
+                >
+                  إغلاق
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
