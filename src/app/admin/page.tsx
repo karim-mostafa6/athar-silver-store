@@ -9,7 +9,7 @@ import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
   Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image as ImageIcon,
-  RotateCw, X, Smartphone, Monitor, BookOpen
+  RotateCw, X, Smartphone, Monitor, BookOpen, Printer
 } from "lucide-react";
 
 type ActiveTab =
@@ -149,7 +149,7 @@ export default function AdminPage() {
     slug: "",
     englishTitle: "",
     description: "",
-    icon: "✨",
+    icon: "",
     bannerImage: "",
   });
   const collectionFileInputRef = useRef<HTMLInputElement>(null);
@@ -214,7 +214,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (prevOrdersCountRef.current !== null && orders.length > prevOrdersCountRef.current) {
       playRoyalOrderChime();
-      addToast("طلب جديد!", "ورد طلب شراء جديد إلى المتجر 🔔", "cart");
+      addToast("طلب جديد!", "ورد طلب شراء جديد إلى المتجر", "cart");
     }
     prevOrdersCountRef.current = orders.length;
   }, [orders, addToast]);
@@ -243,7 +243,7 @@ export default function AdminPage() {
         if (data.token) {
           localStorage.setItem("athar_admin_token", data.token);
         }
-        addToast("مرحباً بك", "تم تسجيل الدخول الآمن إلى لوحة إدارة متجر أَثَر بنجاح ✦", "info");
+        addToast("مرحباً بك", "تم تسجيل الدخول الآمن إلى لوحة إدارة متجر أَثَر بنجاح", "info");
       } else {
         setAuthError(data.error || "اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.");
       }
@@ -274,6 +274,119 @@ export default function AdminPage() {
     localStorage.removeItem("athar_admin_token");
     setUsernameInput("");
     setPasswordInput("");
+  };
+
+  // Professional Order Invoice Printing
+  const handlePrintOrder = (order: Order) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    const itemsRows = order.items
+      .map(
+        (item) => `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #e8ded0; text-align: right; font-weight: bold;">
+          ${item.arabicName} ${item.selectedSize ? `<span style="font-size: 11px; color: #756555; display: block;">مقاس: ${item.selectedSize}</span>` : ""}
+        </td>
+        <td style="padding: 10px; border-bottom: 1px solid #e8ded0; text-align: center;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #e8ded0; text-align: left;">${item.price.toLocaleString("en-US")} ج.م</td>
+        <td style="padding: 10px; border-bottom: 1px solid #e8ded0; text-align: left; font-weight: bold;">${(item.price * item.quantity).toLocaleString("en-US")} ج.م</td>
+      </tr>`
+      )
+      .join("");
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8">
+        <title>بوليصة شحن طلب #${order.id} - دار أَثَر</title>
+        <style>
+          body { font-family: 'Cairo', Tahoma, sans-serif; padding: 30px; color: #161412; background: #fff; }
+          .header { text-align: center; border-bottom: 2px solid #161412; padding-bottom: 14px; margin-bottom: 20px; }
+          .brand { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
+          .subtitle { font-size: 12px; color: #756555; margin-top: 4px; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; background: #fbf9f5; border: 1px solid #e8ded0; padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.8; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+          th { background: #f7f4ee; padding: 10px; text-align: right; border-bottom: 2px solid #161412; font-size: 12px; }
+          .total-box { background: #f7f4ee; border: 1px solid #ded2c0; padding: 14px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.8; }
+          .total-amount { font-size: 18px; font-weight: bold; color: #161412; border-top: 1px solid #ded2c0; padding-top: 6px; margin-top: 6px; display: flex; justify-content: space-between; }
+          .footer { text-align: center; font-size: 11px; color: #756555; border-top: 1px dashed #ccc; padding-top: 14px; line-height: 1.6; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="brand">أَثَـر للفضة الإسترليني 925</div>
+          <div class="subtitle">بوليصة تسليم الشحنة للعميل • فاتورة رسمية</div>
+        </div>
+        <div class="meta-grid">
+          <div>
+            <div><strong>رقم الطلب:</strong> #${order.id}</div>
+            <div><strong>تاريخ الطلب:</strong> ${new Date(order.createdAt).toLocaleDateString("ar-EG")}</div>
+            <div><strong>اسم العميل:</strong> ${order.customerName}</div>
+            <div><strong>رقم الهاتف:</strong> ${order.phone}</div>
+          </div>
+          <div>
+            <div><strong>المحافظة:</strong> ${order.governorate}</div>
+            <div><strong>العنوان بالتفصيل:</strong> ${order.address}</div>
+            <div><strong>طريقة الدفع:</strong> ${order.paymentMethod === "cod" ? "الدفع عند الاستلام" : order.paymentMethod === "wallet" ? "محفظة إلكترونية" : "بطاقة بنكية"}</div>
+            <div><strong>ملاحظات العميل:</strong> ${order.notes || "لا توجد"}</div>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>القطعة والمواصفات</th>
+              <th style="text-align: center;">الكمية</th>
+              <th style="text-align: left;">سعر القطعة</th>
+              <th style="text-align: left;">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsRows}
+          </tbody>
+        </table>
+        <div class="total-box">
+          <div style="display: flex; justify-content: space-between;">
+            <span>قيمة المنتجات:</span>
+            <span>${order.subtotal.toLocaleString("en-US")} ج.م</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>رسوم الشحن والتوصيل:</span>
+            <span>${order.shippingFee.toLocaleString("en-US")} ج.م</span>
+          </div>
+          ${order.discount ? `
+          <div style="display: flex; justify-content: space-between; color: #b91c1c;">
+            <span>كوبون الخصم:</span>
+            <span>-${order.discount.toLocaleString("en-US")} ج.م</span>
+          </div>` : ""}
+          <div class="total-amount">
+            <span>المبلغ المطلوب تحصيله من العميل:</span>
+            <span>${order.total.toLocaleString("en-US")} ج.م</span>
+          </div>
+        </div>
+        <div class="footer">
+          حق المعاينة التامة مكفول للعميل أثناء تواجد مندوب الشحن • ضمان أَثَر المعتمد على الفضة الإسترليني 925<br>
+          خدمة العملاء والدعم: 01143837730
+        </div>
+        <script>
+          window.onload = function() {
+            window.print();
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const getWhatsAppInvoiceUrl = (order: Order) => {
+    const itemsText = order.items
+      .map((item) => `• ${item.arabicName} ${item.selectedSize ? `(مقاس: ${item.selectedSize})` : ""} × ${item.quantity} = ${(item.price * item.quantity).toLocaleString("en-US")} ج.م`)
+      .join("%0A");
+    const msg = `مرحباً بك في دار أَثَر للفضة 925%0Aيسعدنا إبلاغك بتأكيد طلبك رقم: %23${order.id}%0A%0Aالعميل: ${encodeURIComponent(order.customerName)}%0Aالعنوان: ${encodeURIComponent(order.governorate)} - ${encodeURIComponent(order.address)}%0A%0Aالمنتجات المطلوبة:%0A${itemsText}%0A%0Aرسوم الشحن: ${order.shippingFee} ج.م%0Aإجمالي المبلغ المطلوب عند الاستلام: ${order.total.toLocaleString("en-US")} ج.م%0A%0Aحق المعاينة مكفول لك بالكامل قبل الاستلام والسداد.%0Aشكراً لاختيارك دار أَثَر.`;
+    let phone = order.phone.replace(/[^0-9]/g, "");
+    if (phone.startsWith("0")) phone = "2" + phone;
+    return `https://wa.me/${phone}?text=${msg}`;
   };
 
   // Auto-scroll the live preview iframe whenever activeTab changes (Shopify Customizer behavior)
@@ -345,7 +458,7 @@ export default function AdminPage() {
           ...prev,
           images: [...prev.images.filter((img) => img.trim().length > 0), ...newImages],
         }));
-        addToast("تمت إضافة الصور", `تم رفع ${newImages.length} صور إلى المعرض بنجاح ✦`, "info");
+        addToast("تمت إضافة الصور", `تم رفع ${newImages.length} صور إلى المعرض بنجاح`, "info");
       }
     } catch (err) {
       console.error("Multiple upload error:", err);
@@ -459,7 +572,7 @@ export default function AdminPage() {
       slug: "",
       englishTitle: "",
       description: "",
-      icon: "✨",
+      icon: "",
       bannerImage: "",
     });
     setIsCollectionModalOpen(true);
@@ -473,7 +586,7 @@ export default function AdminPage() {
       slug: col.slug || col.id,
       englishTitle: col.englishTitle || "",
       description: col.description || "",
-      icon: col.icon || "✨",
+      icon: col.icon || "",
       bannerImage: col.bannerImage || "",
     });
     setIsCollectionModalOpen(true);
@@ -485,7 +598,7 @@ export default function AdminPage() {
       const clientDataUrl = await compressImageFile(file);
       if (clientDataUrl) {
         setCollectionForm((prev) => ({ ...prev, bannerImage: clientDataUrl }));
-        addToast("تم اختيار الصورة ✦", "تم تعيين صورة غلاف الكولكشن", "info");
+        addToast("تم اختيار الصورة", "تم تعيين صورة غلاف الكولكشن بنجاح", "info");
       }
     } catch {
       addToast("خطأ", "فشل معالجة الصورة", "info");
@@ -494,7 +607,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleSaveCollection = (e: React.FormEvent) => {
+  const handleSaveCollection = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!collectionForm.label.trim()) {
       addToast("تنبيه", "يرجى كتابة اسم الكولكشن بالعربية", "info");
@@ -513,7 +626,6 @@ export default function AdminPage() {
       slug: cleanSlug,
       englishTitle: collectionForm.englishTitle.trim() || undefined,
       description: collectionForm.description.trim() || undefined,
-      icon: collectionForm.icon.trim() || "✨",
       bannerImage: collectionForm.bannerImage || undefined,
     };
 
@@ -529,35 +641,71 @@ export default function AdminPage() {
       nextCats = [...currentCats, updatedCol];
     }
 
-    setSettingsForm((prev) => ({
-      ...prev,
-      categories: nextCats,
-      collectionPages: {
-        ...(prev.collectionPages || {}),
-        [updatedCol.id]: {
-          title: updatedCol.label,
-          englishTitle: updatedCol.englishTitle,
-          subtitle: updatedCol.description,
-          bannerImage: updatedCol.bannerImage,
-          showBanner: true,
-        },
+    const nextCollectionPages = {
+      ...(settingsForm.collectionPages || {}),
+      [updatedCol.id]: {
+        title: updatedCol.label,
+        englishTitle: updatedCol.englishTitle || "",
+        subtitle: updatedCol.description || "",
+        bannerImage: updatedCol.bannerImage || "",
+        showBanner: true,
       },
-    }));
+    };
+
+    const newSettings: StoreSettings = {
+      ...settingsForm,
+      categories: nextCats,
+      collectionPages: nextCollectionPages,
+    };
+
+    setSettingsForm(newSettings);
+    updateStoreSettings(newSettings);
+
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: newSettings }),
+      });
+    } catch (e) {
+      console.error("Direct sync error:", e);
+    }
 
     setIsCollectionModalOpen(false);
     setEditingCollectionId(null);
-    addToast("تم حفظ الكولكشن ✦", `تم حفظ مجموعة "${updatedCol.label}" بنجاح`, "info");
+    addToast("تم حفظ الكولكشن", `تم حفظ مجموعة "${updatedCol.label}" وتحديثها في السحابة بنجاح`, "info");
   };
 
-  const handleDeleteCollection = (id: string, label: string) => {
-    if (confirm(`هل أنت متأكد من حذف كولكشن "${label}"؟`)) {
+  const handleDeleteCollection = async (id: string, label: string) => {
+    if (confirm(`هل أنت متأكد من حذف كولكشن "${label}" نهائياً من المتجر وقاعدة البيانات السحابية؟`)) {
       const currentCats =
         settingsForm.categories && settingsForm.categories.length > 0
           ? settingsForm.categories
           : DEFAULT_CATEGORIES;
       const nextCats = currentCats.filter((c) => c.id !== id);
-      setSettingsForm((prev) => ({ ...prev, categories: nextCats }));
-      addToast("تم الحذف", `تم حذف كولكشن "${label}"`, "info");
+      const nextCollectionPages = { ...(settingsForm.collectionPages || {}) };
+      delete nextCollectionPages[id];
+
+      const newSettings: StoreSettings = {
+        ...settingsForm,
+        categories: nextCats,
+        collectionPages: nextCollectionPages,
+      };
+
+      setSettingsForm(newSettings);
+      updateStoreSettings(newSettings);
+
+      try {
+        await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ settings: newSettings }),
+        });
+        addToast("تم الحذف بنجاح", `تم حذف كولكشن "${label}" نهائياً من السحابة والمتجر`, "info");
+      } catch (e) {
+        console.error("Direct sync error:", e);
+        addToast("خطأ", "تعذر تأكيد الحذف بالسيرفر", "info");
+      }
     }
   };
 
@@ -604,7 +752,7 @@ export default function AdminPage() {
       const clientDataUrl = await compressImageFile(file);
       if (clientDataUrl) {
         setPageForm((prev) => ({ ...prev, bannerImage: clientDataUrl }));
-        addToast("تم اختيار الصورة ✦", "تم تعيين صورة غلاف الصفحة", "info");
+        addToast("تم اختيار الصورة", "تم تعيين صورة غلاف الصفحة", "info");
       }
     } catch {
       addToast("خطأ", "فشل معالجة الصورة", "info");
@@ -613,7 +761,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleSavePage = (e: React.FormEvent) => {
+  const handleSavePage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pageForm.title.trim()) {
       addToast("تنبيه", "يرجى كتابة عنوان الصفحة", "info");
@@ -652,21 +800,56 @@ export default function AdminPage() {
       nextPages = [...currentPages, updatedPage];
     }
 
-    setSettingsForm((prev) => ({ ...prev, customPages: nextPages }));
+    const newSettings: StoreSettings = {
+      ...settingsForm,
+      customPages: nextPages,
+    };
+
+    setSettingsForm(newSettings);
+    updateStoreSettings(newSettings);
+
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: newSettings }),
+      });
+    } catch (e) {
+      console.error("Direct sync error:", e);
+    }
+
     setIsPageModalOpen(false);
     setEditingPageId(null);
-    addToast("تم حفظ الصفحة ✦", `تم حفظ صفحة "${updatedPage.title}" بنجاح`, "info");
+    addToast("تم حفظ الصفحة", `تم حفظ صفحة "${updatedPage.title}" بنجاح ومزامنتها سحابياً`, "info");
   };
 
-  const handleDeletePage = (id: string, title: string) => {
-    if (confirm(`هل أنت متأكد من حذف صفحة "${title}"؟`)) {
+  const handleDeletePage = async (id: string, title: string) => {
+    if (confirm(`هل أنت متأكد من حذف صفحة "${title}" نهائياً من المتجر؟`)) {
       const currentPages =
         settingsForm.customPages && settingsForm.customPages.length > 0
           ? settingsForm.customPages
           : DEFAULT_CUSTOM_PAGES;
       const nextPages = currentPages.filter((p) => p.id !== id);
-      setSettingsForm((prev) => ({ ...prev, customPages: nextPages }));
-      addToast("تم الحذف", `تم حذف صفحة "${title}"`, "info");
+
+      const newSettings: StoreSettings = {
+        ...settingsForm,
+        customPages: nextPages,
+      };
+
+      setSettingsForm(newSettings);
+      updateStoreSettings(newSettings);
+
+      try {
+        await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ settings: newSettings }),
+        });
+        addToast("تم الحذف بنجاح", `تم حذف صفحة "${title}" نهائياً من السحابة والمتجر`, "info");
+      } catch (e) {
+        console.error("Direct sync error:", e);
+        addToast("خطأ", "تعذر تأكيد الحذف بالسيرفر", "info");
+      }
     }
   };
 
@@ -675,9 +858,18 @@ export default function AdminPage() {
     setIsSavingSettings(true);
     try {
       updateStoreSettings(settingsForm);
-      setSaveSuccess(true);
-      addToast("تم الحفظ في السحابة ⚡", "تم مزامنة كافة التعديلات فورياً على جميع الهواتف والمتصفحات", "info");
-      setTimeout(() => setSaveSuccess(false), 3000);
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: settingsForm }),
+      });
+      if (res.ok) {
+        setSaveSuccess(true);
+        addToast("تم الحفظ في السحابة", "تم مزامنة كافة التعديلات فورياً على جميع الهواتف والمتصفحات", "info");
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        addToast("خطأ", "فشل الحفظ في السحابة، يرجى المحاولة مجدداً", "info");
+      }
     } catch {
       addToast("خطأ", "حدث خطأ أثناء حفظ الإعدادات", "info");
     } finally {
@@ -974,7 +1166,7 @@ export default function AdminPage() {
             >
               <Eye className="w-3.5 h-3.5 text-[#c5a880]" />
               <span className="hidden sm:inline">
-                {isPreviewOpen ? "إغلاق المعاينة الحية" : "معاينة حية للمتجر ✦"}
+                {isPreviewOpen ? "إغلاق المعاينة الحية" : "معاينة حية للمتجر"}
               </span>
             </button>
 
@@ -1185,7 +1377,7 @@ export default function AdminPage() {
                           </div>
 
                           {/* Status Switcher & Delete */}
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <select
                               value={order.status}
                               onChange={(e) => updateOrderStatus(order.id, e.target.value as Order["status"])}
@@ -1202,21 +1394,41 @@ export default function AdminPage() {
                               }`}
                             >
                               <option value="pending">قيد الانتظار</option>
-                              <option value="confirmed_phone">تم التأكيد هاتفياً ✓</option>
-                              <option value="confirmed_whatsapp">تم التأكيد واتساب ✓</option>
+                              <option value="confirmed_phone">تم التأكيد هاتفياً</option>
+                              <option value="confirmed_whatsapp">تم التأكيد واتساب</option>
                               <option value="processing">جاري التجهيز</option>
-                              <option value="shipped">تم الشحن 🚚</option>
-                              <option value="completed">تم التوصيل بنجاح ✦</option>
-                              <option value="cancelled">ملغي ✕</option>
+                              <option value="shipped">تم الشحن</option>
+                              <option value="completed">تم التوصيل بنجاح</option>
+                              <option value="cancelled">ملغي</option>
                             </select>
 
+                            <a
+                              href={getWhatsAppInvoiceUrl(order)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                              title="إرسال الفاتورة وتفاصيل الطلب للعميل عبر واتساب"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </a>
+
                             <button
+                              type="button"
+                              onClick={() => handlePrintOrder(order)}
+                              className="p-1.5 rounded-lg bg-[#f7f4ee] border border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3] transition-colors"
+                              title="طباعة بوليصة / فاتورة الشحن"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => {
                                 if (confirm(`هل أنت متأكد من حذف الطلب #${order.id} نهائياً؟`)) {
                                   deleteOrder(order.id);
                                 }
                               }}
-                              className="p-1.5 text-[#baa894] hover:text-rose-600 transition-colors"
+                              className="p-1.5 text-[#baa894] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
                               title="حذف الطلب نهائياً"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1295,7 +1507,7 @@ export default function AdminPage() {
                       : DEFAULT_CATEGORIES
                     ).map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.icon || "✨"} {c.label}
+                        {c.label}
                       </option>
                     ))}
                   </select>
@@ -1370,7 +1582,7 @@ export default function AdminPage() {
                               key={colId}
                               className="text-[9px] bg-[#f0e7db] text-[#5c4f42] px-1.5 py-0.5 rounded font-medium"
                             >
-                              {matchedCol?.icon || "✦"} {matchedCol?.label || colId}
+                              {matchedCol?.label || colId}
                             </span>
                           );
                         })}
@@ -1392,7 +1604,7 @@ export default function AdminPage() {
                             : "bg-rose-50 text-rose-700 hover:bg-rose-100"
                         }`}
                       >
-                        {product.inStock ? "متوفر بالمخزن ✓" : "غير متوفر ✕"}
+                        {product.inStock ? "متوفر للطلب" : "غير متوفر"}
                       </button>
 
                       <div className="flex items-center gap-1">
@@ -1446,7 +1658,7 @@ export default function AdminPage() {
                     className="px-5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4 text-[#c5a880]" />
-                    <span>إضافة كولكشن جديد ✦</span>
+                    <span>إضافة كولكشن جديد</span>
                   </button>
                   <button
                     onClick={handleSaveSettings}
@@ -1486,15 +1698,15 @@ export default function AdminPage() {
                             className="w-full h-full object-cover brightness-[0.75]"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#211d19] to-[#332b24] text-[#c5a880] text-3xl">
-                            {col.icon || "✨"}
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1a1715] to-[#2c241d] text-[#c5a880]">
+                            <Layers className="w-7 h-7 text-[#c5a880]/80 mb-1" />
+                            <span className="font-amiri font-bold text-sm text-white/90">{col.label}</span>
                           </div>
                         )}
                         <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-full text-white text-[10px] font-bold flex items-center gap-1.5">
                           <span>{assignedCount} قطع</span>
                         </div>
                         <div className="absolute bottom-2.5 right-2.5 text-white">
-                          <span className="text-xl ml-1">{col.icon || "✨"}</span>
                           <span className="font-bold text-sm">{col.label}</span>
                         </div>
                       </div>
@@ -1572,7 +1784,7 @@ export default function AdminPage() {
                     className="px-5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4 text-[#c5a880]" />
-                    <span>إنشاء صفحة جديدة ✦</span>
+                    <span>إنشاء صفحة جديدة</span>
                   </button>
                   <button
                     onClick={handleSaveSettings}
@@ -1616,11 +1828,11 @@ export default function AdminPage() {
                               : "bg-gray-600 text-white"
                           }`}
                         >
-                          {page.isPublished !== false ? "منشورة ✓" : "مسودة ✕"}
+                          {page.isPublished !== false ? "منشورة" : "مسودة"}
                         </span>
                         {page.showInFooter !== false && (
                           <span className="px-2 py-0.5 rounded bg-amber-500 text-[#161412] text-[10px] font-bold">
-                            في الفوتر 📌
+                            في الفوتر
                           </span>
                         )}
                       </div>
@@ -1717,7 +1929,7 @@ export default function AdminPage() {
                       }
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-bold focus:outline-none"
                     >
-                      <option value="after_hero">بعد البانر الرئيسي وقبل المنتجات (موصى به ✓)</option>
+                      <option value="after_hero">بعد البانر الرئيسي وقبل المنتجات (موصى به)</option>
                       <option value="top">أعلى الصفحة تحت شريط التنقل مباشرة</option>
                       <option value="between_products">بين قسم المنتجات وقسم قصة البراند</option>
                       <option value="before_care">قبل قسم دليل العناية بالفضة</option>
@@ -1763,7 +1975,7 @@ export default function AdminPage() {
                       onChange={(e) =>
                         setSettingsForm({ ...settingsForm, promoBannerBadge: e.target.value })
                       }
-                      placeholder="عرض استثنائي لفترة محدودة ✦"
+                      placeholder="عرض استثنائي لفترة محدودة"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
                     />
                   </div>
@@ -1845,7 +2057,7 @@ export default function AdminPage() {
                           />
                         </div>
                         <div className="flex-1 text-xs">
-                          <span className="font-bold text-emerald-700 block">صورة البانر الترويجي محددة ✓</span>
+                          <span className="font-bold text-emerald-700 block">صورة البانر الترويجي محددة</span>
                           <span className="text-[10px] text-[#756555] truncate block dir-ltr">
                             {settingsForm.promoBannerImageUrl.startsWith("data:") ? "صورة مرفوعة من الجهاز" : settingsForm.promoBannerImageUrl}
                           </span>
@@ -1884,7 +2096,7 @@ export default function AdminPage() {
                               const dataUrl = await compressImageFile(file);
                               if (dataUrl) {
                                 setSettingsForm((prev) => ({ ...prev, promoBannerImageUrl: dataUrl }));
-                                addToast("تم اختيار صورة البانر", "تم تحديد صورة البانر الترويجي بنجاح ✦", "info");
+                                addToast("تم اختيار صورة البانر", "تم تحديد صورة البانر الترويجي بنجاح", "info");
                               }
                             }
                           }}
@@ -2115,7 +2327,7 @@ export default function AdminPage() {
                           />
                         </div>
                         <div className="flex-1 text-xs">
-                          <span className="font-bold text-emerald-700 block">صورة البانر محددة ✓</span>
+                          <span className="font-bold text-emerald-700 block">صورة البانر محددة</span>
                           <span className="text-[10px] text-[#756555] truncate block dir-ltr">
                             {settingsForm.heroImageUrl.startsWith("data:") ? "صورة مرفوعة من الجهاز" : settingsForm.heroImageUrl}
                           </span>
@@ -2152,7 +2364,7 @@ export default function AdminPage() {
                               const dataUrl = await compressImageFile(file);
                               if (dataUrl) {
                                 setSettingsForm((prev) => ({ ...prev, heroImageUrl: dataUrl }));
-                                addToast("تم اختيار صورة البانر", "تم تحديث صورة البانر الرئيسي بنجاح ✦", "info");
+                                addToast("تم اختيار صورة البانر", "تم تحديث صورة البانر الرئيسي بنجاح", "info");
                               }
                             }
                           }}
@@ -2285,10 +2497,10 @@ export default function AdminPage() {
                     />
                     <input
                       type="text"
-                      value={settingsForm.trustItem1Icon || "✨"}
+                      value={settingsForm.trustItem1Icon || "shield"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, trustItem1Icon: e.target.value })}
-                      placeholder="رمز الأيقونة"
-                      className="w-20 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs"
+                      placeholder="shield"
+                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
                     />
                   </div>
 
@@ -2302,10 +2514,10 @@ export default function AdminPage() {
                     />
                     <input
                       type="text"
-                      value={settingsForm.trustItem2Icon || "🔍"}
+                      value={settingsForm.trustItem2Icon || "eye"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2Icon: e.target.value })}
-                      placeholder="رمز الأيقونة"
-                      className="w-20 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs"
+                      placeholder="eye"
+                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
                     />
                   </div>
 
@@ -2319,10 +2531,10 @@ export default function AdminPage() {
                     />
                     <input
                       type="text"
-                      value={settingsForm.trustItem3Icon || "🚚"}
+                      value={settingsForm.trustItem3Icon || "truck"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, trustItem3Icon: e.target.value })}
-                      placeholder="رمز الأيقونة"
-                      className="w-20 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs"
+                      placeholder="truck"
+                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
                     />
                   </div>
 
@@ -2347,10 +2559,10 @@ export default function AdminPage() {
                     />
                     <input
                       type="text"
-                      value={settingsForm.trustItem4Icon || "🎁"}
+                      value={settingsForm.trustItem4Icon || "gift"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, trustItem4Icon: e.target.value })}
-                      placeholder="رمز الأيقونة"
-                      className="w-20 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs"
+                      placeholder="gift"
+                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
                     />
                   </div>
                 </div>
@@ -4079,7 +4291,7 @@ export default function AdminPage() {
                         />
                       </div>
                       <div className="flex-1 text-xs">
-                        <span className="font-bold text-emerald-700 block">شعار مخصص نشط ✓</span>
+                        <span className="font-bold text-emerald-700 block">شعار مخصص نشط</span>
                         <span className="text-[10px] text-[#756555] truncate block dir-ltr">
                           {settingsForm.logoImageUrl.startsWith("data:") ? "صورة مرفوعة من الجهاز" : settingsForm.logoImageUrl}
                         </span>
@@ -4116,7 +4328,7 @@ export default function AdminPage() {
                             const dataUrl = await compressImageFile(file);
                             if (dataUrl) {
                               setSettingsForm((prev) => ({ ...prev, logoImageUrl: dataUrl }));
-                              addToast("تم اختيار الشعار", "تم تحديد وتعيين صورة الشعار بنجاح ✦", "info");
+                              addToast("تم اختيار الشعار", "تم تحديد وتعيين صورة الشعار بنجاح", "info");
                             }
                           }
                         }}
@@ -4479,9 +4691,9 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setIsProductModalOpen(false)}
-                className="text-[#8c7865] hover:text-[#161412] text-sm p-1"
+                className="text-[#8c7865] hover:text-[#161412] p-1 rounded-lg"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -4559,7 +4771,7 @@ export default function AdminPage() {
                       : DEFAULT_CATEGORIES
                     ).map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.icon || "✨"} {c.label}
+                        {c.label}
                       </option>
                     ))}
                   </select>
@@ -4635,7 +4847,7 @@ export default function AdminPage() {
                           }}
                           className="rounded border-[#ded2c0] text-[#161412]"
                         />
-                        <span className="truncate">{col.icon || "✨"} {col.label}</span>
+                        <span className="truncate">{col.label}</span>
                       </label>
                     );
                   })}
@@ -4897,7 +5109,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
               <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
                 <Layers className="w-4 h-4 text-[#c5a880]" />
-                <span>{editingCollectionId ? "تعديل الكولكشن" : "إضافة كولكشن جديد للمتجر ✦"}</span>
+                <span>{editingCollectionId ? "تعديل الكولكشن" : "إضافة كولكشن جديد للمتجر"}</span>
               </h3>
               <button
                 onClick={() => setIsCollectionModalOpen(false)}
@@ -4942,29 +5154,16 @@ export default function AdminPage() {
 
                 <div>
                   <label className="block font-medium text-[#756555] mb-1">
-                    أيقونة / إيموجي الكولكشن
+                    العنوان بالإنجليزية (English Title)
                   </label>
                   <input
                     type="text"
-                    value={collectionForm.icon}
-                    onChange={(e) => setCollectionForm({ ...collectionForm, icon: e.target.value })}
-                    placeholder="✨ أو 💍 أو 🎁"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none text-center"
+                    value={collectionForm.englishTitle}
+                    onChange={(e) => setCollectionForm({ ...collectionForm, englishTitle: e.target.value })}
+                    placeholder="WINTER SILVER COLLECTION"
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block font-medium text-[#756555] mb-1">
-                  العنوان بالإنجليزية (English Title)
-                </label>
-                <input
-                  type="text"
-                  value={collectionForm.englishTitle}
-                  onChange={(e) => setCollectionForm({ ...collectionForm, englishTitle: e.target.value })}
-                  placeholder="WINTER SILVER COLLECTION"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
-                />
               </div>
 
               <div>
@@ -5060,7 +5259,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
               <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#c5a880]" />
-                <span>{editingPageId ? "تعديل محتوى الصفحة" : "إنشاء صفحة جديدة مستقلة ✦"}</span>
+                <span>{editingPageId ? "تعديل محتوى الصفحة" : "إنشاء صفحة جديدة مستقلة"}</span>
               </h3>
               <button
                 onClick={() => setIsPageModalOpen(false)}
@@ -5213,7 +5412,7 @@ export default function AdminPage() {
                     onChange={(e) => setPageForm({ ...pageForm, showInFooter: e.target.checked })}
                     className="rounded border-[#ded2c0] text-[#161412]"
                   />
-                  <span>إظهار رابط الصفحة في قائمة الفوتر 📌</span>
+                  <span>إظهار رابط الصفحة في قائمة الفوتر</span>
                 </label>
               </div>
 
@@ -5230,7 +5429,7 @@ export default function AdminPage() {
                   type="submit"
                   className="px-6 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold shadow-md"
                 >
-                  {editingPageId ? "تحديث الصفحة" : "حفظ ونشر الصفحة ✦"}
+                  {editingPageId ? "تحديث الصفحة" : "حفظ ونشر الصفحة"}
                 </button>
               </div>
             </form>

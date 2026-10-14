@@ -407,7 +407,7 @@ export const DEFAULT_COLLECTION_PAGES: Record<string, CollectionPageSetting> = {
 
 const DEFAULT_SETTINGS: StoreSettings = {
   whatsappNumber: "01143837730",
-  announcementText: "شحن مجاني لكافة محافظات مصر على الطلبات المؤكدة اليوم ✦ فضة إسترليني 925 معتمدة",
+  announcementText: "شحن مجاني لكافة محافظات مصر على الطلبات المؤكدة اليوم - فضة إسترليني 925 معتمدة",
   freeShippingThreshold: 1500,
   promoCode: "ATHAR10",
   promoDiscountPercent: 10,
@@ -487,7 +487,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   // Nav Links & Collections Defaults
   navLinks: [
     { id: "all", label: "كافة القطع", href: "/collection/all", visible: true },
-    { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true, badge: "جديد ✦", badgeColor: "rose" },
+    { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true, badge: "جديد", badgeColor: "rose" },
     { id: "men", label: "تشكيلة رجالية", href: "/collection/men", visible: true },
     { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true, badge: "الأكثر طلباً", badgeColor: "amber" },
     { id: "chains", label: "سلاسل إيطالي", href: "/collection/chains", visible: true },
@@ -622,13 +622,13 @@ const DEFAULT_SETTINGS: StoreSettings = {
   footerPaymentTitle: "طرق الدفع المعتمدة:",
   footerPaymentBadgesText: "دفع عند الاستلام, فودافون كاش, إنستاباي InstaPay, Visa / Master",
   footerCopyrightText: "© 2026 أَثَر (ATHAR) لفضة 925. جميع الحقوق محفوظة.",
-  footerPassionTagline: "صُنع بحرفية وشغف ❤️ ليترك أثراً لا يُمحى",
+  footerPassionTagline: "صُنع بحرفية وشغف ليترك أثراً لا يُمحى",
 
   // Custom Promotional Banner Defaults
   promoBannerShow: true,
   promoBannerTitle: "تألقي ببريق الفضة الإيطالية عيار 925",
   promoBannerSubtitle: "احصل على خصم 10% فوري عند استخدام كود ATHAR10 مع شحن مجاني للطلبات المؤكدة اليوم.",
-  promoBannerBadge: "عرض استثنائي لفترة محدودة ✦",
+  promoBannerBadge: "عرض استثنائي لفترة محدودة",
   promoBannerButtonText: "تسوق العروض الآن",
   promoBannerButtonLink: "#products",
   promoBannerButtonShow: true,
@@ -702,7 +702,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           ...DEFAULT_SETTINGS,
           ...parsed,
           categories:
-            Array.isArray(parsed.categories) && parsed.categories.length > 0
+            Array.isArray(parsed.categories)
               ? parsed.categories
               : DEFAULT_CATEGORIES,
           collectionPages: {
@@ -714,7 +714,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             ...(parsed.governorateShippingRates || {}),
           },
           customPages:
-            Array.isArray(parsed.customPages) && parsed.customPages.length > 0
+            Array.isArray(parsed.customPages)
               ? parsed.customPages
               : DEFAULT_CUSTOM_PAGES,
         };
@@ -808,7 +808,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               ...prev,
               ...data.settings,
               categories:
-                Array.isArray(data.settings.categories) && data.settings.categories.length > 0
+                Array.isArray(data.settings.categories)
                   ? data.settings.categories
                   : prev.categories,
               collectionPages: {
@@ -821,7 +821,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 ...(data.settings.governorateShippingRates || {}),
               },
               customPages:
-                Array.isArray(data.settings.customPages) && data.settings.customPages.length > 0
+                Array.isArray(data.settings.customPages)
                   ? data.settings.customPages
                   : (prev.customPages || DEFAULT_CUSTOM_PAGES),
             };
@@ -1041,10 +1041,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const updateStoreSettings = (newSettings: Partial<StoreSettings>) => {
     setStoreSettings((prev) => {
       const merged = { ...prev, ...newSettings };
+      try {
+        localStorage.setItem("athar_store_settings", JSON.stringify(merged));
+      } catch {}
       syncSettingsToServer(merged);
       return merged;
     });
-    addToast("إعدادات المتجر", "تم حفظ إعدادات المتجر بنجاح", "info");
+    addToast("إعدادات المتجر", "تم حفظ إعدادات المتجر في السحابة بنجاح", "info");
   };
 
   // Orders Management
@@ -1150,7 +1153,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           : o
       )
     );
-    addToast("تأكيد هاتفي 📞", `تم تأكيد الطلب #${orderId} هاتفياً بنجاح`, "info");
+    addToast("تأكيد هاتفي", `تم تأكيد الطلب #${orderId} هاتفياً بنجاح`, "info");
   };
 
   const confirmOrderViaWhatsApp = (orderId: string) => {

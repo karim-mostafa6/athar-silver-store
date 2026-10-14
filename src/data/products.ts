@@ -10,11 +10,11 @@ export interface StoreCategory {
 }
 
 export const DEFAULT_CATEGORIES: StoreCategory[] = [
-  { id: "rings", label: "خواتم وسوليتير", icon: "💍", slug: "rings", englishTitle: "RINGS & SOLITAIRES" },
-  { id: "chains", label: "سلاسل إيطالي", icon: "⛓️", slug: "chains", englishTitle: "ITALIAN CHAINS" },
-  { id: "bracelets", label: "أساور وتنس", icon: "✨", slug: "bracelets", englishTitle: "BRACELETS & TENNIS" },
-  { id: "sets", label: "أطقم ملكية", icon: "👑", slug: "sets", englishTitle: "ROYAL GIFT SETS" },
-  { id: "earrings", label: "أقراط وحلقان", icon: "💎", slug: "earrings", englishTitle: "EARRINGS" },
+  { id: "rings", label: "خواتم وسوليتير", slug: "rings", englishTitle: "RINGS & SOLITAIRES" },
+  { id: "chains", label: "سلاسل إيطالي", slug: "chains", englishTitle: "ITALIAN CHAINS" },
+  { id: "bracelets", label: "أساور وتنس", slug: "bracelets", englishTitle: "BRACELETS & TENNIS" },
+  { id: "sets", label: "أطقم ملكية", slug: "sets", englishTitle: "ROYAL GIFT SETS" },
+  { id: "earrings", label: "أقراط وحلقان", slug: "earrings", englishTitle: "EARRINGS" },
 ];
 
 export interface CustomPage {
