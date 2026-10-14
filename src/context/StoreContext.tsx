@@ -813,7 +813,6 @@ function recordDeletedOrderId(orderId: string) {
 }
 
 const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
-const DEMO_NAMES = new Set(["مريم خالد", "سارة أحمد", "محمود إبراهيم", "كريم يوسف"]);
 
 // Monotonic sequence tracking: sequence counter NEVER decreases even if orders are deleted
 export function getLastOrderSeq(): number {
@@ -903,7 +902,6 @@ function sanitizeOrders(rawOrders: unknown): Order[] {
       o &&
       o.id &&
       !DEMO_ORDER_IDS.has(o.id) &&
-      !DEMO_NAMES.has(o.customerName) &&
       !deletedIds.has(o.id)
   );
 }
@@ -1004,6 +1002,27 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     ordersRef.current = orders;
   }, [orders]);
 
+  // Helper to push orders to server directly
+  const pushOrdersToServerDirectly = (ordersToPush: Order[]) => {
+    const currentSeq = getLastOrderSeq();
+    const deletedArr = Array.from(getDeletedOrderIds());
+    fetch("/api/orders", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orders: ordersToPush,
+        lastOrderSeq: currentSeq,
+        deletedOrderIds: deletedArr,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+        if (data.lastOrderSeq) recordLastOrderSeq(data.lastOrderSeq);
+      })
+      .catch((err) => console.warn("Could not sync orders to server:", err));
+  };
+
   // Background Central Server Sync (High-speed & non-blocking)
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
@@ -1084,12 +1103,32 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         if (Array.isArray(data.orders)) {
           // Guard against overwriting local optimistic updates if an action was performed recently (<4000ms)
           if (Date.now() - lastLocalOrderMutationRef.current > 4000) {
-            const cleanedOrders = sanitizeOrders(data.orders);
-            ordersRef.current = cleanedOrders;
-            setOrders(cleanedOrders);
-            try {
-              localStorage.setItem("athar_orders", JSON.stringify(cleanedOrders));
-            } catch {}
+            const serverOrders = sanitizeOrders(data.orders);
+            const localOrders = ordersRef.current || [];
+
+            // SMART MERGE & ANTI-WIPE SHIELD:
+            if (serverOrders.length === 0 && localOrders.length > 0) {
+              // Server has no orders (e.g. after a fresh deploy or cold start),
+              // but this browser HAS existing orders! NEVER WIPE LOCAL ORDERS!
+              // Instead, preserve local orders and upload them to cloud database immediately.
+              pushOrdersToServerDirectly(localOrders);
+            } else {
+              // Merge: combine server orders with any local orders not present on server
+              const serverIdSet = new Set(serverOrders.map((o) => o.id));
+              const localUnsynced = localOrders.filter((o) => !serverIdSet.has(o.id));
+
+              const mergedOrders = [...serverOrders, ...localUnsynced];
+              ordersRef.current = mergedOrders;
+              setOrders(mergedOrders);
+              try {
+                localStorage.setItem("athar_orders", JSON.stringify(mergedOrders));
+              } catch {}
+
+              if (localUnsynced.length > 0) {
+                // If there were local orders not yet on server, push the full merged list
+                pushOrdersToServerDirectly(mergedOrders);
+              }
+            }
           }
         }
       })

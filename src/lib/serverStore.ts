@@ -191,8 +191,10 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
             parsed.lastOrderSeq,
             parsed.deletedOrderIds
           );
-          // Seed cloud database in background so next request is instant
-          saveCloudData(parsed).catch(() => {});
+          // Only seed cloud if parsed has actual orders or if cloud was truly never initialized
+          if (parsed.orders.length > 0) {
+            saveCloudData(parsed).catch(() => {});
+          }
           return parsed;
         }
       }
@@ -201,7 +203,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     console.warn("Error reading store-data.json:", err);
   }
 
-  // 3. Fallback to Initial Default State & Seed Cloud
+  // 3. Fallback to Initial Default State (Do NOT overwrite existing cloud data with empty orders!)
   const defaultData: ServerStoreData = {
     products: PRODUCTS,
     settings: {
@@ -215,9 +217,6 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     updatedAt: new Date().toISOString(),
     isDefault: false,
   };
-
-  // Seed the central cloud database immediately so all phones see it
-  await saveCloudData(defaultData);
 
   try {
     fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2), "utf-8");
@@ -243,7 +242,19 @@ export async function saveServerStoreData(
     ])
   );
 
-  const cleanUpdatedOrders = updates.orders !== undefined ? cleanOrders(updates.orders) : current.orders;
+  let cleanUpdatedOrders: Order[];
+  if (updates.orders !== undefined) {
+    const cleaned = cleanOrders(updates.orders);
+    // Anti-wipe protection: If incoming is empty but current has orders, only wipe if explicitly deleted
+    if (cleaned.length === 0 && current.orders.length > 0) {
+      const allDeleted = current.orders.every((o) => combinedDeletedIds.includes(o.id));
+      cleanUpdatedOrders = allDeleted ? [] : current.orders;
+    } else {
+      cleanUpdatedOrders = cleaned;
+    }
+  } else {
+    cleanUpdatedOrders = current.orders;
+  }
 
   // Strict monotonicity: sequence counter can only increase, never decrease
   const newLastOrderSeq = calculateHighestOrderSeq(
