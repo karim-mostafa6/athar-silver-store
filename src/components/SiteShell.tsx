@@ -9,6 +9,7 @@ import { WishlistDrawer } from "@/components/WishlistDrawer";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { RingSizeGuideModal } from "@/components/RingSizeGuideModal";
 import { ProductQuickViewModal } from "@/components/ProductQuickViewModal";
+import { CustomerAccountModal } from "@/components/CustomerAccountModal";
 import { Toast } from "@/components/Toast";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { Footer } from "@/components/Footer";
@@ -72,6 +73,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         onOpenCart={() => store.setIsCartOpen(true)}
         onOpenWishlist={() => store.setIsWishlistOpen(true)}
         onOpenSizeGuide={() => store.setIsSizeGuideOpen(true)}
+        onOpenCustomerModal={() => store.setIsCustomerModalOpen(true)}
         onNotify={store.addToast}
       />
 
@@ -134,6 +136,12 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         onAddToCart={store.addToCart}
         onOpenSizeGuide={() => store.setIsSizeGuideOpen(true)}
         onNotify={store.addToast}
+      />
+
+      {/* Customer Account & Order Tracking Modal */}
+      <CustomerAccountModal
+        isOpen={store.isCustomerModalOpen}
+        onClose={() => store.setIsCustomerModalOpen(false)}
       />
 
       {/* Floating Customer Service WhatsApp */}

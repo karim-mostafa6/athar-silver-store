@@ -9,33 +9,44 @@ const failedAttempts = new Map<string, { count: number; lastAttempt: number }>()
 
 export function generateAdminToken(username: string): string {
   const timestamp = Date.now();
-  const raw = `${username}:${timestamp}:${ADMIN_SECRET}`;
+  const cleanUser = username.trim().toLowerCase();
+  const b64User = Buffer.from(cleanUser).toString("base64");
+  const raw = `${cleanUser}:${timestamp}:${ADMIN_SECRET}`;
   const hash = crypto.createHash("sha256").update(raw).digest("hex");
-  return `${timestamp}.${hash}`;
+  return `${timestamp}.${b64User}.${hash}`;
 }
 
 export function verifyAdminToken(token: string | null): boolean {
   if (!token) return false;
   try {
     const parts = token.split(".");
-    if (parts.length !== 2) return false;
-    const [timestampStr, providedHash] = parts;
-    const timestamp = parseInt(timestampStr, 10);
+    // Support 3-part token: timestamp.b64User.hash
+    if (parts.length === 3) {
+      const [timestampStr, b64User, providedHash] = parts;
+      const timestamp = parseInt(timestampStr, 10);
+      const maxAge = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - timestamp > maxAge) return false;
 
-    // Token expires after 7 days
-    const maxAge = 7 * 24 * 60 * 60 * 1000;
-    if (Date.now() - timestamp > maxAge) {
-      return false;
-    }
+      const username = Buffer.from(b64User, "base64").toString("utf-8").toLowerCase().trim();
+      if (!username || username === "admin") return false;
 
-    // Check valid hashes for known admin usernames
-    for (const user of ["karim mostafa", "admin"]) {
-      const raw = `${user}:${timestamp}:${ADMIN_SECRET}`;
+      const raw = `${username}:${timestamp}:${ADMIN_SECRET}`;
       const expectedHash = crypto.createHash("sha256").update(raw).digest("hex");
-      if (crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(expectedHash))) {
-        return true;
-      }
+      return crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(expectedHash));
     }
+
+    // Support legacy 2-part token: only allow master admin "karim mostafa"
+    if (parts.length === 2) {
+      const [timestampStr, providedHash] = parts;
+      const timestamp = parseInt(timestampStr, 10);
+      const maxAge = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - timestamp > maxAge) return false;
+
+      const raw = `karim mostafa:${timestamp}:${ADMIN_SECRET}`;
+      const expectedHash = crypto.createHash("sha256").update(raw).digest("hex");
+      return crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(expectedHash));
+    }
+
     return false;
   } catch {
     return false;

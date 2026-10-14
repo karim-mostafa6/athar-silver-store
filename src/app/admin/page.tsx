@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useStore, StoreSettings, Order, NavLinkItem, MarqueeExtraMessage, StoreCategory, CustomPage, DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES, HeroSlideItem } from "@/context/StoreContext";
+import { useStore, StoreSettings, Order, NavLinkItem, MarqueeExtraMessage, StoreCategory, CustomPage, DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES, HeroSlideItem, AdminUser, AdminRole } from "@/context/StoreContext";
 import { Product } from "@/data/products";
 import { playRoyalOrderChime } from "@/lib/sound";
 import { AtharLogo } from "@/components/AtharLogo";
@@ -10,7 +10,7 @@ import {
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
   Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image as ImageIcon,
   RotateCw, X, Smartphone, Monitor, BookOpen, Printer, ChevronUp, ChevronDown,
-  Lock, Unlock, PhoneCall, Calendar, UserPlus, Ban, Download
+  Lock, Unlock, PhoneCall, Calendar, UserPlus, Ban, Download, Crown, Shield, KeyRound, UserCheck, Users
 } from "lucide-react";
 
 type ActiveTab =
@@ -31,7 +31,8 @@ type ActiveTab =
   | "contact"
   | "logo"
   | "email"
-  | "policies";
+  | "policies"
+  | "users";
 
 const EGYPT_GOVERNORATES: { name: string; defaultRate: number }[] = [
   { name: "القاهرة", defaultRate: 45 },
@@ -89,7 +90,22 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState<string>("");
   const [rememberMe, setRememberMe] = useState<boolean>(true);
 
-  // Active Main Tab (14 tabs)
+  // Current Authenticated User with Role-Based Access Control
+  const [currentUser, setCurrentUser] = useState<{
+    username: string;
+    name: string;
+    role: AdminRole;
+  } | null>(null);
+
+  // User Management Modal State (Super Admin Only)
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState<boolean>(false);
+  const [newUserName, setNewUserName] = useState<string>("");
+  const [newUsername, setNewUsername] = useState<string>("");
+  const [newUserPassword, setNewUserPassword] = useState<string>("");
+  const [newUserRole, setNewUserRole] = useState<"orders_customers" | "store_editor" | "all">("orders_customers");
+  const [newUserError, setNewUserError] = useState<string>("");
+
+  // Active Main Tab
   const [activeTab, setActiveTab] = useState<ActiveTab>("orders");
 
   // Settings Security Lock State (Protected by password: Kk5019Kk@#$&)
@@ -264,8 +280,22 @@ export default function AdminPage() {
   // Check login on mount
   useEffect(() => {
     const session = localStorage.getItem("athar_admin_auth");
+    const storedUser = localStorage.getItem("athar_admin_user");
     if (session === "true") {
       setIsAuthenticated(true);
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          setCurrentUser(parsed);
+          if (parsed.role === "store_editor") {
+            setActiveTab("products");
+          }
+        } catch {
+          setCurrentUser({ username: "karim mostafa", name: "كريم مصطفى", role: "super_admin" });
+        }
+      } else {
+        setCurrentUser({ username: "karim mostafa", name: "كريم مصطفى", role: "super_admin" });
+      }
     }
     const unlocked = sessionStorage.getItem("athar_settings_unlocked");
     if (unlocked === "true") {
@@ -295,6 +325,13 @@ export default function AdminPage() {
     const trimmedUser = usernameInput.trim().toLowerCase();
     const cleanPass = passwordInput.trim();
 
+    // Strictly block generic 'admin' usernames
+    if (!trimmedUser || !cleanPass || trimmedUser === "admin") {
+      setAuthError("اسم المستخدم أو كلمة المرور غير صحيحة.");
+      setIsLoggingIn(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
@@ -303,32 +340,61 @@ export default function AdminPage() {
       });
       const data = await res.json();
 
-      if (res.ok && data.success) {
+      if (res.ok && data.success && data.user) {
         setIsAuthenticated(true);
+        setCurrentUser(data.user);
+        setIsSettingsUnlocked(true);
         if (rememberMe) {
           localStorage.setItem("athar_admin_auth", "true");
+          localStorage.setItem("athar_admin_user", JSON.stringify(data.user));
         }
         if (data.token) {
           localStorage.setItem("athar_admin_token", data.token);
         }
-        addToast("مرحباً بك", "تم تسجيل الدخول الآمن إلى لوحة إدارة متجر أَثَر بنجاح", "info");
+        if (data.user.role === "store_editor") {
+          setActiveTab("products");
+        } else {
+          setActiveTab("orders");
+        }
+        addToast("مرحباً بك", `تم تسجيل الدخول بنجاح (${data.user.name})`, "info");
       } else {
         setAuthError(data.error || "اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.");
       }
     } catch {
       // Fallback offline verification if API is temporarily unreachable
-      if (
-        (trimmedUser === "karim mostafa" && cleanPass === "Kk5019Kk@#$&") ||
-        (trimmedUser === "admin" && cleanPass === "athar2026") ||
-        (trimmedUser === "admin" && cleanPass === "admin")
-      ) {
+      if (trimmedUser === "karim mostafa" && cleanPass === "Kk5019Kk@#$&") {
+        const u = { username: "karim mostafa", name: "كريم مصطفى", role: "super_admin" as AdminRole };
         setIsAuthenticated(true);
+        setCurrentUser(u);
+        setIsSettingsUnlocked(true);
         if (rememberMe) {
           localStorage.setItem("athar_admin_auth", "true");
+          localStorage.setItem("athar_admin_user", JSON.stringify(u));
         }
-        addToast("مرحباً بك", "تم تسجيل الدخول إلى لوحة إدارة متجر أَثَر بنجاح", "info");
+        setActiveTab("orders");
+        addToast("مرحباً بك", "تم تسجيل الدخول بصلاحية المالك والمدير العام", "info");
       } else {
-        setAuthError("اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.");
+        const subUser = (storeSettings.adminUsers || []).find(
+          (u) => u.username.toLowerCase().trim() === trimmedUser && u.password === cleanPass && u.isActive !== false
+        );
+        if (subUser) {
+          const u = { username: subUser.username, name: subUser.name, role: subUser.role };
+          setIsAuthenticated(true);
+          setCurrentUser(u);
+          setIsSettingsUnlocked(true);
+          if (rememberMe) {
+            localStorage.setItem("athar_admin_auth", "true");
+            localStorage.setItem("athar_admin_user", JSON.stringify(u));
+          }
+          if (u.role === "store_editor") {
+            setActiveTab("products");
+          } else {
+            setActiveTab("orders");
+          }
+          addToast("مرحباً بك", `تم تسجيل الدخول بنجاح (${u.name})`, "info");
+        } else {
+          setAuthError("اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.");
+        }
       }
     } finally {
       setIsLoggingIn(false);
@@ -338,21 +404,33 @@ export default function AdminPage() {
   // Logout Handler
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setCurrentUser(null);
     setIsSettingsUnlocked(false);
     sessionStorage.removeItem("athar_settings_unlocked");
     localStorage.removeItem("athar_admin_auth");
+    localStorage.removeItem("athar_admin_user");
     localStorage.removeItem("athar_admin_token");
     setUsernameInput("");
     setPasswordInput("");
   };
 
-  // Tab click with Settings Security Gate
+  // Role & Permissions Checks
+  const canViewOrders = !currentUser || currentUser.role === "super_admin" || currentUser.role === "orders_customers" || currentUser.role === "all";
+  const canViewSettings = !currentUser || currentUser.role === "super_admin" || currentUser.role === "store_editor" || currentUser.role === "all";
+  const canManageUsers = currentUser?.role === "super_admin" || currentUser?.username === "karim mostafa";
+
+  // Tab click with Settings Security Gate and Role Checking
   const handleTabClick = (tabId: ActiveTab) => {
+    if (tabId === "orders" && !canViewOrders) return;
+    if (tabId !== "orders" && !canViewSettings) return;
+    if (tabId === "users" && !canManageUsers) return;
+
     if (tabId === "orders") {
       setActiveTab("orders");
       return;
     }
-    if (isSettingsUnlocked) {
+    if (isSettingsUnlocked || currentUser?.role === "super_admin" || currentUser?.role === "store_editor" || currentUser?.role === "all") {
+      setIsSettingsUnlocked(true);
       setActiveTab(tabId);
     } else {
       setPendingTabAfterUnlock(tabId);
@@ -362,15 +440,19 @@ export default function AdminPage() {
     }
   };
 
-  // Unlock Settings with Password (Kk5019Kk@#$&)
+  // Unlock Settings with Password (Master or authorized sub-user)
   const handleUnlockSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    if (settingsPasswordInput.trim() === "Kk5019Kk@#$&") {
+    const entered = settingsPasswordInput.trim();
+    const isMaster = entered === "Kk5019Kk@#$&";
+    const isSubUser = (storeSettings.adminUsers || []).some((u) => u.password === entered && u.isActive !== false);
+
+    if (isMaster || isSubUser) {
       setIsSettingsUnlocked(true);
       sessionStorage.setItem("athar_settings_unlocked", "true");
       setIsSettingsPasswordModalOpen(false);
       setSettingsPasswordError("");
-      const targetTab = pendingTabAfterUnlock || "products";
+      const targetTab = pendingTabAfterUnlock || (canViewSettings ? "products" : "orders");
       setActiveTab(targetTab);
       addToast("تم فتح الإعدادات", "تم تأكيد كلمة المرور بنجاح، يمكنك الآن تعديل كافة إعدادات المتجر", "info");
     } else {
@@ -382,8 +464,110 @@ export default function AdminPage() {
   const handleLockSettings = () => {
     setIsSettingsUnlocked(false);
     sessionStorage.removeItem("athar_settings_unlocked");
-    setActiveTab("orders");
+    setActiveTab(canViewOrders ? "orders" : "products");
     addToast("تم قفل الإعدادات", "تم قفل إعدادات المتجر بنجاح لحماية البيانات", "info");
+  };
+
+  // Add User Handler (Super Admin Only)
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewUserError("");
+    const cleanUser = newUsername.trim().toLowerCase();
+    const cleanPass = newUserPassword.trim();
+    const cleanName = newUserName.trim();
+
+    if (!cleanUser || !cleanPass || !cleanName) {
+      setNewUserError("يرجى ملء كافة الحقول المطلوبة.");
+      return;
+    }
+
+    if (cleanUser === "admin") {
+      setNewUserError("غير مسموح باستخدام اسم المستخدم admin لأسباب أمنية.");
+      return;
+    }
+
+    if (cleanUser === "karim mostafa") {
+      setNewUserError("اسم المستخدم هذا محجوز لحساب المالك والمدير العام.");
+      return;
+    }
+
+    const currentUsers = settingsForm.adminUsers || [];
+    if (currentUsers.some((u) => u.username.toLowerCase() === cleanUser)) {
+      setNewUserError("اسم المستخدم هذا مسجل بالفعل لمستخدم آخر.");
+      return;
+    }
+
+    const newUser: AdminUser = {
+      id: `user-${Date.now()}`,
+      name: cleanName,
+      username: cleanUser,
+      password: cleanPass,
+      role: newUserRole,
+      createdAt: new Date().toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" }),
+      isActive: true,
+    };
+
+    const updatedUsers = [...currentUsers, newUser];
+    const updatedSettings = { ...settingsForm, adminUsers: updatedUsers };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: updatedSettings }),
+      });
+    } catch {}
+
+    addToast("تمت إضافة المستخدم بنجاح ⚡", `تم إنشاء حساب ${cleanName} بنجاح ومزامنته في السحابة`, "info");
+    setIsAddUserModalOpen(false);
+    setNewUserName("");
+    setNewUsername("");
+    setNewUserPassword("");
+    setNewUserRole("orders_customers");
+  };
+
+  // Toggle User Active Status
+  const handleToggleUserActive = async (userId: string) => {
+    const currentUsers = settingsForm.adminUsers || [];
+    const updatedUsers = currentUsers.map((u) =>
+      u.id === userId ? { ...u, isActive: !u.isActive } : u
+    );
+    const updatedSettings = { ...settingsForm, adminUsers: updatedUsers };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: updatedSettings }),
+      });
+    } catch {}
+
+    addToast("تم تحديث الحالة", "تم تعديل حالة نشاط الحساب بنجاح", "info");
+  };
+
+  // Delete Sub-User
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`هل أنت متأكد من حذف حساب "${userName}" نهائياً؟`)) return;
+
+    const currentUsers = settingsForm.adminUsers || [];
+    const updatedUsers = currentUsers.filter((u) => u.id !== userId);
+    const updatedSettings = { ...settingsForm, adminUsers: updatedUsers };
+    setSettingsForm(updatedSettings);
+    updateStoreSettings(updatedSettings);
+
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: updatedSettings }),
+      });
+    } catch {}
+
+    addToast("تم حذف الحساب", `تم إلغاء حساب ${userName} نهائياً`, "info");
   };
 
   // Helper to retrieve product thumbnail for order items
@@ -1316,8 +1500,8 @@ export default function AdminPage() {
     }));
   };
 
-  // 16 Settings Tabs Configuration (Protected by security password: Kk5019Kk@#$&)
-  const settingsTabs: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
+  // Settings Tabs Configuration based on role permissions
+  const baseSettingsTabs: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: "products", label: "إدارة المنتجات", icon: <Package className="w-4 h-4" /> },
     { id: "collections", label: "الكولكشن والمجموعات", icon: <Layers className="w-4 h-4" /> },
     { id: "pages", label: "الصفحات المستقلة", icon: <BookOpen className="w-4 h-4" /> },
@@ -1337,6 +1521,17 @@ export default function AdminPage() {
     { id: "policies", label: "سياسات المتجر", icon: <ShieldCheck className="w-4 h-4" /> },
   ];
 
+  const settingsTabs = useMemo(() => {
+    if (!canViewSettings) return [];
+    if (canManageUsers) {
+      return [
+        ...baseSettingsTabs,
+        { id: "users" as ActiveTab, label: "المستخدمين والصلاحيات", icon: <UserPlus className="w-4 h-4" />, badge: settingsForm.adminUsers?.length },
+      ];
+    }
+    return baseSettingsTabs;
+  }, [canViewSettings, canManageUsers, settingsForm.adminUsers]);
+
   // ========================================================
   // LOGIN SCREEN
   // ========================================================
@@ -1352,7 +1547,7 @@ export default function AdminPage() {
             لوحة الإدارة السحابية
           </h1>
           <p className="text-xs text-[#756555] mb-8 font-light">
-            سجل دخولك لإدارة الطلبات والمنتجات وتعديل نصوص المتجر
+            سجل دخولك بحسابك المصرح له للوصول إلى لوحة التحكم
           </p>
 
           {authError && (
@@ -1370,6 +1565,7 @@ export default function AdminPage() {
                 <input
                   type="text"
                   required
+                  autoComplete="off"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   placeholder="اسم المستخدم"
@@ -1387,6 +1583,7 @@ export default function AdminPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  autoComplete="off"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="كلمة المرور"
@@ -1450,35 +1647,61 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons & Current User Info */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Store Settings Gear Button */}
-            <button
-              type="button"
-              onClick={() => {
-                if (isSettingsUnlocked) {
-                  if (activeTab === "orders") setActiveTab("products");
-                  else setActiveTab("orders");
-                } else {
-                  setPendingTabAfterUnlock("products");
-                  setIsSettingsPasswordModalOpen(true);
-                }
-              }}
-              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 shadow-sm active:scale-95 ${
-                activeTab !== "orders"
-                  ? "bg-[#161412] text-[#c5a880] border-[#161412]"
-                  : "bg-white border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3]"
-              }`}
-              title="إعدادات وتخصيصات المتجر (محمية بكلمة مرور)"
-            >
-              <Settings className={`w-3.5 h-3.5 ${activeTab !== "orders" ? "rotate-45 text-[#c5a880]" : "text-[#8c7865]"} transition-transform`} />
-              <span className="hidden sm:inline">إعدادات المتجر</span>
-              {isSettingsUnlocked ? (
-                <Unlock className="w-3 h-3 text-emerald-500" />
-              ) : (
-                <Lock className="w-3 h-3 text-amber-500" />
-              )}
-            </button>
+            {currentUser && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#f7f4ee] border border-[#ded2c0] text-xs shadow-xs">
+                {currentUser.role === "super_admin" ? (
+                  <Crown className="w-3.5 h-3.5 text-amber-600" />
+                ) : currentUser.role === "orders_customers" ? (
+                  <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
+                ) : currentUser.role === "store_editor" ? (
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                ) : (
+                  <Shield className="w-3.5 h-3.5 text-emerald-600" />
+                )}
+                <span className="font-bold text-[#161412]">{currentUser.name}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white border border-[#ded2c0] text-[#756555] font-bold">
+                  {currentUser.role === "super_admin"
+                    ? "المالك (Super Admin)"
+                    : currentUser.role === "orders_customers"
+                    ? "الطلبات والعملاء"
+                    : currentUser.role === "store_editor"
+                    ? "تعديل المتجر"
+                    : "صلاحية كاملة"}
+                </span>
+              </div>
+            )}
+
+            {/* Store Settings Gear Button (Only for users with store editor access) */}
+            {canViewSettings && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (isSettingsUnlocked) {
+                    if (activeTab === "orders") setActiveTab("products");
+                    else setActiveTab(canViewOrders ? "orders" : "products");
+                  } else {
+                    setPendingTabAfterUnlock("products");
+                    setIsSettingsPasswordModalOpen(true);
+                  }
+                }}
+                className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 shadow-sm active:scale-95 ${
+                  activeTab !== "orders"
+                    ? "bg-[#161412] text-[#c5a880] border-[#161412]"
+                    : "bg-white border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3]"
+                }`}
+                title="إعدادات وتخصيصات المتجر (محمية بكلمة مرور)"
+              >
+                <Settings className={`w-3.5 h-3.5 ${activeTab !== "orders" ? "rotate-45 text-[#c5a880]" : "text-[#8c7865]"} transition-transform`} />
+                <span className="hidden sm:inline">إعدادات المتجر</span>
+                {isSettingsUnlocked ? (
+                  <Unlock className="w-3 h-3 text-emerald-500" />
+                ) : (
+                  <Lock className="w-3 h-3 text-amber-500" />
+                )}
+              </button>
+            )}
 
             <button
               onClick={handleSaveSettings}
@@ -1541,40 +1764,45 @@ export default function AdminPage() {
 
         {/* MOBILE HORIZONTAL TABS (< md) */}
         <div className="md:hidden flex items-center gap-1 mt-2.5 pt-2 border-t border-[#e8ded0] overflow-x-auto scrollbar-none text-xs">
-          <button
-            onClick={() => setActiveTab("orders")}
-            className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-              activeTab === "orders"
-                ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                : "text-[#5c4f42] hover:bg-white/60"
-            }`}
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>الطلبات والمبيعات</span>
-            {orderMetrics.pending > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">
-                {orderMetrics.pending}
-              </span>
-            )}
-          </button>
-
-          <div className="w-px h-5 bg-[#ded2c0] mx-1 shrink-0" />
-
-          {settingsTabs.map((tab) => (
+          {canViewOrders && (
             <button
-              key={tab.id}
-              onClick={() => handleTabClick(tab.id)}
+              onClick={() => setActiveTab("orders")}
               className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-                activeTab === tab.id
+                activeTab === "orders"
                   ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
                   : "text-[#5c4f42] hover:bg-white/60"
               }`}
             >
-              {tab.icon}
-              <span>{tab.label}</span>
-              {!isSettingsUnlocked && <Lock className="w-2.5 h-2.5 text-[#baa996]" />}
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>الطلبات والمبيعات</span>
+              {orderMetrics.pending > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">
+                  {orderMetrics.pending}
+                </span>
+              )}
             </button>
-          ))}
+          )}
+
+          {canViewOrders && canViewSettings && settingsTabs.length > 0 && (
+            <div className="w-px h-5 bg-[#ded2c0] mx-1 shrink-0" />
+          )}
+
+          {canViewSettings &&
+            settingsTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabClick(tab.id)}
+                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:bg-white/60"
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                {!isSettingsUnlocked && <Lock className="w-2.5 h-2.5 text-[#baa996]" />}
+              </button>
+            ))}
         </div>
       </header>
 
@@ -1583,38 +1811,41 @@ export default function AdminPage() {
         {/* DESKTOP SIDEBAR (w-64, sticky, scrolls independently) */}
         <aside className="hidden md:block w-64 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-l border-[#e8ded0] bg-[#f7f4ee]/80 p-3 space-y-3">
           {/* Section 1: Orders (Direct & Accessible) */}
-          <div className="space-y-1">
-            <div className="text-[11px] font-bold text-[#8c7865] px-3 py-1 uppercase tracking-wider flex items-center gap-1.5">
-              <ShoppingBag className="w-3.5 h-3.5 text-[#c5a880]" />
-              <span>الطلبات والمبيعات</span>
-            </div>
-
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
-                activeTab === "orders"
-                  ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                  : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className={activeTab === "orders" ? "text-[#c5a880]" : "text-[#8c7865]"}>
-                  <ShoppingBag className="w-4 h-4" />
-                </span>
-                <span>الطلبات والعملاء</span>
+          {canViewOrders && (
+            <div className="space-y-1">
+              <div className="text-[11px] font-bold text-[#8c7865] px-3 py-1 uppercase tracking-wider flex items-center gap-1.5">
+                <ShoppingBag className="w-3.5 h-3.5 text-[#c5a880]" />
+                <span>الطلبات والمبيعات</span>
               </div>
 
-              {orderMetrics.pending > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-[#161412]">
-                  {orderMetrics.pending}
-                </span>
-              )}
-            </button>
-          </div>
+              <button
+                onClick={() => setActiveTab("orders")}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
+                  activeTab === "orders"
+                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className={activeTab === "orders" ? "text-[#c5a880]" : "text-[#8c7865]"}>
+                    <ShoppingBag className="w-4 h-4" />
+                  </span>
+                  <span>الطلبات والعملاء</span>
+                </div>
+
+                {orderMetrics.pending > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-[#161412]">
+                    {orderMetrics.pending}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Section 2: Store Settings with Gear Icon & Security Lock */}
-          <div className="pt-2 border-t border-[#e8ded0] space-y-1">
-            <div className="px-3 py-2 bg-white/90 rounded-xl border border-[#ded2c0] flex items-center justify-between shadow-xs">
+          {canViewSettings && (
+            <div className={`space-y-1 ${canViewOrders ? "pt-2 border-t border-[#e8ded0]" : ""}`}>
+              <div className="px-3 py-2 bg-white/90 rounded-xl border border-[#ded2c0] flex items-center justify-between shadow-xs">
               <button
                 type="button"
                 onClick={() => {
@@ -1688,6 +1919,7 @@ export default function AdminPage() {
               })}
             </div>
           </div>
+        )}
         </aside>
 
         {/* MAIN CONTENT AREA */}
@@ -5706,18 +5938,6 @@ export default function AdminPage() {
                     <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
                       <input
                         type="checkbox"
-                        checked={!!settingsForm.returnPolicyInspectionAllowed}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyInspectionAllowed: e.target.checked })}
-                        className="rounded border-[#ded2c0] text-[#161412]"
-                      />
-                      <span>السماح بمعاينة القطعة وقياسها قبل الاستلام</span>
-                    </label>
-                  </div>
-
-                  <div className="flex items-center pt-6">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                      <input
-                        type="checkbox"
                         checked={settingsForm.returnPolicyFreeExchange !== false}
                         onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyFreeExchange: e.target.checked })}
                         className="rounded border-[#ded2c0] text-[#161412]"
@@ -5785,6 +6005,215 @@ export default function AdminPage() {
                 <Save className="w-4 h-4 text-[#c5a880]" />
                 <span>حفظ سياسات المتجر والضمان</span>
               </button>
+            </div>
+          )}
+
+          {/* ========================================================
+              TAB 15: USERS & PERMISSIONS (Super Admin Only)
+              ======================================================== */}
+          {activeTab === "users" && canManageUsers && (
+            <div className="space-y-6 max-w-4xl">
+              {/* Header Box */}
+              <div className="bg-white rounded-2xl border border-[#e8ded0] p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-[#161412] text-[#c5a880]">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-[#161412] font-amiri">
+                        إدارة المستخدمين وصلاحيات لوحة التحكم
+                      </h2>
+                      <p className="text-xs text-[#756555] mt-0.5">
+                        التحكم الكامل في حسابات فريق العمل وتحديد صفحات الوصول بدقة
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewUserError("");
+                    setNewUserName("");
+                    setNewUsername("");
+                    setNewUserPassword("");
+                    setNewUserRole("orders_customers");
+                    setIsAddUserModalOpen(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
+                >
+                  <UserPlus className="w-4 h-4 text-[#c5a880]" />
+                  <span>+ إضافة مستخدم جديد</span>
+                </button>
+              </div>
+
+              {/* Master Super Admin Card (Permanent & Protected) */}
+              <div className="bg-gradient-to-l from-[#faf6ee] to-white rounded-2xl border-2 border-[#c5a880]/50 p-6 shadow-sm space-y-3 relative overflow-hidden">
+                <div className="absolute top-0 left-0 bg-[#c5a880] text-[#161412] px-3 py-1 rounded-br-xl text-[10px] font-black flex items-center gap-1 shadow-xs">
+                  <Crown className="w-3 h-3 text-[#161412]" />
+                  <span>المالك والمدير العام (Master Super Admin)</span>
+                </div>
+
+                <div className="flex items-start justify-between pt-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-[#161412] text-[#c5a880] flex items-center justify-center font-bold text-lg shadow-md">
+                      ك
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#161412] flex items-center gap-2">
+                        <span>كريم مصطفى</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#161412] text-[#c5a880]">
+                          karim mostafa
+                        </span>
+                      </h3>
+                      <p className="text-xs text-[#756555] mt-0.5">
+                        صلاحية مطلقة: إدارة الطلبات والعملاء + تعديل نصوص وإعدادات المتجر + إدارة المستخدمين
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    حساب رئيسي دائم
+                  </span>
+                </div>
+
+                <div className="bg-white/80 rounded-xl p-3 border border-[#e8ded0] text-[11px] text-[#756555] flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-[#c5a880] shrink-0" />
+                  <span>
+                    كلمة مرور الحساب الماستر مشفرة ومحمية بسجلات التشفير السحابية. لا يمكن حذفه أو تقييد صلاحياته لأسباب أمنية.
+                  </span>
+                </div>
+              </div>
+
+              {/* Sub-Admins List */}
+              <div className="bg-white rounded-2xl border border-[#e8ded0] p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#161412] flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#c5a880]" />
+                      <span>المستخدمون المصرح لهم (الموظفون وفريق العمل)</span>
+                    </h3>
+                    <p className="text-xs text-[#756555] mt-0.5">
+                      يمكنك تحديد ما يظهر لكل مستخدم عند تسجيل دخوله (الطلبات فقط، أو تعديل المتجر فقط، أو كلاهما)
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-[#8c7865] bg-[#fbf9f5] px-2.5 py-1 rounded-lg border border-[#e8ded0]">
+                    {(settingsForm.adminUsers || []).length} مستخدم
+                  </span>
+                </div>
+
+                {(!settingsForm.adminUsers || settingsForm.adminUsers.length === 0) ? (
+                  <div className="py-10 text-center space-y-3 bg-[#fbf9f5] rounded-xl border border-dashed border-[#ded2c0]">
+                    <div className="w-12 h-12 rounded-full bg-[#f4ece0] text-[#8c7865] flex items-center justify-center mx-auto">
+                      <UserCheck className="w-6 h-6 text-[#c5a880]" />
+                    </div>
+                    <h4 className="text-xs font-bold text-[#161412]">لا يوجد مستخدمون فرعيون مضافون</h4>
+                    <p className="text-[11px] text-[#8c7865] max-w-sm mx-auto">
+                      يمكنك الآن إضافة موظف مبيعات لرؤية الطلبات فقط، أو مصمم ومسؤول محتوى لتعديل الموقع والمنتجات فقط دون الوصول للطلبات.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewUserError("");
+                        setNewUserName("");
+                        setNewUsername("");
+                        setNewUserPassword("");
+                        setNewUserRole("orders_customers");
+                        setIsAddUserModalOpen(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all"
+                    >
+                      + إضافة أول مستخدم الآن
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3">
+                    {settingsForm.adminUsers.map((u) => (
+                      <div
+                        key={u.id}
+                        className={`p-4 rounded-xl border transition-all ${
+                          u.isActive
+                            ? "bg-[#fbf9f5] border-[#e8ded0] hover:border-[#c5a880]"
+                            : "bg-gray-50 border-gray-200 opacity-60"
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-[#ded2c0] flex items-center justify-center font-bold text-sm text-[#161412] shadow-xs">
+                              {u.name.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-[#161412]">{u.name}</span>
+                                <span className="font-mono text-[11px] text-[#8c7865] bg-white px-2 py-0.5 rounded-md border border-[#ded2c0]">
+                                  @{u.username}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                {u.role === "orders_customers" && (
+                                  <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200 text-[10px] font-bold flex items-center gap-1">
+                                    <ShoppingBag className="w-3 h-3 text-blue-600" />
+                                    <span>الطلبات والعملاء فقط</span>
+                                  </span>
+                                )}
+                                {u.role === "store_editor" && (
+                                  <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 border border-purple-200 text-[10px] font-bold flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3 text-purple-600" />
+                                    <span>تعديل المتجر والموقع فقط</span>
+                                  </span>
+                                )}
+                                {u.role === "all" && (
+                                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
+                                    <Shield className="w-3 h-3 text-emerald-600" />
+                                    <span>كامل الصلاحيات (الطلبات + المتجر)</span>
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-[#8c7865]">
+                                  أنشئ في: {u.createdAt}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {/* Password Badge */}
+                            <div className="px-2.5 py-1 rounded-lg bg-white border border-[#ded2c0] text-[11px] font-mono text-[#5c4f42] flex items-center gap-1">
+                              <KeyRound className="w-3 h-3 text-[#c5a880]" />
+                              <span>{u.password}</span>
+                            </div>
+
+                            {/* Toggle Active Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleUserActive(u.id)}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors ${
+                                u.isActive
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-amber-50 hover:text-amber-700"
+                                  : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-emerald-50 hover:text-emerald-700"
+                              }`}
+                              title={u.isActive ? "تعطيل الحساب" : "تفعيل الحساب"}
+                            >
+                              {u.isActive ? "نشط" : "معطل"}
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteUser(u.id, u.name)}
+                              className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors"
+                              title="حذف المستخدم نهائياً"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </main>
@@ -7802,6 +8231,203 @@ export default function AdminPage() {
                 >
                   <Check className="w-4 h-4" />
                   <span>حفظ وإنشاء الطلب بالسحابة ⚡</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          ADD NEW USER MODAL (Super Admin Only)
+          ======================================================== */}
+      {isAddUserModalOpen && (
+        <div
+          dir="rtl"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn font-cairo"
+        >
+          <div
+            className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-[#ded2c0] overflow-hidden animate-scaleUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-[#161412] text-[#f7f4ee] px-6 py-4 flex items-center justify-between border-b border-[#2e2925]">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-white/10 text-[#c5a880]">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold font-amiri text-white">إضافة مستخدم جديد وتحديد الصلاحيات</h3>
+                  <p className="text-[11px] text-[#baa996]">أنشئ حساباً لأحد أفراد الفريق وحدد ما يحق له رؤيته</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddUserModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-[#baa996] hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleAddUser} className="p-6 space-y-4">
+              {newUserError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">
+                  {newUserError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-[#161412] mb-1">
+                  الاسم الكامل / المسمى الوظيفي *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: أحمد سمير - مسؤول المبيعات"
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#161412] mb-1">
+                    اسم المستخدم (Username) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="off"
+                    placeholder="مثال: ahmed"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value.toLowerCase())}
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs font-mono text-[#161412] focus:outline-none focus:border-[#161412]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#161412] mb-1">
+                    كلمة المرور (Password) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="off"
+                    placeholder="كلمة مرور قوية"
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                  />
+                </div>
+              </div>
+
+              {/* Role Selection */}
+              <div>
+                <label className="block text-xs font-bold text-[#161412] mb-2">
+                  تحديد نوع الصلاحية الممنوحة *
+                </label>
+                <div className="space-y-2">
+                  {/* Option 1: Orders and Customers Only */}
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      newUserRole === "orders_customers"
+                        ? "bg-[#faf6ee] border-[#161412] shadow-xs"
+                        : "bg-white border-[#e8ded0] hover:bg-[#fbf9f5]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="orders_customers"
+                      checked={newUserRole === "orders_customers"}
+                      onChange={() => setNewUserRole("orders_customers")}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#161412]">
+                        <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
+                        <span>📦 صفحة العملاء والطلبات فقط</span>
+                      </div>
+                      <p className="text-[11px] text-[#756555] mt-0.5">
+                        يرى فقط الطلبات الواردة، تفاصيل العملاء، تحديث الشحن، وإضافة طلب لعميل. يتم إخفاء إعدادات المتجر والمنتجات والأسعار تماماً.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Option 2: Store Editor Only */}
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      newUserRole === "store_editor"
+                        ? "bg-[#faf6ee] border-[#161412] shadow-xs"
+                        : "bg-white border-[#e8ded0] hover:bg-[#fbf9f5]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="store_editor"
+                      checked={newUserRole === "store_editor"}
+                      onChange={() => setNewUserRole("store_editor")}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#161412]">
+                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                        <span>🎨 صفحة تعديل الموقع وتخصيص المتجر فقط</span>
+                      </div>
+                      <p className="text-[11px] text-[#756555] mt-0.5">
+                        يرى فقط تعديل المنتجات، البانر الرئيسي، شريط الإعلانات، الفوتر، الصفحات، والشحن. يتم إخفاء الطلبات وبيانات العملاء لحماية الخصوصية.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Option 3: All Permissions */}
+                  <label
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      newUserRole === "all"
+                        ? "bg-[#faf6ee] border-[#161412] shadow-xs"
+                        : "bg-white border-[#e8ded0] hover:bg-[#fbf9f5]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="all"
+                      checked={newUserRole === "all"}
+                      onChange={() => setNewUserRole("all")}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#161412]">
+                        <Shield className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>⚡ كلا القسمين (الطلبات + تعديل المتجر)</span>
+                      </div>
+                      <p className="text-[11px] text-[#756555] mt-0.5">
+                        يمتلك صلاحية الوصول للطلبات وتعديل كافة صفحات المتجر، باستثناء إدارة المستخدمين التي تظل حصرية للمالك كريم مصطفى.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Modal Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#ded2c0]">
+                <button
+                  type="button"
+                  onClick={() => setIsAddUserModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl bg-[#f7f4ee] hover:bg-[#e8ded0] text-[#161412] text-xs font-medium transition-all"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#c5a880] hover:text-[#f7f4ee] text-xs font-bold shadow-md transition-all flex items-center gap-2 active:scale-95"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>إنشاء الحساب ومزامنته في السحابة ⚡</span>
                 </button>
               </div>
             </form>

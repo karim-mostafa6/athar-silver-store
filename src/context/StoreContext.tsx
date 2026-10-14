@@ -32,7 +32,21 @@ export interface MarqueeExtraMessage {
   visible: boolean;
 }
 
+export type AdminRole = "super_admin" | "orders_customers" | "store_editor" | "all";
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  username: string;
+  password: string;
+  role: "orders_customers" | "store_editor" | "all";
+  createdAt: string;
+  isActive: boolean;
+}
+
 export interface StoreSettings {
+  // Sub-admins and Permissions
+  adminUsers?: AdminUser[];
   whatsappNumber: string;
   announcementText: string;
   freeShippingThreshold: number;
@@ -359,6 +373,7 @@ interface StoreContextType {
   isWishlistOpen: boolean;
   isCheckoutOpen: boolean;
   isSizeGuideOpen: boolean;
+  isCustomerModalOpen: boolean;
   quickViewProduct: Product | null;
   appliedPromo: string;
   toasts: ToastMessage[];
@@ -377,6 +392,7 @@ interface StoreContextType {
   setIsWishlistOpen: (open: boolean) => void;
   setIsCheckoutOpen: (open: boolean) => void;
   setIsSizeGuideOpen: (open: boolean) => void;
+  setIsCustomerModalOpen: (open: boolean) => void;
   setQuickViewProduct: (product: Product | null) => void;
   setAppliedPromo: (promo: string) => void;
   addToast: (title: string, message: string, type?: "cart" | "wishlist" | "promo" | "info") => void;
@@ -645,6 +661,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   checkoutEnableWallets: true,
   checkoutEnableCards: true,
   checkoutEnableGiftOption: true,
+  adminUsers: [],
 
   // Policies & Guarantee Defaults
   returnPolicyDays: 14,
@@ -971,6 +988,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [appliedPromo, setAppliedPromo] = useState("");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -1621,6 +1639,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setIsWishlistOpen,
         setIsCheckoutOpen,
         setIsSizeGuideOpen,
+        isCustomerModalOpen,
+        setIsCustomerModalOpen,
         setQuickViewProduct,
         setAppliedPromo,
         addToast,

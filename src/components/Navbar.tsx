@@ -111,6 +111,7 @@ interface NavbarProps {
   onOpenCart?: () => void;
   onOpenWishlist?: () => void;
   onOpenSizeGuide?: () => void;
+  onOpenCustomerModal?: () => void;
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
   selectedCategory?: string;
@@ -125,6 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   wishlistCount,
   onOpenWishlist,
   onOpenSizeGuide,
+  onOpenCustomerModal,
   searchQuery = "",
   setSearchQuery,
   onNotify,
@@ -139,6 +141,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const effectiveWishlistCount = wishlistCount !== undefined ? wishlistCount : store.wishlistCount;
   const handleOpenWishlist = onOpenWishlist || (() => store.setIsWishlistOpen(true));
   const handleOpenSizeGuide = onOpenSizeGuide || (() => store.setIsSizeGuideOpen(true));
+  const handleOpenCustomerModal = onOpenCustomerModal || (() => store.setIsCustomerModalOpen(true));
   const handleNotify = onNotify || store.addToast;
 
   const currentQuery = setSearchQuery ? searchQuery : internalQuery;
@@ -293,15 +296,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* Account / Admin Portal Link */}
-            <Link
-              href="/admin"
+            {/* Customer Account & Order Tracking */}
+            <button
+              type="button"
+              onClick={handleOpenCustomerModal}
               className="p-2 rounded-full text-[#5c4f42] hover:bg-[#ede3d3] hover:text-[#161412] transition-colors"
-              title="لوحة الإدارة"
-              aria-label="لوحة الإدارة"
+              title="حسابي / تتبع طلبي"
+              aria-label="حسابي / تتبع طلبي"
             >
               <User className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Link>
+            </button>
 
             {/* Wishlist Button */}
             <button

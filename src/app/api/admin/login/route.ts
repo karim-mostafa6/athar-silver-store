@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAdminToken, checkRateLimit, recordFailedAttempt, resetFailedAttempts } from "@/lib/adminAuth";
 
+import { getServerStoreData } from "@/lib/serverStore";
+
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
@@ -25,12 +27,53 @@ export async function POST(request: NextRequest) {
     const trimmedUser = (username || "").trim().toLowerCase();
     const cleanPass = (password || "").trim();
 
-    const isValid =
-      (trimmedUser === "karim mostafa" && cleanPass === "Kk5019Kk@#$&") ||
-      (trimmedUser === "admin" && cleanPass === "athar2026") ||
-      (trimmedUser === "admin" && cleanPass === "admin");
+    // Strictly block generic 'admin' usernames
+    if (!trimmedUser || !cleanPass || trimmedUser === "admin") {
+      recordFailedAttempt(ip);
+      return NextResponse.json(
+        { success: false, error: "اسم المستخدم أو كلمة المرور غير صحيحة." },
+        { status: 401 }
+      );
+    }
 
-    if (!isValid) {
+    let authenticatedUser: {
+      username: string;
+      name: string;
+      role: "super_admin" | "orders_customers" | "store_editor" | "all";
+    } | null = null;
+
+    // 1. Check Primary Master Super Admin (Karim Mostafa)
+    if (trimmedUser === "karim mostafa" && cleanPass === "Kk5019Kk@#$&") {
+      authenticatedUser = {
+        username: "karim mostafa",
+        name: "كريم مصطفى",
+        role: "super_admin",
+      };
+    } else {
+      // 2. Check Custom Sub-Admins in Central Store Settings
+      try {
+        const storeData = await getServerStoreData();
+        const subUsers = storeData.settings?.adminUsers || [];
+        const found = subUsers.find(
+          (u) =>
+            u.username.toLowerCase().trim() === trimmedUser &&
+            u.password === cleanPass &&
+            u.isActive !== false
+        );
+
+        if (found) {
+          authenticatedUser = {
+            username: found.username,
+            name: found.name || found.username,
+            role: found.role,
+          };
+        }
+      } catch (err) {
+        console.error("Error reading store settings for user authentication:", err);
+      }
+    }
+
+    if (!authenticatedUser) {
       recordFailedAttempt(ip);
       return NextResponse.json(
         { success: false, error: "اسم المستخدم أو كلمة المرور غير صحيحة." },
@@ -40,13 +83,13 @@ export async function POST(request: NextRequest) {
 
     // Success! Reset failed attempts and issue signed secure token
     resetFailedAttempts(ip);
-    const token = generateAdminToken(trimmedUser);
+    const token = generateAdminToken(authenticatedUser.username);
 
     const response = NextResponse.json({
       success: true,
       message: "تم تسجيل الدخول بنجاح",
       token,
-      user: trimmedUser,
+      user: authenticatedUser,
     });
 
     // Set secure cookie
