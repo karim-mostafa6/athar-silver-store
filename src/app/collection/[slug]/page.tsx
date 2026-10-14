@@ -1,21 +1,38 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
 import { ArrowUpDown } from "lucide-react";
-
 import { DEFAULT_CATEGORIES } from "@/data/products";
 
-export default function CollectionPage() {
+function CollectionPageContent() {
   const { products: allStoreProducts, storeSettings } = useStore();
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = (params?.slug as string) || "all";
+  const genderQuery = searchParams.get("gender"); // "men" | "women" | null
 
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("all");
+  const isGenderPage = slug === "men" || slug === "women";
+  const isAllPage = slug === "all";
+  const isCategoryPage = !isGenderPage && !isAllPage;
+
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>(() => {
+    if (genderQuery === "men" || genderQuery === "women") return genderQuery;
+    return "all";
+  });
   const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("popular");
+
+  // Keep selectedSubCategory synced with ?gender= URL query param
+  useEffect(() => {
+    if (genderQuery === "men" || genderQuery === "women") {
+      setSelectedSubCategory(genderQuery);
+    } else if (!genderQuery && isCategoryPage) {
+      setSelectedSubCategory("all");
+    }
+  }, [genderQuery, isCategoryPage]);
 
   // Collection metadata
   const collectionInfo = useMemo(() => {
@@ -128,7 +145,7 @@ export default function CollectionPage() {
     // Merge with custom overrides from storeSettings.collectionPages
     const custom = storeSettings?.collectionPages?.[slug];
     if (custom) {
-      return {
+      base = {
         ...base,
         title: custom.title !== undefined ? custom.title : base.title,
         englishTitle: custom.englishTitle !== undefined ? custom.englishTitle : base.englishTitle,
@@ -137,52 +154,160 @@ export default function CollectionPage() {
         showBanner: custom.showBanner !== undefined ? custom.showBanner : base.showBanner,
       };
     }
+
+    // Dynamic Title Adjustment if filtering by gender on category page
+    if (isCategoryPage && (selectedSubCategory === "men" || selectedSubCategory === "women")) {
+      const genderLabel = selectedSubCategory === "men" ? "رجالي" : "حريمي";
+      const englishGender = selectedSubCategory === "men" ? "MEN'S" : "WOMEN'S";
+      return {
+        ...base,
+        title: `${base.title} (${genderLabel})`,
+        englishTitle: `${englishGender} ${base.englishTitle}`,
+      };
+    }
+
     return base;
-  }, [slug, storeSettings?.categories, storeSettings?.collectionPages]);
+  }, [slug, isCategoryPage, selectedSubCategory, storeSettings?.categories, storeSettings?.collectionPages]);
 
   // Subcategories
   const subCategories = useMemo(() => {
+    // 1. If on Category Page: Show Gender Options
+    if (isCategoryPage) {
+      if (slug === "rings") {
+        return [
+          { id: "all", label: "كافة الخواتم" },
+          { id: "men", label: "خواتم رجالي" },
+          { id: "women", label: "خواتم حريمي وسوليتير" },
+        ];
+      }
+      if (slug === "chains") {
+        return [
+          { id: "all", label: "كافة السلاسل" },
+          { id: "men", label: "سلاسل رجالي" },
+          { id: "women", label: "سلاسل حريمي" },
+        ];
+      }
+      if (slug === "bracelets") {
+        return [
+          { id: "all", label: "كافة الأساور" },
+          { id: "men", label: "أساور رجالي" },
+          { id: "women", label: "أساور وتنس حريمي" },
+        ];
+      }
+      if (slug === "sets") {
+        return [
+          { id: "all", label: "كافة الأطقم" },
+          { id: "men", label: "أطقم رجالية" },
+          { id: "women", label: "أطقم نسائية" },
+        ];
+      }
+      if (slug === "earrings") {
+        return [
+          { id: "all", label: "كافة الأقراط" },
+          { id: "women", label: "أقراط حريمي" },
+        ];
+      }
+      return [
+        { id: "all", label: "الكل" },
+        { id: "men", label: "رجالي" },
+        { id: "women", label: "حريمي" },
+      ];
+    }
+
+    // 2. If on Men's Collection: Show Men's Categories
+    if (slug === "men") {
+      return [
+        { id: "all", label: "كافة التشكيلة الرجالية" },
+        { id: "rings", label: "خواتم رجالي" },
+        { id: "chains", label: "سلاسل رجالي" },
+        { id: "bracelets", label: "أساور رجالي" },
+        { id: "sets", label: "أطقم وهدايا" },
+      ];
+    }
+
+    // 3. If on Women's Collection: Show Women's Categories
+    if (slug === "women") {
+      return [
+        { id: "all", label: "كافة التشكيلة النسائية" },
+        { id: "rings", label: "خواتم وسوليتير" },
+        { id: "chains", label: "سلاسل ودلايات" },
+        { id: "bracelets", label: "أساور وتنس" },
+        { id: "earrings", label: "أقراط وحلقان" },
+        { id: "sets", label: "أطقم ملكية" },
+      ];
+    }
+
+    // 4. Default / All
     const list =
       storeSettings?.categories && storeSettings.categories.length > 0
         ? storeSettings.categories
         : DEFAULT_CATEGORIES;
     return [
-      { id: "all", label: "الكل" },
+      { id: "all", label: "كافة القطع" },
+      { id: "men", label: "تشكيلة رجالية" },
+      { id: "women", label: "تشكيلة نسائية" },
       ...list.map((c) => ({
         id: c.id,
         label: storeSettings?.collectionPages?.[c.id]?.title || c.label,
       })),
     ];
-  }, [storeSettings?.categories, storeSettings?.collectionPages]);
+  }, [slug, isCategoryPage, storeSettings?.categories, storeSettings?.collectionPages]);
 
   // Filtering products
   const products = useMemo(() => {
     return allStoreProducts.filter((p) => {
-      // By gender
-      if (collectionInfo.filterGender) {
-        const matchesGender = p.gender === collectionInfo.filterGender || p.gender === "unisex";
+      // 1. Strict Category isolation when on a Category Page:
+      if (isCategoryPage && collectionInfo.filterCategory) {
+        const matchCat = p.category === collectionInfo.filterCategory;
+        const matchCol = Array.isArray(p.collections) && p.collections.includes(collectionInfo.filterCategory);
+        if (!matchCat && !matchCol) {
+          return false;
+        }
+
+        // Gender filter inside this category
+        if (selectedSubCategory === "men") {
+          return p.gender === "men" || p.gender === "unisex";
+        }
+        if (selectedSubCategory === "women") {
+          return p.gender === "women" || p.gender === "unisex";
+        }
+        return true;
+      }
+
+      // 2. Strict Gender isolation when on a Gender Page:
+      if (isGenderPage && collectionInfo.filterGender) {
+        const matchGender = p.gender === collectionInfo.filterGender || p.gender === "unisex";
         const inCollections = Array.isArray(p.collections) && p.collections.includes(collectionInfo.filterGender);
-        if (!matchesGender && !inCollections) {
+        if (!matchGender && !inCollections) {
           return false;
         }
-      }
-      // By category / collection
-      if (collectionInfo.filterCategory) {
-        const inCategory = p.category === collectionInfo.filterCategory;
-        const inCollections = Array.isArray(p.collections) && (p.collections.includes(collectionInfo.filterCategory) || p.collections.includes(slug));
-        const inTags = Array.isArray(p.tags) && (p.tags.includes(collectionInfo.filterCategory) || p.tags.includes(slug));
-        if (!inCategory && !inCollections && !inTags) {
-          return false;
+
+        // Subcategory category filter
+        if (selectedSubCategory !== "all") {
+          const inCat = p.category === selectedSubCategory;
+          const inCol = Array.isArray(p.collections) && p.collections.includes(selectedSubCategory);
+          if (!inCat && !inCol) {
+            return false;
+          }
         }
+        return true;
       }
-      // Sub-category filter
+
+      // 3. For 'all' collection page:
       if (selectedSubCategory !== "all") {
-        const inCategory = p.category === selectedSubCategory;
-        const inCollections = Array.isArray(p.collections) && p.collections.includes(selectedSubCategory);
-        if (!inCategory && !inCollections) {
+        if (selectedSubCategory === "men") {
+          return p.gender === "men" || p.gender === "unisex";
+        }
+        if (selectedSubCategory === "women") {
+          return p.gender === "women" || p.gender === "unisex";
+        }
+        const inCat = p.category === selectedSubCategory;
+        const inCol = Array.isArray(p.collections) && p.collections.includes(selectedSubCategory);
+        if (!inCat && !inCol) {
           return false;
         }
       }
+
       return true;
     }).sort((a, b) => {
       if (sortBy === "price-asc") return a.price - b.price;
@@ -190,7 +315,7 @@ export default function CollectionPage() {
       if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
       return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
     });
-  }, [collectionInfo, selectedSubCategory, sortBy, allStoreProducts, slug]);
+  }, [allStoreProducts, isCategoryPage, isGenderPage, collectionInfo.filterCategory, collectionInfo.filterGender, selectedSubCategory, sortBy]);
 
   return (
     <div>
@@ -259,7 +384,7 @@ export default function CollectionPage() {
 
         {/* Filters and Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#e8ded0] mb-10">
-          {/* Subcategory Pills */}
+          {/* Subcategory / Gender Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none text-xs">
             {subCategories.map((sub) => (
               <button
@@ -318,5 +443,13 @@ export default function CollectionPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CollectionPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#faf8f5]" />}>
+      <CollectionPageContent />
+    </Suspense>
   );
 }
