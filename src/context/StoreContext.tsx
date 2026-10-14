@@ -7,6 +7,12 @@ import { ToastMessage } from "@/components/Toast";
 export type { StoreCategory, CustomPage };
 export { DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES };
 
+export interface NavSubItem {
+  id?: string;
+  label: string;
+  href: string;
+}
+
 export interface NavLinkItem {
   id: string;
   label: string;
@@ -16,6 +22,7 @@ export interface NavLinkItem {
   badge?: string;
   badgeColor?: "amber" | "rose" | "emerald" | "blue" | "purple";
   targetBlank?: boolean;
+  subItems?: NavSubItem[];
 }
 
 export interface MarqueeExtraMessage {
@@ -505,13 +512,99 @@ const DEFAULT_SETTINGS: StoreSettings = {
   marqueeExtraMessages: [],
   // Nav Links & Collections Defaults
   navLinks: [
-    { id: "all", label: "كافة القطع", href: "/collection/all", visible: true },
-    { id: "women", label: "تشكيلة نسائية", href: "/collection/women", visible: true, badge: "جديد", badgeColor: "rose" },
-    { id: "men", label: "تشكيلة رجالية", href: "/collection/men", visible: true },
-    { id: "rings", label: "خواتم وسوليتير", href: "/collection/rings", visible: true, badge: "الأكثر طلباً", badgeColor: "amber" },
-    { id: "chains", label: "سلاسل إيطالي", href: "/collection/chains", visible: true },
-    { id: "bracelets", label: "أساور وتنس", href: "/collection/bracelets", visible: true },
-    { id: "sets", label: "أطقم ملكية", href: "/collection/sets", visible: true, badge: "VIP", badgeColor: "purple" },
+    {
+      id: "all",
+      label: "جميع المنتجات",
+      href: "/collection/all",
+      visible: true,
+      subItems: [
+        { label: "كافة المصوغات", href: "/collection/all" },
+        { label: "التشكيلة الرجالية", href: "/collection/men" },
+        { label: "التشكيلة النسائية", href: "/collection/women" },
+        { label: "خواتم وسوليتير", href: "/collection/rings" },
+        { label: "سلاسل إيطالي", href: "/collection/chains" },
+        { label: "أساور وتنس", href: "/collection/bracelets" },
+        { label: "أطقم ملكية", href: "/collection/sets" },
+        { label: "أقراط وحلقان", href: "/collection/earrings" },
+      ],
+    },
+    {
+      id: "women",
+      label: "تشكيلة نسائية",
+      href: "/collection/women",
+      visible: true,
+      badge: "جديد",
+      badgeColor: "rose",
+      subItems: [
+        { label: "كافة التشكيلة النسائية", href: "/collection/women" },
+        { label: "خواتم وسوليتير", href: "/collection/rings?gender=women" },
+        { label: "سلاسل ودلايات", href: "/collection/chains?gender=women" },
+        { label: "أساور وتنس", href: "/collection/bracelets?gender=women" },
+        { label: "أقراط وأطقم", href: "/collection/earrings?gender=women" },
+        { label: "أطقم ملكية", href: "/collection/sets?gender=women" },
+      ],
+    },
+    {
+      id: "men",
+      label: "تشكيلة رجالية",
+      href: "/collection/men",
+      visible: true,
+      subItems: [
+        { label: "كافة التشكيلة الرجالية", href: "/collection/men" },
+        { label: "خواتم رجالي", href: "/collection/rings?gender=men" },
+        { label: "سلاسل رجالي", href: "/collection/chains?gender=men" },
+        { label: "أساور رجالي", href: "/collection/bracelets?gender=men" },
+        { label: "أطقم وهدايا", href: "/collection/sets?gender=men" },
+      ],
+    },
+    {
+      id: "rings",
+      label: "خواتم",
+      href: "/collection/rings",
+      visible: true,
+      badge: "الأكثر طلباً",
+      badgeColor: "amber",
+      subItems: [
+        { label: "كافة الخواتم", href: "/collection/rings" },
+        { label: "خواتم رجالي", href: "/collection/rings?gender=men" },
+        { label: "خواتم حريمي", href: "/collection/rings?gender=women" },
+      ],
+    },
+    {
+      id: "chains",
+      label: "سلاسل",
+      href: "/collection/chains",
+      visible: true,
+      subItems: [
+        { label: "كافة السلاسل", href: "/collection/chains" },
+        { label: "سلاسل رجالي", href: "/collection/chains?gender=men" },
+        { label: "سلاسل حريمي", href: "/collection/chains?gender=women" },
+      ],
+    },
+    {
+      id: "bracelets",
+      label: "أساور",
+      href: "/collection/bracelets",
+      visible: true,
+      subItems: [
+        { label: "كافة الأساور", href: "/collection/bracelets" },
+        { label: "أساور رجالي", href: "/collection/bracelets?gender=men" },
+        { label: "أساور حريمي", href: "/collection/bracelets?gender=women" },
+      ],
+    },
+    {
+      id: "sets",
+      label: "أطقم ملكية",
+      href: "/collection/sets",
+      visible: true,
+      badge: "VIP",
+      badgeColor: "purple",
+      subItems: [
+        { label: "كافة الأطقم", href: "/collection/sets" },
+        { label: "أطقم رجالية", href: "/collection/sets?gender=men" },
+        { label: "أطقم نسائية فاخرة", href: "/collection/sets?gender=women" },
+      ],
+    },
     { id: "sizeguide", label: "دليل المقاسات", href: "#sizeguide", visible: true },
     { id: "story", label: "عن أَثَر", href: "/#story", visible: true },
     { id: "care", label: "العناية بالفضة", href: "/#care", visible: true },

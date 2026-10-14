@@ -10,11 +10,14 @@ import { useStore, NavLinkItem } from "@/context/StoreContext";
 interface SubNavItem {
   label: string;
   href: string;
-  badge?: string;
-  description?: string;
 }
 
 const getSubNavItems = (item: NavLinkItem): SubNavItem[] | null => {
+  // 1. If custom subItems configured in dashboard, use them
+  if (item.subItems && item.subItems.length > 0) {
+    return item.subItems;
+  }
+
   const href = (item.href || "").toLowerCase();
   const id = (item.id || "").toLowerCase();
   const label = item.label || "";
@@ -22,78 +25,80 @@ const getSubNavItems = (item: NavLinkItem): SubNavItem[] | null => {
   // Rings
   if (href.includes("/collection/rings") || id === "rings" || label.includes("خواتم")) {
     return [
-      { label: "كافة الخواتم", href: "/collection/rings", description: "جميع تشكيلات السوليتير والفضة 925" },
-      { label: "خواتم رجالي", href: "/collection/rings?gender=men", badge: "رجالي", description: "صياغة ثقيلة وعقيق يماني كلاسيكي" },
-      { label: "خواتم حريمي وسوليتير", href: "/collection/rings?gender=women", badge: "حريمي", description: "سوليتير زركون سويسري مرصع بدقة" },
+      { label: "كافة الخواتم", href: "/collection/rings" },
+      { label: "خواتم رجالي", href: "/collection/rings?gender=men" },
+      { label: "خواتم حريمي", href: "/collection/rings?gender=women" },
     ];
   }
 
   // Chains
   if (href.includes("/collection/chains") || id === "chains" || label.includes("سلاسل")) {
     return [
-      { label: "كافة السلاسل", href: "/collection/chains", description: "مسبوكات كبح وحبل إيطالي 925" },
-      { label: "سلاسل رجالي", href: "/collection/chains?gender=men", badge: "رجالي", description: "كبح إيطالي كوبان وتصاميم فخمة" },
-      { label: "سلاسل ودلايات حريمي", href: "/collection/chains?gender=women", badge: "حريمي", description: "سلاسل ناعمة مع دلايات مرصعة" },
+      { label: "كافة السلاسل", href: "/collection/chains" },
+      { label: "سلاسل رجالي", href: "/collection/chains?gender=men" },
+      { label: "سلاسل حريمي", href: "/collection/chains?gender=women" },
     ];
   }
 
   // Bracelets
   if (href.includes("/collection/bracelets") || id === "bracelets" || label.includes("أساور")) {
     return [
-      { label: "كافة الأساور", href: "/collection/bracelets", description: "أساور تنس وموديلات كلاسيكية" },
-      { label: "أساور رجالي", href: "/collection/bracelets?gender=men", badge: "رجالي", description: "أساور فضة ثقيلة وجلد طبيعي" },
-      { label: "أساور وتنس حريمي", href: "/collection/bracelets?gender=women", badge: "حريمي", description: "تنس ألماس سويسري وبناجر ملكية" },
+      { label: "كافة الأساور", href: "/collection/bracelets" },
+      { label: "أساور رجالي", href: "/collection/bracelets?gender=men" },
+      { label: "أساور حريمي", href: "/collection/bracelets?gender=women" },
     ];
   }
 
   // Sets
   if (href.includes("/collection/sets") || id === "sets" || label.includes("أطقم")) {
     return [
-      { label: "كافة الأطقم الملكية", href: "/collection/sets", description: "أطقم مناسبات وشبكة فضة فاخرة" },
-      { label: "أطقم رجالية", href: "/collection/sets?gender=men", badge: "رجالي", description: "طقم خاتم وسلسلة متناسق" },
-      { label: "أطقم نسائية فاخرة", href: "/collection/sets?gender=women", badge: "حريمي", description: "طقم متكامل (خاتم، عقد، حلق، إسورة)" },
+      { label: "كافة الأطقم", href: "/collection/sets" },
+      { label: "أطقم رجالية", href: "/collection/sets?gender=men" },
+      { label: "أطقم نسائية فاخرة", href: "/collection/sets?gender=women" },
     ];
   }
 
   // Earrings
   if (href.includes("/collection/earrings") || id === "earrings" || label.includes("أقراط")) {
     return [
-      { label: "كافة الأقراط", href: "/collection/earrings", description: "أقراط فضة 925 متدلية ونواعم" },
-      { label: "أقراط حريمي كلاسيكية", href: "/collection/earrings?gender=women", badge: "حريمي", description: "مرصعة بأحجار زركون براقة" },
+      { label: "كافة الأقراط", href: "/collection/earrings" },
+      { label: "أقراط حريمي", href: "/collection/earrings?gender=women" },
     ];
   }
 
   // Men collection
   if (href.includes("/collection/men") || id === "men" || label.includes("رجالي")) {
     return [
-      { label: "كافة التشكيلة الرجالية", href: "/collection/men", description: "استعرض كل روائع الفضة 925 الرجالية" },
-      { label: "خواتم رجالي", href: "/collection/rings?gender=men", description: "خواتم عقيق وسوليتير رجالي" },
-      { label: "سلاسل رجالي", href: "/collection/chains?gender=men", description: "سلاسل كبح وحبل إيطالي" },
-      { label: "أساور رجالي", href: "/collection/bracelets?gender=men", description: "أساور فضة وجلد طبيعي" },
-      { label: "أطقم رجالية", href: "/collection/sets?gender=men", description: "أطقم هدايا وإكسسوارات متناسقة" },
+      { label: "كافة التشكيلة الرجالية", href: "/collection/men" },
+      { label: "خواتم رجالي", href: "/collection/rings?gender=men" },
+      { label: "سلاسل رجالي", href: "/collection/chains?gender=men" },
+      { label: "أساور رجالي", href: "/collection/bracelets?gender=men" },
+      { label: "أطقم وهدايا", href: "/collection/sets?gender=men" },
     ];
   }
 
   // Women collection
   if (href.includes("/collection/women") || id === "women" || label.includes("نسائ") || label.includes("حريمي")) {
     return [
-      { label: "كافة التشكيلة النسائية", href: "/collection/women", description: "استعرض كل روائع الفضة 925 النسائية" },
-      { label: "خواتم وسوليتير حريمي", href: "/collection/rings?gender=women", description: "خواتم خطوبة وسوليتير ملكي" },
-      { label: "سلاسل ودلايات حريمي", href: "/collection/chains?gender=women", description: "سلاسل ناعمة وميداليات براقة" },
-      { label: "أساور وتنس حريمي", href: "/collection/bracelets?gender=women", description: "أساور تنس متلألئة" },
-      { label: "أقراط وأطقم ملكية", href: "/collection/earrings?gender=women", description: "أقراط وأطقم شبكة متكاملة" },
+      { label: "كافة التشكيلة النسائية", href: "/collection/women" },
+      { label: "خواتم وسوليتير", href: "/collection/rings?gender=women" },
+      { label: "سلاسل ودلايات", href: "/collection/chains?gender=women" },
+      { label: "أساور وتنس", href: "/collection/bracelets?gender=women" },
+      { label: "أقراط وأطقم", href: "/collection/earrings?gender=women" },
     ];
   }
 
   // All collection
-  if (href.includes("/collection/all") || id === "all") {
+  if (href.includes("/collection/all") || id === "all" || label.includes("جميع") || label.includes("المصوغات")) {
     return [
-      { label: "كافة المصوغات", href: "/collection/all", description: "جميع روائع دار أَثَـر" },
-      { label: "التشكيلة الرجالية", href: "/collection/men", badge: "رجالي" },
-      { label: "التشكيلة النسائية", href: "/collection/women", badge: "حريمي" },
+      { label: "كافة المصوغات", href: "/collection/all" },
+      { label: "التشكيلة الرجالية", href: "/collection/men" },
+      { label: "التشكيلة النسائية", href: "/collection/women" },
       { label: "خواتم وسوليتير", href: "/collection/rings" },
       { label: "سلاسل إيطالي", href: "/collection/chains" },
       { label: "أساور وتنس", href: "/collection/bracelets" },
+      { label: "أطقم ملكية", href: "/collection/sets" },
+      { label: "أقراط وحلقان", href: "/collection/earrings" },
     ];
   }
 
@@ -162,7 +167,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       : defaultNavItems;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#f7f4ee]/95 backdrop-blur-md border-b border-[#e8ded0] transition-colors">
+    <header className="sticky top-0 z-40 w-full bg-[#f7f4ee] border-b border-[#e8ded0] transition-colors shadow-sm">
       {/* Live Marquee Ticker */}
       <MarqueeAnnouncement onNotify={handleNotify} />
 
@@ -187,8 +192,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             <AtharLogo variant="light" size="md" href="/" />
           </div>
 
-          {/* Center: Navigation Links with Hover Dropdown Popups */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-7 text-xs sm:text-sm font-medium text-[#4a3f35]">
+          {/* Center: Navigation Links with Animated Underline and Solid Opaque Dropdowns */}
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs sm:text-sm font-medium text-[#4a3f35]">
             {activeNavLinks.map((item) => {
               const subItems = getSubNavItems(item);
               const badgeNode = item.badge ? (
@@ -227,44 +232,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                     href={item.href}
                     target={item.targetBlank ? "_blank" : undefined}
                     rel={item.targetBlank ? "noreferrer" : undefined}
-                    className="flex items-center gap-1 hover:text-[#161412] transition-colors whitespace-nowrap"
+                    className="relative flex items-center gap-1 text-[#3b3127] hover:text-[#161412] transition-colors whitespace-nowrap py-1"
                   >
                     <span>{item.label}</span>
                     {badgeNode}
                     {subItems && (
                       <ChevronDown className="w-3.5 h-3.5 text-[#8c7865] group-hover:rotate-180 group-hover:text-[#161412] transition-transform duration-200" />
                     )}
+                    {/* Animated underline from start to end (right-to-left in RTL) */}
+                    <span className="absolute bottom-0 right-0 left-0 h-[2px] bg-[#161412] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
                   </Link>
 
-                  {/* Luxury Dropdown Popup */}
+                  {/* 100% Solid Opaque Dropdown Popup matching reference image */}
                   {subItems && (
-                    <div className="absolute top-full right-0 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-1 group-hover:translate-y-0 transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
-                      <div className="bg-[#faf8f5]/98 border border-[#ded2c0] rounded-2xl shadow-2xl p-2.5 min-w-[240px] text-right backdrop-blur-md ring-1 ring-black/5">
-                        <div className="space-y-1">
-                          {subItems.map((sub, sIdx) => (
-                            <Link
-                              key={sIdx}
-                              href={sub.href}
-                              className="group/item flex items-center justify-between gap-3 px-3 py-2 rounded-xl hover:bg-[#ede3d3]/90 transition-colors"
-                            >
-                              <div className="flex flex-col text-right">
-                                <span className="text-xs font-bold text-[#161412] group-hover/item:text-[#a07e52] transition-colors">
-                                  {sub.label}
-                                </span>
-                                {sub.description && (
-                                  <span className="text-[10px] text-[#8c7865] font-light mt-0.5 leading-snug">
-                                    {sub.description}
-                                  </span>
-                                )}
-                              </div>
-                              {sub.badge && (
-                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#161412] text-[#f7f4ee] shrink-0">
-                                  {sub.badge}
-                                </span>
-                              )}
-                            </Link>
-                          ))}
-                        </div>
+                    <div className="absolute top-full right-0 pt-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-1 group-hover:translate-y-0 transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+                      <div className="bg-white border border-[#ded2c0] rounded-xl shadow-2xl py-2 px-1 min-w-[200px] text-right">
+                        {subItems.map((sub, sIdx) => (
+                          <Link
+                            key={sIdx}
+                            href={sub.href}
+                            className="block px-4 py-2.5 text-xs sm:text-sm text-[#2d251e] hover:text-[#161412] hover:bg-[#f7f4ee] hover:pr-5 rounded-lg transition-all font-medium text-right whitespace-nowrap"
+                          >
+                            {sub.label}
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -428,14 +419,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                           key={sIdx}
                           href={sub.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center justify-between py-1 text-xs text-[#705e4d] hover:text-[#1c1815]"
+                          className="block py-1 text-xs text-[#705e4d] hover:text-[#1c1815]"
                         >
-                          <span>{sub.label}</span>
-                          {sub.badge && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#161412] text-white">
-                              {sub.badge}
-                            </span>
-                          )}
+                          {sub.label}
                         </Link>
                       ))}
                     </div>

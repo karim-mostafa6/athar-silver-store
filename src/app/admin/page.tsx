@@ -3510,6 +3510,72 @@ export default function AdminPage() {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
+
+                        {/* Sub-items manager for this link */}
+                        <div className="sm:col-span-12 pt-2 border-t border-[#ded2c0]/60 mt-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-bold text-[#5c4d3f]">
+                              الأقسام الفرعية بالقائمة المنسدلة (تظهر عند الوقوف على الرابط بالماوس):
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cur = link.subItems || [];
+                                updateNavLinkItem(link.id, {
+                                  subItems: [...cur, { label: "قسم جديد", href: link.href }],
+                                });
+                              }}
+                              className="text-[10px] font-bold text-[#c5a880] hover:text-[#9e7a4f] bg-[#161412] px-2.5 py-1 rounded-md"
+                            >
+                              + إضافة قسم فرعي
+                            </button>
+                          </div>
+                          {(link.subItems && link.subItems.length > 0) ? (
+                            <div className="space-y-1.5 pr-2 border-r-2 border-[#c5a880]/50">
+                              {link.subItems.map((sub, subIdx) => (
+                                <div key={subIdx} className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={sub.label}
+                                    placeholder="اسم القسم (مثال: خواتم رجالي)"
+                                    onChange={(e) => {
+                                      const updated = [...(link.subItems || [])];
+                                      updated[subIdx] = { ...updated[subIdx], label: e.target.value };
+                                      updateNavLinkItem(link.id, { subItems: updated });
+                                    }}
+                                    className="w-1/3 bg-white border border-[#ded2c0] rounded px-2.5 py-1 text-xs font-medium"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={sub.href}
+                                    placeholder="الرابط (مثال: /collection/rings?gender=men)"
+                                    onChange={(e) => {
+                                      const updated = [...(link.subItems || [])];
+                                      updated[subIdx] = { ...updated[subIdx], href: e.target.value };
+                                      updateNavLinkItem(link.id, { subItems: updated });
+                                    }}
+                                    className="flex-1 bg-white border border-[#ded2c0] rounded px-2.5 py-1 text-xs dir-ltr"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = (link.subItems || []).filter((_, idx) => idx !== subIdx);
+                                      updateNavLinkItem(link.id, { subItems: updated });
+                                    }}
+                                    className="p-1 text-rose-500 hover:text-rose-700"
+                                    title="حذف هذا القسم الفرعي"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-[#8c7865] font-light">
+                              يستخدم الأقسام الفرعية الافتراضية الذكية تلقائياً. يمكنك الضغط على &quot;+ إضافة قسم فرعي&quot; لإضافة أو تخصيص أقسام خاصة بك.
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
