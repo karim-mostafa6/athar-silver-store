@@ -332,6 +332,8 @@ interface StoreContextType {
   // Orders
   orders: Order[];
   addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">) => string;
+  updateOrder: (orderId: string, updates: Partial<Order>) => void;
+  bulkUpdateOrderStatus: (orderIds: string[], status: Order["status"]) => void;
   updateOrderStatus: (orderId: string, status: Order["status"], cancellationReason?: string) => void;
   confirmOrderViaPhone: (orderId: string, phoneNotes?: string) => void;
   confirmOrderViaWhatsApp: (orderId: string) => void;
@@ -1295,6 +1297,32 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return newId;
   };
 
+  const updateOrder = (orderId: string, updates: Partial<Order>) => {
+    setOrders((prev) => {
+      const updated = prev.map((o) => (o.id === orderId ? { ...o, ...updates } : o));
+      syncOrdersToServer(updated);
+      try {
+        localStorage.setItem("athar_orders", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    addToast("تحديث الطلب", `تم تحديث بيانات الطلب #${orderId} بنجاح`, "info");
+  };
+
+  const bulkUpdateOrderStatus = (orderIds: string[], status: Order["status"]) => {
+    if (!orderIds || orderIds.length === 0) return;
+    const idsSet = new Set(orderIds);
+    setOrders((prev) => {
+      const updated = prev.map((o) => (idsSet.has(o.id) ? { ...o, status } : o));
+      syncOrdersToServer(updated);
+      try {
+        localStorage.setItem("athar_orders", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    addToast("تحديث جماعي", `تم تحديث حالة ${orderIds.length} طلبات بنجاح`, "info");
+  };
+
   const updateOrderStatus = (orderId: string, status: Order["status"], cancellationReason?: string) => {
     setOrders((prev) => {
       const updated = prev.map((o) =>
@@ -1541,6 +1569,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         updateStoreSettings,
         orders,
         addOrder,
+        updateOrder,
+        bulkUpdateOrderStatus,
         updateOrderStatus,
         confirmOrderViaPhone,
         confirmOrderViaWhatsApp,
