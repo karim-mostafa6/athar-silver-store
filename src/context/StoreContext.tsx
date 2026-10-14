@@ -812,6 +812,27 @@ function recordDeletedOrderId(orderId: string) {
   } catch {}
 }
 
+export function getDeletedProductIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem("athar_deleted_product_ids");
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {}
+  return new Set();
+}
+
+export function recordDeletedProductId(productId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const set = getDeletedProductIds();
+    set.add(productId);
+    localStorage.setItem("athar_deleted_product_ids", JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
 const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
 
 // Monotonic sequence tracking: sequence counter NEVER decreases even if orders are deleted
@@ -911,11 +932,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [products, setProducts] = useState<Product[]>(() => {
     if (typeof window === "undefined") return PRODUCTS;
     try {
+      const deletedProdIds = getDeletedProductIds();
       const saved = localStorage.getItem("athar_custom_products");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
+        }
       }
+      return PRODUCTS.filter((p) => p && p.id && !deletedProdIds.has(p.id));
     } catch {}
     return PRODUCTS;
   });
@@ -1052,10 +1077,34 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         lastServerUpdatedRef.current = data.updatedAt || "";
 
         if (Array.isArray(data.products) && data.products.length > 0) {
-          setProducts(data.products);
-          try {
-            localStorage.setItem("athar_custom_products", JSON.stringify(data.products));
-          } catch {}
+          const deletedProdIds = getDeletedProductIds();
+          setProducts((currentLocal) => {
+            const serverProds = data.products.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
+            const serverIdMap = new Map<string, Product>();
+            serverProds.forEach((p: Product) => serverIdMap.set(p.id, p));
+
+            // Custom or locally added products not on server
+            const localCustomOnly = currentLocal.filter(
+              (p) => p && p.id && !deletedProdIds.has(p.id) && !serverIdMap.has(p.id)
+            );
+
+            // Merged catalog preserves user's newly added items alongside server catalog
+            const merged = [...localCustomOnly, ...serverProds];
+            try {
+              localStorage.setItem("athar_custom_products", JSON.stringify(merged));
+            } catch {}
+
+            // If local had custom products the server was missing, push back to server
+            if (localCustomOnly.length > 0) {
+              fetch("/api/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ products: merged }),
+              }).catch(() => {});
+            }
+
+            return merged;
+          });
         }
 
         if (data.settings && typeof data.settings === "object") {
@@ -1404,6 +1453,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const addProduct = (newProduct: Product) => {
     setProducts((prev) => {
       const updated = [newProduct, ...prev];
+      try {
+        localStorage.setItem("athar_custom_products", JSON.stringify(updated));
+      } catch {}
       syncProductsToServer(updated);
       return updated;
     });
@@ -1413,6 +1465,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const updateProduct = (id: string, updated: Partial<Product>) => {
     setProducts((prev) => {
       const updatedList = prev.map((p) => (p.id === id ? { ...p, ...updated } : p));
+      try {
+        localStorage.setItem("athar_custom_products", JSON.stringify(updatedList));
+      } catch {}
       syncProductsToServer(updatedList);
       return updatedList;
     });
@@ -1420,8 +1475,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const deleteProduct = (id: string) => {
+    recordDeletedProductId(id);
     setProducts((prev) => {
       const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem("athar_custom_products", JSON.stringify(updated));
+      } catch {}
       syncProductsToServer(updated);
       return updated;
     });
