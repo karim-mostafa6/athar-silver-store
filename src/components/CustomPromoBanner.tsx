@@ -41,7 +41,7 @@ export const CustomPromoBanner: React.FC<CustomPromoBannerProps> = ({ settings, 
   }[theme] || "bg-[#f7f4ee] text-[#161412]";
 
   return (
-    <section className="relative overflow-hidden py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
+    <section id="custom-promo-banner" className="relative overflow-hidden py-6 sm:py-8 px-4 sm:px-6 lg:px-8 scroll-mt-20">
       <div className={`max-w-7xl mx-auto rounded-2xl border shadow-lg relative overflow-hidden transition-all duration-300 ${themeClasses}`}>
         {/* Subtle Watermark Ripple */}
         <div className="absolute -left-20 -bottom-20 w-80 h-80 opacity-15 pointer-events-none">

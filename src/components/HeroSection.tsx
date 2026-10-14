@@ -28,7 +28,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const headlineLines = headline.split("\n");
 
   return (
-    <section className="relative w-full bg-[#f7f4ee] overflow-hidden border-b border-[#e8ded0]">
+    <section id="hero" className="relative w-full bg-[#f7f4ee] overflow-hidden border-b border-[#e8ded0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Typography & CTA Side (Left on visual LTR, Right on RTL flow or natural split) */}
