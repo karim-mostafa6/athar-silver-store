@@ -95,3 +95,37 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get("id");
+
+    if (!orderId) {
+      return NextResponse.json(
+        { success: false, error: "Missing order ID" },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    const current = await getServerStoreData();
+    const updatedOrders = current.orders.filter((o) => o.id !== orderId);
+    const saved = await saveServerStoreData({ orders: updatedOrders });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: `تم حذف الطلب #${orderId} نهائياً من السيرفر والسحابة!`,
+        ordersCount: saved.orders.length,
+        updatedAt: saved.updatedAt,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : "Error deleting order" },
+      { status: 500, headers: NO_CACHE_HEADERS }
+    );
+  }
+}
+

@@ -640,13 +640,41 @@ const DEFAULT_SETTINGS: StoreSettings = {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-// Helper to filter out any old demo/mock sample orders
+// Deleted Orders Blacklist to prevent deleted orders from ever resurrecting
+function getDeletedOrderIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem("athar_deleted_order_ids");
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {}
+  return new Set();
+}
+
+function recordDeletedOrderId(orderId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const set = getDeletedOrderIds();
+    set.add(orderId);
+    localStorage.setItem("athar_deleted_order_ids", JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+// Helper to filter out any old demo/mock sample orders or explicitly deleted orders
 function sanitizeOrders(rawOrders: unknown): Order[] {
   if (!Array.isArray(rawOrders)) return [];
   const DEMO_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
   const DEMO_NAMES = new Set(["مريم خالد", "سارة أحمد", "محمود إبراهيم", "كريم يوسف"]);
+  const deletedIds = getDeletedOrderIds();
   return (rawOrders as Order[]).filter(
-    (o) => o && o.id && !DEMO_IDS.has(o.id) && !DEMO_NAMES.has(o.customerName)
+    (o) =>
+      o &&
+      o.id &&
+      !DEMO_IDS.has(o.id) &&
+      !DEMO_NAMES.has(o.customerName) &&
+      !deletedIds.has(o.id)
   );
 }
 
@@ -1167,8 +1195,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const deleteOrder = (orderId: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
-    addToast("الطلبات", `تم حذف الطلب #${orderId}`, "info");
+    recordDeletedOrderId(orderId);
+    setOrders((prev) => {
+      const updated = prev.filter((o) => o.id !== orderId);
+      syncOrdersToServer(updated);
+      fetch(`/api/orders?id=${encodeURIComponent(orderId)}`, {
+        method: "DELETE",
+      }).catch((err) => console.warn("Error deleting order from server:", err));
+      try {
+        localStorage.setItem("athar_orders", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    addToast("الطلبات", `تم حذف الطلب #${orderId} نهائياً من السيرفر`, "info");
   };
 
   // Cart operations

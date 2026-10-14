@@ -1212,13 +1212,12 @@ export default function AdminPage() {
 
                             <button
                               onClick={() => {
-                                if (confirm(`هل أنت متأكد من حذف الطلب ${order.id}؟`)) {
+                                if (confirm(`هل أنت متأكد من حذف الطلب #${order.id} نهائياً؟`)) {
                                   deleteOrder(order.id);
-                                  addToast("تم الحذف", "تم حذف الطلب بنجاح", "info");
                                 }
                               }}
                               className="p-1.5 text-[#baa894] hover:text-rose-600 transition-colors"
-                              title="حذف الطلب"
+                              title="حذف الطلب نهائياً"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
