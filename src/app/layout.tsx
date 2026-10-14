@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
       <body
-        className={`${cairo.variable} ${alexandria.variable} font-cairo bg-[#faf8f5] text-[#1c1815] antialiased selection:bg-[#dfd2bf] selection:text-[#181513] min-h-screen`}
+        className={`${cairo.variable} ${alexandria.variable} font-cairo bg-[#f7f4ee] text-[#161412] antialiased selection:bg-[#dfd2bf] selection:text-[#161412] min-h-screen`}
       >
         <SiteShell>{children}</SiteShell>
       </body>

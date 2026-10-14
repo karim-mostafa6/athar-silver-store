@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useRef } from "react";
 import { HeroSection } from "@/components/HeroSection";
-import { GenderSplitShowcase } from "@/components/GenderSplitShowcase";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandStorySection } from "@/components/BrandStorySection";
 import { SilverCareSection } from "@/components/SilverCareSection";
@@ -12,8 +11,7 @@ import { X } from "lucide-react";
 export default function Home() {
   const { products, storeSettings, addToCart, toggleWishlist, isWishlisted, addToast, setIsSizeGuideOpen } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedGender, setSelectedGender] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("popular");
+  const [showAllProducts, setShowAllProducts] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const productsSectionRef = useRef<HTMLDivElement>(null);
@@ -27,14 +25,13 @@ export default function Home() {
       storeSettings?.categories && storeSettings.categories.length > 0
         ? storeSettings.categories
         : [
-            { id: "rings", label: "خواتم وسوليتير" },
-            { id: "chains", label: "سلاسل إيطالي" },
-            { id: "bracelets", label: "أساور وتنس" },
-            { id: "sets", label: "أطقم ملكية" },
-            { id: "earrings", label: "أقراط وحلقان" },
+            { id: "rings", label: "خواتم" },
+            { id: "chains", label: "سلاسل" },
+            { id: "bracelets", label: "أساور" },
+            { id: "sets", label: "أطقم" },
           ];
     return [
-      { id: "all", label: "كافة القطع" },
+      { id: "all", label: "الكل" },
       ...list.map((c) => ({
         id: c.id,
         label: storeSettings?.collectionPages?.[c.id]?.title || c.label,
@@ -48,9 +45,6 @@ export default function Home() {
       if (selectedCategory !== "all" && product.category !== selectedCategory) {
         return false;
       }
-      if (selectedGender !== "all" && product.gender !== selectedGender && product.gender !== "unisex") {
-        return false;
-      }
       if (searchQuery.trim()) {
         const query = searchQuery.trim().toLowerCase();
         const matchesArabic = product.arabicName.toLowerCase().includes(query);
@@ -59,63 +53,50 @@ export default function Home() {
         if (!matchesArabic && !matchesTags && !matchesDesc) return false;
       }
       return true;
-    }).sort((a, b) => {
-      if (sortBy === "price-asc") return a.price - b.price;
-      if (sortBy === "price-desc") return b.price - a.price;
-      if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
-      return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
     });
-  }, [searchQuery, selectedCategory, selectedGender, sortBy, products]);
+  }, [searchQuery, selectedCategory, products]);
+
+  // In Mockup: default displays 4 featured products in a 4-col row, expandable via "عرض كل القطع"
+  const displayedProducts = useMemo(() => {
+    if (showAllProducts || selectedCategory !== "all" || searchQuery.trim()) {
+      return filteredProducts;
+    }
+    return filteredProducts.slice(0, 4);
+  }, [filteredProducts, showAllProducts, selectedCategory, searchQuery]);
 
   return (
     <>
-      {/* Hero Section */}
+      {/* Hero Section matching 50/50 visual mockup */}
       <HeroSection
         onExploreClick={scrollToProducts}
         onOpenSizeGuide={() => setIsSizeGuideOpen(true)}
         onNotify={addToast}
       />
 
-      {/* Gender Split Showcase (Women's / Men's 50-50 Dual Editorial Banner) */}
-      <GenderSplitShowcase />
-
-      {/* Product Catalog Section */}
+      {/* Featured Collection Section ("المجموعة") matching mockup */}
       <section
         ref={productsSectionRef}
         id="products"
-        className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#e8ded0]"
+        className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-[#f7f4ee]"
       >
-        {/* Centered Luxury Section Header */}
-        {(storeSettings.productsSectionBadge || storeSettings.productsSectionTitle || storeSettings.productsSectionSubtitle) && (
-          <div className="text-center mb-8 space-y-2">
-            {storeSettings.productsSectionBadge?.trim() && (
-              <span className="text-[11px] font-sans tracking-[0.25em] text-[#8a7663] uppercase block font-light">
-                {storeSettings.productsSectionBadge}
-              </span>
-            )}
-            {storeSettings.productsSectionTitle?.trim() && (
-              <h2 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-cairo tracking-tight">
-                {storeSettings.productsSectionTitle}
-              </h2>
-            )}
-            {storeSettings.productsSectionSubtitle?.trim() && (
-              <p className="text-xs sm:text-sm text-[#705e4d] font-light">
-                {storeSettings.productsSectionSubtitle}
-              </p>
-            )}
-          </div>
-        )}
+        {/* Calligraphic Header: "المجموعة" with subtle divider line */}
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="font-amiri text-3xl sm:text-5xl font-bold text-[#161412]">
+            المجموعة
+          </h2>
+          <div className="w-10 h-[1.5px] bg-[#161412]/30 mx-auto mt-3 rounded-full" />
+        </div>
 
-        {/* Category Pills */}
+        {/* Minimal Category Filter Pills */}
         <div className="flex items-center justify-center gap-2 sm:gap-3 pb-3 mb-10 overflow-x-auto scrollbar-none text-xs">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-5 py-2.5 rounded-full transition-all duration-200 whitespace-nowrap active:scale-95 hover-lift ${
+              className={`px-4 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap active:scale-95 ${
                 selectedCategory === cat.id
-                  ? "bg-[#1c1815] text-[#faf8f5] font-medium shadow-md"
-                  : "bg-white/80 text-[#5c4d3f] border border-[#e2d5c2] hover:bg-[#ede3d3] hover:text-[#1c1815] font-light"
+                  ? "bg-[#161412] text-[#f7f4ee] font-medium"
+                  : "bg-white/70 text-[#615243] border border-[#e2d5c2] hover:bg-[#ede3d3] hover:text-[#161412] font-light"
               }`}
             >
               {cat.label}
@@ -123,60 +104,16 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Clean Gender & Sort Controls */}
-        <div className="flex items-center justify-between gap-4 mb-8 text-xs">
-          <div className="flex items-center gap-1 bg-[#f4ece0] p-1 rounded-full border border-[#e4d8c7]">
-            <button
-              onClick={() => setSelectedGender("all")}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                selectedGender === "all" ? "bg-[#1c1815] text-[#faf8f5]" : "text-[#6d5b4a] hover:text-[#1c1815]"
-              }`}
-            >
-              الكل
-            </button>
-            <button
-              onClick={() => setSelectedGender("women")}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                selectedGender === "women" ? "bg-[#1c1815] text-[#faf8f5]" : "text-[#6d5b4a] hover:text-[#1c1815]"
-              }`}
-            >
-              نسائي
-            </button>
-            <button
-              onClick={() => setSelectedGender("men")}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                selectedGender === "men" ? "bg-[#1c1815] text-[#faf8f5]" : "text-[#6d5b4a] hover:text-[#1c1815]"
-              }`}
-            >
-              رجالي
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-[#705e4d]">ترتيب:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "popular" | "price-asc" | "price-desc" | "newest")}
-              className="bg-transparent text-[#1c1815] font-bold text-xs focus:outline-none cursor-pointer border-b border-[#d8c8b4] pb-0.5"
-            >
-              <option value="popular">الأكثر طلباً</option>
-              <option value="newest">الأحدث وصولاً</option>
-              <option value="price-asc">السعر: من الأقل للأعلى</option>
-              <option value="price-desc">السعر: من الأعلى للأقل</option>
-            </select>
-          </div>
-        </div>
-
         {/* Active Search Notice if any */}
         {searchQuery && (
-          <div className="mb-6 p-3 rounded-2xl bg-[#f5efe4] border border-[#ded1be] flex items-center justify-between text-xs">
+          <div className="mb-6 p-3 rounded-xl bg-[#eee5d8] border border-[#ded1be] flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 text-[#5c4c3b]">
               <span>نتائج البحث عن:</span>
-              <strong className="text-[#1c1815] font-bold">&ldquo;{searchQuery}&rdquo;</strong>
+              <strong className="text-[#161412] font-bold">&ldquo;{searchQuery}&rdquo;</strong>
             </div>
             <button
               onClick={() => setSearchQuery("")}
-              className="text-[#7d6b58] hover:text-[#1c1815] flex items-center gap-1 font-semibold"
+              className="text-[#7d6b58] hover:text-[#161412] flex items-center gap-1 font-semibold"
             >
               <X className="w-3.5 h-3.5" />
               <span>إلغاء البحث</span>
@@ -184,24 +121,23 @@ export default function Home() {
           </div>
         )}
 
-        {/* Products Grid - 5 Columns */}
-        {filteredProducts.length === 0 ? (
-          <div className="py-20 text-center space-y-4 bg-white rounded-3xl border border-[#ded1be]">
-            <h3 className="text-base font-bold text-[#1c1815]">لا توجد قطع تطابق هذا الاختيار حالياً</h3>
+        {/* 4-Column Product Grid matching mockup */}
+        {displayedProducts.length === 0 ? (
+          <div className="py-16 text-center space-y-4 bg-white rounded-2xl border border-[#ded1be]">
+            <h3 className="text-sm font-medium text-[#161412]">لا توجد قطع تطابق هذا الاختيار حالياً</h3>
             <button
               onClick={() => {
                 setSearchQuery("");
                 setSelectedCategory("all");
-                setSelectedGender("all");
               }}
-              className="px-6 py-2.5 rounded-full bg-[#1c1815] text-[#faf8f5] font-bold text-xs"
+              className="px-6 py-2 rounded bg-[#161412] text-[#f7f4ee] font-medium text-xs"
             >
               عرض كافة القطع
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-10 sm:gap-y-12">
-            {filteredProducts.map((product) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {displayedProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -213,12 +149,24 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {/* "عرض كل القطع" Outline Button from Mockup */}
+        {filteredProducts.length > 4 && selectedCategory === "all" && !searchQuery && (
+          <div className="text-center mt-12 sm:mt-16">
+            <button
+              onClick={() => setShowAllProducts(!showAllProducts)}
+              className="px-10 sm:px-14 py-3 rounded border border-[#161412] text-[#161412] hover:bg-[#161412] hover:text-[#f7f4ee] transition-all duration-300 text-xs sm:text-sm font-medium active:scale-95 shadow-sm"
+            >
+              {showAllProducts ? "عرض أقل" : "عرض كل القطع"}
+            </button>
+          </div>
+        )}
       </section>
 
-      {/* Brand Story Section */}
+      {/* Brand Story Section matching mockup ("عن أثر") */}
       <BrandStorySection />
 
-      {/* Silver Care Guide */}
+      {/* Silver Care Guide matching mockup ("العناية بقطعتك") */}
       <SilverCareSection />
     </>
   );

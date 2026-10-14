@@ -20,7 +20,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   if (isAdmin) {
     return (
-      <div className="min-h-screen bg-[#faf8f5] text-[#1c1815] flex flex-col selection:bg-[#dfd2bf] selection:text-[#181513]">
+      <div className="min-h-screen bg-[#f7f4ee] text-[#161412] flex flex-col selection:bg-[#dfd2bf] selection:text-[#161412]">
         {/* Toast Notifications */}
         <Toast toasts={store.toasts} onDismiss={store.removeToast} />
         {/* Standalone Admin Portal Content */}
@@ -30,7 +30,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-[#1c1815] flex flex-col selection:bg-[#dfd2bf] selection:text-[#181513]">
+    <div className="min-h-screen bg-[#f7f4ee] text-[#161412] flex flex-col selection:bg-[#dfd2bf] selection:text-[#161412]">
       {/* Toast Notifications */}
       <Toast toasts={store.toasts} onDismiss={store.removeToast} />
 

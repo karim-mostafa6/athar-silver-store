@@ -149,14 +149,14 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
 
   if (tickerItems.length === 0) return null;
 
-  // Visual Theme Styling
+  // Visual Theme Styling - Dark Charcoal matching the mockup as default
   const themeClass =
-    storeSettings.marqueeTheme === "dark"
-      ? "bg-[#14110e] text-[#f5efe6] border-[#2e261f]"
-      : storeSettings.marqueeTheme === "gold"
+    storeSettings.marqueeTheme === "gold"
       ? "bg-[#7d5f26] text-white border-[#9c7835]"
       : storeSettings.marqueeTheme === "burgundy"
       ? "bg-[#451421] text-[#fce7ef] border-[#5d1d2e]"
+      : storeSettings.marqueeTheme === "default" || !storeSettings.marqueeTheme || storeSettings.marqueeTheme === "dark"
+      ? "bg-[#141210] text-[#f7f4ee] border-[#221f1c]"
       : "bg-[#f4ece0] text-[#4b3e32] border-[#e5dacb]";
 
   const speedDuration =
@@ -164,7 +164,7 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
       ? "38s"
       : storeSettings.marqueeSpeed === "fast"
       ? "16s"
-      : "26s";
+      : "28s";
 
   const pauseClass =
     storeSettings.marqueePauseOnHover !== false ? "hover:[animation-play-state:paused]" : "";

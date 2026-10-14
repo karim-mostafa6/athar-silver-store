@@ -62,6 +62,7 @@ const config: Config = {
       fontFamily: {
         cairo: ["var(--font-cairo)", "sans-serif"],
         alexandria: ["var(--font-alexandria)", "sans-serif"],
+        amiri: ["'Amiri'", "serif"],
       },
       animation: {
         "shimmer": "shimmer 2.5s infinite linear",

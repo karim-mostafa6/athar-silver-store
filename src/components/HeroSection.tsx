@@ -1,240 +1,87 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import {
-  ArrowDown,
-  Sparkles,
-  ShieldCheck,
-  Eye,
-  RotateCcw,
-  Gift,
-  CheckCircle2,
-  Truck,
-  MessageCircle,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { ConcentricRipples } from "@/components/ConcentricRipples";
+import { AtharLogo } from "@/components/AtharLogo";
 
 interface HeroSectionProps {
   onExploreClick: () => void;
-  onOpenSizeGuide: () => void;
+  onOpenSizeGuide?: () => void;
   onNotify?: (title: string, msg: string, type: "cart" | "wishlist" | "promo" | "info") => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onExploreClick,
-  onOpenSizeGuide,
 }) => {
   const { storeSettings } = useStore();
 
-  // Dynamic Height
-  const heightClass =
-    storeSettings.heroHeight === "compact"
-      ? "h-[480px] sm:h-[540px] lg:h-[580px]"
-      : storeSettings.heroHeight === "large"
-      ? "h-[620px] sm:h-[720px] lg:h-[84vh]"
-      : "h-[520px] sm:h-[620px] lg:h-[680px]";
+  const headline = storeSettings.heroTitle || "الأَثَر لا يُهدى\nبل يُترك";
+  const subtitle =
+    storeSettings.heroSubtitle ||
+    "مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك وتبقى بصمة لا تُمحى.";
+  const primaryButtonText = storeSettings.heroButtonText || "تسوق المجموعة";
+  const secondaryButtonText = storeSettings.heroSecondaryButtonText || "اكتشف أثر";
 
-  // Dynamic Overlay Darkness
-  const overlayClass =
-    storeSettings.heroOverlayDarkness === "light"
-      ? "bg-gradient-to-t from-black/60 via-black/20 to-black/35"
-      : storeSettings.heroOverlayDarkness === "dark"
-      ? "bg-gradient-to-t from-black/90 via-black/45 to-black/65"
-      : "bg-gradient-to-t from-black/80 via-black/30 to-black/45";
-
-  // Dynamic Content Alignment
-  const alignClass =
-    storeSettings.heroContentAlign === "right"
-      ? "text-right items-end sm:items-start"
-      : "text-center items-center";
-
-  // Ken Burns Animation
-  const kenBurnsClass = storeSettings.heroKenBurns !== false ? "animate-ken-burns" : "";
-
-  // Helper for Secondary Button Click
-  const handleSecondaryClick = () => {
-    if (storeSettings.heroSecondaryButtonAction === "whatsapp") {
-      window.open(`https://wa.me/${storeSettings.whatsappNumber}`, "_blank");
-    } else if (storeSettings.heroSecondaryButtonAction === "link" && storeSettings.heroSecondaryButtonLink) {
-      window.location.href = storeSettings.heroSecondaryButtonLink;
-    } else {
-      onOpenSizeGuide();
-    }
-  };
-
-  // Helper for Trust Icon
-  const renderTrustIcon = (icon?: string) => {
-    switch (icon) {
-      case "eye":
-        return <Eye className="w-3.5 h-3.5 text-amber-600" />;
-      case "refresh":
-        return <RotateCcw className="w-3.5 h-3.5 text-amber-600" />;
-      case "gift":
-        return <Gift className="w-3.5 h-3.5 text-rose-500" />;
-      case "truck":
-        return <Truck className="w-3.5 h-3.5 text-amber-600" />;
-      case "check":
-        return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />;
-      default:
-        return <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />;
-    }
-  };
+  // Parse lines for headline
+  const headlineLines = headline.split("\n");
 
   return (
-    <div>
-      {/* Full-Width Luxury Editorial Banner - ATHAR Signature Brand */}
-      <section className={`relative w-full ${heightClass} overflow-hidden bg-[#1c1815] select-none`}>
-        {/* Background Editorial Image with Ken Burns Zoom */}
-        <img
-          src={storeSettings.heroImageUrl}
-          alt={storeSettings.heroTitle}
-          className={`absolute inset-0 w-full h-full object-cover object-center brightness-[0.80] contrast-[1.05] will-change-transform ${kenBurnsClass}`}
-        />
-
-        {/* Soft Vignette & Subtle Lighting Overlay */}
-        <div className={`absolute inset-0 ${overlayClass}`} />
-
-        {/* Floating Luxury Sparkles */}
-        <div className="absolute top-1/4 right-12 text-amber-300/40 pointer-events-none animate-sparkle-glow hidden sm:block">
-          ✦
-        </div>
-        <div className="absolute top-1/3 left-16 text-white/30 pointer-events-none animate-sparkle-glow hidden sm:block" style={{ animationDelay: "1.5s" }}>
-          ✦
-        </div>
-        <div className="absolute bottom-1/4 right-1/4 text-amber-200/30 pointer-events-none animate-sparkle-glow hidden sm:block" style={{ animationDelay: "2.5s" }}>
-          ✦
-        </div>
-
-        {/* Top Edition Tag */}
-        {storeSettings.heroBadge && (
-          <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-10 hidden sm:block">
-            <div className="text-white/90 font-mono text-[11px] tracking-[0.3em] uppercase bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15">
-              {storeSettings.heroBadge}
-            </div>
-          </div>
-        )}
-
-        {/* Centered Editorial Content */}
-        <div className={`relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16 sm:pb-20 ${alignClass}`}>
-          {/* Tagline */}
-          {storeSettings.heroTagline?.trim() && (
-            <div className="text-white/90 text-xs sm:text-sm font-semibold tracking-[0.25em] uppercase mb-3 flex items-center gap-2">
-              <span className="w-6 h-px bg-white/40" />
-              <span>{storeSettings.heroTagline}</span>
-              <span className="w-6 h-px bg-white/40" />
-            </div>
-          )}
-
-          {/* Main Title */}
-          {storeSettings.heroTitle?.trim() && (
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-[#faf8f5] tracking-tight font-alexandria max-w-3xl leading-tight drop-shadow-md">
-              {storeSettings.heroTitle}
+    <section className="relative w-full bg-[#f7f4ee] overflow-hidden border-b border-[#e8ded0]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Typography & CTA Side (Left on visual LTR, Right on RTL flow or natural split) */}
+          <div className="flex flex-col justify-center order-2 lg:order-1 text-center lg:text-right space-y-6 sm:space-y-8">
+            {/* Signature Headline */}
+            <h1 className="font-amiri text-4xl sm:text-6xl lg:text-7xl font-bold text-[#161412] leading-[1.25] tracking-tight">
+              {headlineLines.map((line, idx) => (
+                <span key={idx} className="block">
+                  {line}
+                </span>
+              ))}
             </h1>
-          )}
-          {storeSettings.heroSubtitle?.trim() && (
-            <p className="text-sm sm:text-base text-white/90 font-light mt-2.5 max-w-xl drop-shadow">
-              {storeSettings.heroSubtitle}
+
+            {/* Subtitle */}
+            <p className="text-sm sm:text-base text-[#756555] font-light leading-relaxed max-w-lg mx-auto lg:mx-0">
+              {subtitle}
             </p>
-          )}
 
-          {/* Minimalist Pill Action Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            {/* Primary Button */}
-            {storeSettings.heroButtonShow !== false && (
-              <>
-                {storeSettings.heroButtonLink && storeSettings.heroButtonLink !== "#products" ? (
-                  <Link
-                    href={storeSettings.heroButtonLink}
-                    className="btn-metallic-shine px-9 py-3.5 rounded-full bg-white text-[#1c1815] text-xs sm:text-sm font-bold uppercase tracking-[0.15em] hover:bg-[#f2ece1] transition-all duration-300 shadow-xl active:scale-95 flex items-center gap-2"
-                  >
-                    <span>{storeSettings.heroButtonText || "اكتشف التشكيلة الكاملة"}</span>
-                    <ArrowDown className="w-3.5 h-3.5" />
-                  </Link>
-                ) : (
-                  <button
-                    onClick={onExploreClick}
-                    className="btn-metallic-shine px-9 py-3.5 rounded-full bg-white text-[#1c1815] text-xs sm:text-sm font-bold uppercase tracking-[0.15em] hover:bg-[#f2ece1] transition-all duration-300 shadow-xl active:scale-95 flex items-center gap-2"
-                  >
-                    <span>{storeSettings.heroButtonText || "اكتشف التشكيلة الكاملة"}</span>
-                    <ArrowDown className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </>
-            )}
-
-            {/* Secondary Button */}
-            {storeSettings.heroSecondaryButtonShow !== false && (
+            {/* Action Buttons Matching Mockup */}
+            <div className="flex items-center justify-center lg:justify-start gap-5 pt-2">
+              {/* Primary Solid Dark Button */}
               <button
-                onClick={handleSecondaryClick}
-                className="btn-metallic-shine px-7 py-3.5 rounded-full bg-black/45 backdrop-blur-md border border-white/25 text-white text-xs sm:text-sm font-medium hover:bg-black/65 hover:border-white/40 transition-all duration-300 flex items-center gap-2 shadow-lg active:scale-95"
+                onClick={onExploreClick}
+                className="px-8 sm:px-10 py-3.5 rounded-md bg-[#161412] text-[#f7f4ee] text-xs sm:text-sm font-medium hover:bg-[#2e2925] transition-all duration-300 shadow-md active:scale-95"
               >
-                {storeSettings.heroSecondaryButtonAction === "whatsapp" ? (
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                )}
-                <span>{storeSettings.heroSecondaryButtonText || "دليل المقاسات"}</span>
+                {primaryButtonText}
               </button>
-            )}
+
+              {/* Secondary Clean Text Link with Underline */}
+              <a
+                href="#story"
+                className="text-xs sm:text-sm font-medium text-[#161412] hover:text-[#8c7865] transition-colors py-2 border-b border-[#161412] hover:border-[#8c7865] flex items-center gap-1.5"
+              >
+                <span>{secondaryButtonText}</span>
+                <ArrowLeft className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Dark Charcoal Ripple Box Side (Right in visual layout) */}
+          <div className="relative order-1 lg:order-2 flex justify-center">
+            <div className="relative w-full max-w-[480px] aspect-square rounded-lg bg-[#161412] overflow-hidden shadow-2xl flex items-center justify-center border border-[#2b2724]">
+              {/* Concentric Watermark Ripples */}
+              <ConcentricRipples variant="hero" strokeColor="#ffffff" ringCount={14} />
+
+              {/* Centered White Athar Calligraphic Mark */}
+              <div className="relative z-10 flex flex-col items-center justify-center p-8">
+                <AtharLogo variant="dark" size="xl" />
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Trust Strip / Value Proposition Bar */}
-      {storeSettings.showTrustBar !== false && (
-        <div
-          className={`border-b py-4 text-center text-xs transition-colors select-none ${
-            storeSettings.trustBarBg === "dark"
-              ? "bg-[#1c1815] text-[#e8ded3] border-[#382f27]"
-              : storeSettings.trustBarBg === "white"
-              ? "bg-white text-[#1c1815] border-[#ebdcca]"
-              : "bg-[#f2ece1] text-[#524436] border-[#e2d5c2]"
-          }`}
-        >
-          <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-5 sm:gap-10">
-            {/* Item 1 */}
-            {storeSettings.trustItem1?.trim() && (
-              <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-                {renderTrustIcon(storeSettings.trustItem1Icon || "shield")}
-                <span className="font-medium">
-                  {storeSettings.trustItem1}
-                </span>
-              </div>
-            )}
-
-            {/* Item 2 */}
-            {storeSettings.trustItem2?.trim() && (
-              <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-                {renderTrustIcon(storeSettings.trustItem2Icon || "truck")}
-                <span className="font-medium">
-                  {storeSettings.trustItem2}
-                </span>
-              </div>
-            )}
-
-            {/* Item 3 */}
-            {storeSettings.trustItem3?.trim() && (
-              <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-                {renderTrustIcon(storeSettings.trustItem3Icon || "refresh")}
-                <span className="font-medium">
-                  {storeSettings.trustItem3}
-                </span>
-              </div>
-            )}
-
-            {/* Item 4 (Optional) */}
-            {storeSettings.trustItem4Show && storeSettings.trustItem4?.trim() && (
-              <div className="flex items-center gap-2 hover:scale-105 transition-transform duration-300 cursor-default">
-                {renderTrustIcon(storeSettings.trustItem4Icon || "gift")}
-                <span className="font-medium">
-                  {storeSettings.trustItem4}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
 };

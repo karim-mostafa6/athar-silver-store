@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #faf8f5;
-  --foreground: #1c1815;
+  --background: #f7f4ee;
+  --foreground: #161412;
 }
 
 body {

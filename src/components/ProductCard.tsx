@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Product } from "@/data/products";
 import { Heart, ShoppingBag, Eye, Check } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { ConcentricRipples } from "@/components/ConcentricRipples";
 
 interface ProductCardProps {
   product: Product;
@@ -72,18 +73,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       href={`/product/${product.id}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group flex flex-col cursor-pointer select-none text-center block transition-all duration-300 hover-lift"
+      className="group flex flex-col cursor-pointer select-none text-center block transition-all duration-300"
     >
-      {/* Product Image Container with Dual-Hover Swap */}
-      <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#f5f1eb] mb-3 transition-all duration-500 group-hover:shadow-[0_14px_30px_-8px_rgba(30,25,20,0.12)]">
+      {/* Product Image Container with Warm Sand Background & Ripple Watermark */}
+      <div className="relative aspect-[4/5] w-full rounded-md overflow-hidden bg-[#e4dcce] mb-3.5 transition-all duration-500 border border-[#d6cbba] group-hover:border-[#baab96] group-hover:shadow-[0_12px_28px_-6px_rgba(30,25,20,0.12)]">
+        {/* Subtle Concentric Rings Watermark */}
+        <ConcentricRipples variant="card" strokeColor="#9e8d77" ringCount={9} />
+
         {/* Primary Image */}
         <img
           src={primaryImage}
           alt={product.arabicName}
-          className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
+          className={`absolute inset-0 w-full h-full object-cover object-center mix-blend-multiply opacity-90 transition-all duration-700 ease-out ${
             isHovered && product.images.length > 1
               ? "opacity-0 scale-105"
-              : "opacity-100 scale-100 group-hover:scale-105"
+              : "opacity-90 scale-100 group-hover:scale-105 group-hover:opacity-100"
           }`}
           loading="lazy"
           onError={(e) => {
