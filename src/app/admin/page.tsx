@@ -8,12 +8,14 @@ import { AtharLogo } from "@/components/AtharLogo";
 import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
-  Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image
+  Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image,
+  RotateCw, X, Smartphone, Monitor
 } from "lucide-react";
 
 type ActiveTab =
   | "orders"
   | "products"
+  | "banners"
   | "hero"
   | "marquee"
   | "nav"
@@ -81,6 +83,11 @@ export default function AdminPage() {
 
   // Active Main Tab (14 tabs)
   const [activeTab, setActiveTab] = useState<ActiveTab>("orders");
+
+  // Shopify-style Live Split Preview State
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
+  const [previewKey, setPreviewKey] = useState<number>(0);
 
   // Filters & Search
   const [productSearch, setProductSearch] = useState<string>("");
@@ -184,26 +191,80 @@ export default function AdminPage() {
     setPasswordInput("");
   };
 
+  // Fast Client-Side Image Compression & Reader (100% resilient on Vercel, localhost & mobile)
+  const compressImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+            resolve(dataUrl);
+          } else {
+            resolve((e.target?.result as string) || "");
+          }
+        };
+        img.onerror = () => resolve((e.target?.result as string) || "");
+        img.src = (e.target?.result as string) || "";
+      };
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Image Upload Handler
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.url) {
-          setProductForm((prev) => ({
-            ...prev,
-            images: [data.url, ...prev.images.slice(1)],
-          }));
-          addToast("تم الرفع", "تم رفع صورة المنتج بنجاح", "info");
-        }
+      // 1. Immediately compress client-side to clean Data URL (never fails, works on Vercel & mobile)
+      const clientDataUrl = await compressImageFile(file);
+      if (clientDataUrl) {
+        setProductForm((prev) => ({
+          ...prev,
+          images: [clientDataUrl, ...prev.images.slice(1)],
+        }));
       }
+
+      // 2. Also attempt uploading to server if possible
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url && !data.url.startsWith("data:")) {
+            setProductForm((prev) => ({
+              ...prev,
+              images: [data.url, ...prev.images.slice(1)],
+            }));
+          }
+        }
+      } catch (srvErr) {
+        console.warn("Server upload fallback used:", srvErr);
+      }
+
+      addToast("تم اختيار ومعالجة الصورة بنجاح ✦", "تم تعيين صورة القطعة وتحديث المعاينة", "info");
     } catch (err) {
       console.error("Upload error:", err);
-      addToast("خطأ", "فشل رفع الصورة", "info");
+      addToast("خطأ", "فشل معالجة الصورة", "info");
     } finally {
       setIsUploading(false);
     }
@@ -423,10 +484,11 @@ export default function AdminPage() {
     }));
   };
 
-  // 14 Sidebar Tabs Navigation Configuration
+  // 15 Sidebar Tabs Navigation Configuration (Shopify-like)
   const sidebarTabs: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: "orders", label: "الطلبات والمبيعات", icon: <ShoppingBag className="w-4 h-4" />, badge: orderMetrics.pending },
     { id: "products", label: "إدارة المنتجات", icon: <Package className="w-4 h-4" /> },
+    { id: "banners", label: "البانرات الإعلانية ومواقعها", icon: <Sparkles className="w-4 h-4" /> },
     { id: "hero", label: "البانر الرئيسي", icon: <Image className="w-4 h-4" /> },
     { id: "marquee", label: "شريط الإعلانات", icon: <Megaphone className="w-4 h-4" /> },
     { id: "nav", label: "قائمة التنقل", icon: <Layers className="w-4 h-4" /> },
@@ -577,6 +639,23 @@ export default function AdminPage() {
               )}
             </button>
 
+            {/* Shopify Live Split Screen Preview Button */}
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(!isPreviewOpen)}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 active:scale-95 shadow-sm ${
+                isPreviewOpen
+                  ? "bg-[#161412] text-[#f7f4ee] border-[#161412]"
+                  : "bg-white border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3]"
+              }`}
+              title="معاينة المتجر المباشرة جنباً إلى جنب (مثل شوبيفاي)"
+            >
+              <Eye className="w-3.5 h-3.5 text-[#c5a880]" />
+              <span className="hidden sm:inline">
+                {isPreviewOpen ? "إغلاق المعاينة الحية" : "معاينة حية للمتجر ✦"}
+              </span>
+            </button>
+
             <Link
               href="/"
               target="_blank"
@@ -664,7 +743,7 @@ export default function AdminPage() {
         </aside>
 
         {/* MAIN CONTENT AREA */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
+        <main className={`p-4 sm:p-6 min-w-0 transition-all ${isPreviewOpen ? "w-full lg:w-[48%] xl:w-[45%] lg:border-l lg:border-[#ded2c0] lg:overflow-y-auto lg:h-[calc(100vh-65px)]" : "flex-1 lg:p-8"}`}>
           {/* ========================================================
               TAB 1: ORDERS
               ======================================================== */}
@@ -996,6 +1075,252 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================
+              TAB: CUSTOM PROMOTIONAL BANNERS & PLACEMENT
+              ======================================================== */}
+          {activeTab === "banners" && (
+            <div className="space-y-6 max-w-4xl">
+              {/* Main Banner Controls */}
+              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-5">
+                <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#c5a880]" />
+                    <span>البانرات الإعلانية المخصصة والتحكم في موقعها بالمتجر</span>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.promoBannerShow !== false}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, promoBannerShow: e.target.checked })
+                      }
+                      className="rounded border-[#ded2c0] text-[#161412]"
+                    />
+                    <span className="font-bold text-[#161412]">تفعيل ظهور البانر في المتجر</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Position Picker */}
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      موقع البانر في صفحة المتجر (Position) *
+                    </label>
+                    <select
+                      value={settingsForm.promoBannerPosition || "after_hero"}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          promoBannerPosition: e.target.value as "top" | "after_hero" | "between_products" | "before_care" | "before_footer",
+                        })
+                      }
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-bold focus:outline-none"
+                    >
+                      <option value="after_hero">بعد البانر الرئيسي وقبل المنتجات (موصى به ✓)</option>
+                      <option value="top">أعلى الصفحة تحت شريط التنقل مباشرة</option>
+                      <option value="between_products">بين قسم المنتجات وقسم قصة البراند</option>
+                      <option value="before_care">قبل قسم دليل العناية بالفضة</option>
+                      <option value="before_footer">أسفل الموقع فوق الفوتر مباشرة</option>
+                    </select>
+                    <span className="text-[10px] text-[#8c7865] mt-1 block">
+                      يمكنك نقل البانر لأي مكان في الموقع بحرية كاملة
+                    </span>
+                  </div>
+
+                  {/* Theme Picker */}
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      المظهر اللوني للبانر (Theme)
+                    </label>
+                    <select
+                      value={settingsForm.promoBannerTheme || "charcoal"}
+                      onChange={(e) =>
+                        setSettingsForm({
+                          ...settingsForm,
+                          promoBannerTheme: e.target.value as "charcoal" | "sand" | "gold" | "burgundy",
+                        })
+                      }
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+                    >
+                      <option value="charcoal">فحم ملكي داكن مع لمعان برونزي (Charcoal & Gold)</option>
+                      <option value="gold">ذهبي برونزي ملكي دافئ (Royal Bronze Gold)</option>
+                      <option value="sand">رملي ناعم كلاسيكي (Warm Sand & Charcoal)</option>
+                      <option value="burgundy">عنابي ملكي دافئ (Royal Burgundy)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Banner Texts */}
+                <div className="space-y-4 pt-2">
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      شارة البانر العلوية (Badge)
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsForm.promoBannerBadge || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, promoBannerBadge: e.target.value })
+                      }
+                      placeholder="عرض استثنائي لفترة محدودة ✦"
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      عنوان البانر الرئيسي (Headline) *
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsForm.promoBannerTitle || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, promoBannerTitle: e.target.value })
+                      }
+                      placeholder="تألقي ببريق الفضة الإيطالية عيار 925"
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-bold focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      النص الترويجي التفصيلي (Subtitle)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={settingsForm.promoBannerSubtitle || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, promoBannerSubtitle: e.target.value })
+                      }
+                      placeholder="احصل على خصم 10% فوري عند استخدام كود ATHAR10 مع شحن مجاني للطلبات المؤكدة اليوم."
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                        نص زر التحويل (CTA Button)
+                      </label>
+                      <input
+                        type="text"
+                        value={settingsForm.promoBannerButtonText || ""}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, promoBannerButtonText: e.target.value })
+                        }
+                        placeholder="تسوق العروض الآن"
+                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                        رابط الزر (Href)
+                      </label>
+                      <input
+                        type="text"
+                        value={settingsForm.promoBannerButtonLink || ""}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, promoBannerButtonLink: e.target.value })
+                        }
+                        placeholder="#products أو رابط صفحة التشكيلة"
+                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none dir-ltr"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      صورة ترويجية في البانر (رابط مباشر أو رفع ملف)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={settingsForm.promoBannerImageUrl || ""}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, promoBannerImageUrl: e.target.value })
+                        }
+                        placeholder="https://images.unsplash.com/..."
+                        className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none dir-ltr"
+                      />
+                      {settingsForm.promoBannerImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setSettingsForm({ ...settingsForm, promoBannerImageUrl: "" })}
+                          className="p-2 text-[#8c7865] hover:text-rose-600 rounded-lg border border-[#ded2c0] bg-white text-xs"
+                          title="حذف الصورة"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Banner Preview Card */}
+                <div className="pt-4 border-t border-[#f0e8dc]">
+                  <span className="text-xs font-bold text-[#161412] block mb-2">
+                    معاينة حية لشكل البانر حسب إعداداتك الحالية:
+                  </span>
+                  <div
+                    className={`p-6 rounded-xl border shadow-md relative overflow-hidden transition-all ${
+                      settingsForm.promoBannerTheme === "sand"
+                        ? "bg-[#eee4d5] text-[#161412] border-[#ded1be]"
+                        : settingsForm.promoBannerTheme === "gold"
+                        ? "bg-gradient-to-r from-[#211a14] via-[#2d2319] to-[#1a140f] text-[#fbf7f0] border-[#c5a880]/40"
+                        : settingsForm.promoBannerTheme === "burgundy"
+                        ? "bg-[#201014] text-white border-[#913d4b]/40"
+                        : "bg-[#161412] text-[#f7f4ee] border-[#2e2925]"
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="space-y-2">
+                        {settingsForm.promoBannerBadge && (
+                          <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 border border-white/20">
+                            {settingsForm.promoBannerBadge}
+                          </span>
+                        )}
+                        <h4 className="font-amiri text-xl font-bold">
+                          {settingsForm.promoBannerTitle || "عنوان البانر الإعلاني"}
+                        </h4>
+                        <p className="text-xs opacity-80 max-w-md">
+                          {settingsForm.promoBannerSubtitle || "النص الترويجي المصاحب للبانر..."}
+                        </p>
+                        {settingsForm.promoBannerButtonText && (
+                          <div className="pt-2">
+                            <span className="inline-block px-4 py-1.5 rounded-lg text-xs font-bold bg-[#c5a880] text-[#161412]">
+                              {settingsForm.promoBannerButtonText}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {settingsForm.promoBannerImageUrl && (
+                        <div className="w-24 h-24 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-black/20">
+                          <img
+                            src={settingsForm.promoBannerImageUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={handleSaveSettings}
+                    disabled={isSavingSettings}
+                    className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Save className="w-4 h-4 text-[#c5a880]" />
+                    <span>حفظ إعدادات البانر في السحابة فورياً</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -3220,6 +3545,103 @@ export default function AdminPage() {
             </div>
           )}
         </main>
+
+        {/* SHOPIFY-STYLE LIVE PREVIEW PANEL (Split Screen) */}
+        {isPreviewOpen && (
+          <div className="flex-1 bg-[#ede4d5]/40 flex flex-col sticky top-[65px] h-[calc(100vh-65px)] overflow-hidden border-t lg:border-t-0 border-[#ded2c0] z-20">
+            {/* Preview Toolbar */}
+            <div className="bg-white/95 backdrop-blur-md border-b border-[#ded2c0] px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#161412] flex items-center gap-1.5 font-amiri text-sm">
+                  <Eye className="w-4 h-4 text-[#c5a880]" />
+                  المعاينة الحية للمتجر
+                </span>
+                <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  مباشر (Shopify Mode)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Device Switcher */}
+                <div className="flex items-center bg-[#f7f4ee] rounded-lg p-0.5 border border-[#ded2c0]">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDevice("desktop")}
+                    className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
+                      previewDevice === "desktop"
+                        ? "bg-white shadow-sm font-bold text-[#161412]"
+                        : "text-[#756555] hover:text-[#161412]"
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">كمبيوتر</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDevice("mobile")}
+                    className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
+                      previewDevice === "mobile"
+                        ? "bg-white shadow-sm font-bold text-[#161412]"
+                        : "text-[#756555] hover:text-[#161412]"
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">موبايل</span>
+                  </button>
+                </div>
+
+                {/* Refresh Preview */}
+                <button
+                  type="button"
+                  onClick={() => setPreviewKey((k) => k + 1)}
+                  className="p-1.5 rounded-lg border border-[#ded2c0] bg-white text-[#5c4f42] hover:text-[#161412] hover:bg-[#f7f4ee] transition-colors"
+                  title="تحديث نافذة المعاينة"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Open in new tab */}
+                <Link
+                  href="/"
+                  target="_blank"
+                  className="p-1.5 rounded-lg border border-[#ded2c0] bg-white text-[#5c4f42] hover:text-[#161412] hover:bg-[#f7f4ee] transition-colors"
+                  title="فتح في تبويب جديد"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+
+                {/* Close Preview */}
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewOpen(false)}
+                  className="p-1.5 rounded-lg border border-[#ded2c0] bg-white text-[#756555] hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  title="إغلاق المعاينة"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Iframe Viewport Container */}
+            <div className="flex-1 overflow-auto flex items-center justify-center p-3 bg-[#e8ded0]/30">
+              <div
+                className={`h-full transition-all duration-300 rounded-xl overflow-hidden shadow-xl border border-[#ded2c0] bg-white ${
+                  previewDevice === "mobile"
+                    ? "w-[390px] max-w-full my-auto ring-8 ring-[#161412] rounded-[36px]"
+                    : "w-full"
+                }`}
+              >
+                <iframe
+                  key={previewKey}
+                  src="/"
+                  title="معاينة المتجر المباشرة"
+                  className="w-full h-full border-0"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ========================================================
@@ -3343,34 +3765,75 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Photo Input & Upload */}
-              <div>
-                <label className="block font-medium text-[#756555] mb-1">رابط الصورة الرئيسية أو رفع ملف</label>
-                <input
-                  type="text"
-                  value={productForm.images[0] || ""}
-                  onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr mb-2"
-                />
+              {/* Photo Input & Upload with Live Preview */}
+              <div className="space-y-2">
+                <label className="block font-medium text-[#756555]">
+                  صورة القطعة (رابط مباشر أو رفع من الجهاز) *
+                </label>
 
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-                  className="hidden"
-                />
+                {/* Live Photo Preview Box */}
+                {productForm.images[0] ? (
+                  <div className="flex items-center gap-3 p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0]">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-[#d8c8b4] bg-white shrink-0 shadow-sm">
+                      <img
+                        src={productForm.images[0]}
+                        alt="معاينة صورة القطعة"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0 text-xs">
+                      <span className="font-bold text-emerald-700 flex items-center gap-1 mb-1">
+                        <Check className="w-3.5 h-3.5" />
+                        تم تحديد ومعاينة الصورة بنجاح
+                      </span>
+                      <span className="text-[10px] text-[#756555] block truncate dir-ltr">
+                        {productForm.images[0].startsWith("data:")
+                          ? "صورة مرفوعة ومحفوظة (جاهزة للمزامنة)"
+                          : productForm.images[0]}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setProductForm((prev) => ({ ...prev, images: [""] }))}
+                      className="p-1.5 rounded-md text-[#8c7865] hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="إزالة الصورة"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-amber-50/60 rounded-xl border border-dashed border-amber-300 text-center text-amber-800 text-xs">
+                    لم يتم تحديد صورة بعد. ارفع صورة من جهازك بالزر أدناه أو الصق رابط الصورة.
+                  </div>
+                )}
 
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="px-4 py-1.5 rounded-lg bg-white border border-[#ded2c0] text-[#5c4f42] hover:text-[#161412] text-xs flex items-center gap-1.5 shadow-sm"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{isUploading ? "جاري الرفع..." : "رفع صورة من جهازك"}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={productForm.images[0] || ""}
+                    onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
+                    placeholder="https://images.unsplash.com/... أو ارفع ملف من جهازك"
+                    className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                  />
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="px-3.5 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 shadow-sm whitespace-nowrap active:scale-95"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
+                    <span>{isUploading ? "جاري المعالجة..." : "رفع من الجهاز"}</span>
+                  </button>
+                </div>
               </div>
 
               <div>

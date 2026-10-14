@@ -22,24 +22,35 @@ export async function POST(request: NextRequest) {
       : ".jpg";
     const uniqueName = `athar-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-
-    const filePath = path.join(uploadDir, uniqueName);
-    await writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/${uniqueName}`;
-
-    return NextResponse.json({
-      success: true,
-      url: publicUrl,
-      fileName: uniqueName,
-      size: file.size,
-    });
+    // Try saving to disk (works in local dev), fallback to base64 DataURL (works on Vercel)
+    try {
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, uniqueName);
+      await writeFile(filePath, buffer);
+      return NextResponse.json({
+        success: true,
+        url: `/uploads/${uniqueName}`,
+        fileName: uniqueName,
+        size: file.size,
+      });
+    } catch (fsErr) {
+      // Running on Vercel or read-only container: convert to Base64 Data URL
+      console.warn("Filesystem read-only (e.g. Vercel), returning Data URL fallback:", fsErr);
+      const mime = file.type || "image/jpeg";
+      const base64 = buffer.toString("base64");
+      const dataUrl = `data:${mime};base64,${base64}`;
+      return NextResponse.json({
+        success: true,
+        url: dataUrl,
+        fileName: uniqueName,
+        size: file.size,
+      });
+    }
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "Failed to upload file to disk" },
+      { error: "Failed to upload file" },
       { status: 500 }
     );
   }

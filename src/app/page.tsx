@@ -5,6 +5,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandStorySection } from "@/components/BrandStorySection";
 import { SilverCareSection } from "@/components/SilverCareSection";
+import { CustomPromoBanner } from "@/components/CustomPromoBanner";
 import { useStore } from "@/context/StoreContext";
 import { X } from "lucide-react";
 
@@ -66,12 +67,18 @@ export default function Home() {
 
   return (
     <>
+      {/* Position 1: Top of page (below navbar) */}
+      <CustomPromoBanner settings={storeSettings} position="top" />
+
       {/* Hero Section matching 50/50 visual mockup */}
       <HeroSection
         onExploreClick={scrollToProducts}
         onOpenSizeGuide={() => setIsSizeGuideOpen(true)}
         onNotify={addToast}
       />
+
+      {/* Position 2: After Hero (default position) */}
+      <CustomPromoBanner settings={storeSettings} position="after_hero" />
 
       {/* Featured Collection Section ("المجموعة") matching mockup */}
       <section
@@ -163,11 +170,20 @@ export default function Home() {
         )}
       </section>
 
+      {/* Position 3: Between Products and Story */}
+      <CustomPromoBanner settings={storeSettings} position="between_products" />
+
       {/* Brand Story Section matching mockup ("عن أثر") */}
       <BrandStorySection />
 
+      {/* Position 4: Before Care Guide */}
+      <CustomPromoBanner settings={storeSettings} position="before_care" />
+
       {/* Silver Care Guide matching mockup ("العناية بقطعتك") */}
       <SilverCareSection />
+
+      {/* Position 5: Before Footer */}
+      <CustomPromoBanner settings={storeSettings} position="before_footer" />
     </>
   );
 }

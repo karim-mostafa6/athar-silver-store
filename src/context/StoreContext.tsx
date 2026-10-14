@@ -218,6 +218,18 @@ export interface StoreSettings {
   footerPaymentBadgesText?: string;
   footerCopyrightText?: string;
   footerPassionTagline?: string;
+
+  // Custom Promotional Banner (Positionable)
+  promoBannerShow?: boolean;
+  promoBannerTitle?: string;
+  promoBannerSubtitle?: string;
+  promoBannerBadge?: string;
+  promoBannerButtonText?: string;
+  promoBannerButtonLink?: string;
+  promoBannerButtonShow?: boolean;
+  promoBannerPosition?: "top" | "after_hero" | "between_products" | "before_care" | "before_footer";
+  promoBannerTheme?: "charcoal" | "sand" | "gold" | "burgundy";
+  promoBannerImageUrl?: string;
 }
 
 export interface CollectionPageSetting {
@@ -608,6 +620,18 @@ const DEFAULT_SETTINGS: StoreSettings = {
   footerPaymentBadgesText: "دفع عند الاستلام, فودافون كاش, إنستاباي InstaPay, Visa / Master",
   footerCopyrightText: "© 2026 أَثَر (ATHAR) لفضة 925. جميع الحقوق محفوظة.",
   footerPassionTagline: "صُنع بحرفية وشغف ❤️ ليترك أثراً لا يُمحى",
+
+  // Custom Promotional Banner Defaults
+  promoBannerShow: true,
+  promoBannerTitle: "تألقي ببريق الفضة الإيطالية عيار 925",
+  promoBannerSubtitle: "احصل على خصم 10% فوري عند استخدام كود ATHAR10 مع شحن مجاني للطلبات المؤكدة اليوم.",
+  promoBannerBadge: "عرض استثنائي لفترة محدودة ✦",
+  promoBannerButtonText: "تسوق العروض الآن",
+  promoBannerButtonLink: "#products",
+  promoBannerButtonShow: true,
+  promoBannerPosition: "after_hero",
+  promoBannerTheme: "charcoal",
+  promoBannerImageUrl: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1200&q=85",
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
