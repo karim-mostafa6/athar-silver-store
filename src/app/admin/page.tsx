@@ -496,69 +496,14 @@ export default function AdminPage() {
     printWindow.document.close();
   };
 
-  const getWhatsAppConfirmationUrl = (order: Order) => {
-    const itemsLines = order.items
-      .map(
-        (item) =>
-          `💍 *${item.arabicName || item.name}* ${
-            item.selectedSize ? `(مقاس: ${item.selectedSize})` : ""
-          }\n   الكمية: ${item.quantity || 1} × ${item.price.toLocaleString("en-US")} ج.م = ${((item.quantity || 1) * item.price).toLocaleString("en-US")} ج.م`
-      )
-      .join("\n\n");
-
-    const subtotal = order.items.reduce(
-      (sum, item) => sum + item.price * (item.quantity || 1),
-      0
-    );
-
-    const formattedDate = new Date(order.createdAt).toLocaleDateString("ar-EG", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    const message = [
-      `السلام عليكم ورحمة الله وبركاته يا فندم 🌸`,
-      `أهلاً بحضرتك يا أستاذ/ة *${order.customerName}* ✨`,
-      ``,
-      `معاك دار *«أَثَـر للفضة الإيطالية عيار 925»*.`,
-      `بنشكرك لاختيارك وتواصلك الراقي معنا، تم تسجيل طلبك بنجاح وسعداء جداً بخدمتك! 🤍`,
-      ``,
-      `📋 *تفاصيل الطلب الخاص بحضرتك:*`,
-      `▫️ *رقم الطلب:* #${order.id}`,
-      `▫️ *تاريخ الطلب:* ${formattedDate}`,
-      ``,
-      `💍 *القطع المطلوبة:*`,
-      itemsLines,
-      ``,
-      `📦 *بيانات التوصيل والشحن:*`,
-      `▫️ *المحافظة:* ${order.governorate}`,
-      `▫️ *العنوان:* ${order.address}`,
-      order.notes ? `▫️ *ملاحظات خاصة:* ${order.notes}` : "",
-      ``,
-      `💰 *الملخص المالي:*`,
-      `▫️ قيمة المنتجات: ${subtotal.toLocaleString("en-US")} ج.م`,
-      `▫️ مصاريف الشحن: ${order.shippingFee.toLocaleString("en-US")} ج.م`,
-      order.discount ? `▫️ الخصم: -${order.discount.toLocaleString("en-US")} ج.م` : "",
-      `▫️ *الإجمالي المطلوب عند الاستلام:* *${order.total.toLocaleString("en-US")} ج.م*`,
-      ``,
-      `✨ *حق المعاينة والتجربة مكفول لحضرتك بالكامل قبل الاستلام والسداد مع مندوب الشحن.*`,
-      ``,
-      `💬 *برجاء الرد على هذه الرسالة بكلمة «تأكيد» أو «موافق» للبدء في تجهيز وشحن أوردرك فوراً 🚚💍*`,
-      ``,
-      `نسعد دائماً بخدمتك،`,
-      `*فريق عمل دار أَثَـر | ATHAR Silver* ✨`,
-    ]
-      .filter((line) => line !== "")
-      .join("\n");
-
+  const getWhatsAppInvoiceUrl = (order: Order) => {
+    const itemsText = order.items
+      .map((item) => `• ${item.arabicName} ${item.selectedSize ? `(مقاس: ${item.selectedSize})` : ""} × ${item.quantity} = ${(item.price * item.quantity).toLocaleString("en-US")} ج.م`)
+      .join("%0A");
+    const msg = `مرحباً بك في دار أَثَر للفضة 925%0Aيسعدنا إبلاغك بتأكيد طلبك رقم: %23${order.id}%0A%0Aالعميل: ${encodeURIComponent(order.customerName)}%0Aالعنوان: ${encodeURIComponent(order.governorate)} - ${encodeURIComponent(order.address)}%0A%0Aالمنتجات المطلوبة:%0A${itemsText}%0A%0Aرسوم الشحن: ${order.shippingFee} ج.م%0Aإجمالي المبلغ المطلوب عند الاستلام: ${order.total.toLocaleString("en-US")} ج.م%0A%0Aحق المعاينة مكفول لك بالكامل قبل الاستلام والسداد.%0Aشكراً لاختيارك دار أَثَر.`;
     let phone = order.phone.replace(/[^0-9]/g, "");
-    if (phone.startsWith("0") && phone.length === 11) {
-      phone = "2" + phone;
-    } else if (!phone.startsWith("20") && phone.length === 10 && phone.startsWith("1")) {
-      phone = "20" + phone;
-    }
-    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    if (phone.startsWith("0")) phone = "2" + phone;
+    return `https://wa.me/${phone}?text=${msg}`;
   };
 
   const exportOrdersToCSV = (ordersToExport: Order[]) => {
@@ -2006,7 +1951,9 @@ export default function AdminPage() {
               ) : (
                 <div className="space-y-3">
                   {filteredOrders.map((order) => {
-                    const whatsappLink = getWhatsAppConfirmationUrl(order);
+                    const whatsappLink = `https://wa.me/20${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                      `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أَثَـر للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
+                    )}`;
                     const totalItemsCount = order.items.reduce((acc, item) => acc + (item.quantity || 1), 0);
                     const isSelected = selectedOrderIds.includes(order.id);
 
@@ -2135,7 +2082,7 @@ export default function AdminPage() {
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors shrink-0"
-                              title="إرسال رسالة تأكيد الطلب للعميل عبر واتساب"
+                              title="محادثة واتساب سريعة"
                             >
                               <MessageCircle className="w-4 h-4" />
                             </a>
@@ -6648,7 +6595,9 @@ export default function AdminPage() {
           ======================================================== */}
       {selectedOrderForDetails && (() => {
         const order = orders.find((o) => o.id === selectedOrderForDetails.id) || selectedOrderForDetails;
-        const whatsappLink = getWhatsAppConfirmationUrl(order);
+        const whatsappLink = `https://wa.me/20${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+          `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أَثَـر للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
+        )}`;
 
         return (
           <div
@@ -6747,10 +6696,10 @@ export default function AdminPage() {
                         target="_blank"
                         rel="noreferrer"
                         className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-bold text-emerald-800 flex items-center gap-1"
-                        title="إرسال رسالة تأكيد الطلب للعميل عبر واتساب"
+                        title="محادثة واتساب"
                       >
                         <MessageCircle className="w-2.5 h-2.5 text-emerald-600" />
-                        <span>تأكيد واتساب</span>
+                        <span>واتساب</span>
                       </a>
                     </div>
                   </div>
@@ -6820,56 +6769,6 @@ export default function AdminPage() {
                       </div>
                       <span className="block text-[10px] text-[#8c7865]">انقر على الصورة لفتح الإيصال بالحجم الكامل</span>
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* WhatsApp One-Click Direct Order Confirmation Card */}
-              <div className="bg-gradient-to-r from-emerald-50 via-[#f0faf4] to-emerald-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
-                    <MessageCircle className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-emerald-950">إرسال رابط تأكيد الطلب للعميل عبر واتساب</h4>
-                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
-                        بنقرة واحدة
-                      </span>
-                    </div>
-                    <p className="text-xs text-emerald-800/90 mt-0.5 leading-relaxed">
-                      يفتح محادثة واتساب فورية مع العميل برسالة راقية متضمنة رقم الطلب وتفاصيل القطع والإجمالي، ويطلب منه الرد بـ «تأكيد» لشحن الطلب فوراً.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-                  <a
-                    href={getWhatsAppConfirmationUrl(order)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>إرسال رسالة التأكيد واتساب 💬</span>
-                  </a>
-
-                  {order.status !== "confirmed_whatsapp" && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        updateOrderStatus(order.id, "confirmed_whatsapp");
-                        setSelectedOrderForDetails((prev) =>
-                          prev ? { ...prev, status: "confirmed_whatsapp" } : null
-                        );
-                        addToast("تم التأكيد", `تم تغيير حالة الطلب #${order.id} إلى (تم التأكيد واتساب)`, "info");
-                      }}
-                      className="px-3 py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all shrink-0"
-                      title="تغيير الحالة إلى (تم التأكيد واتساب)"
-                    >
-                      <Check className="w-4 h-4 text-emerald-600 inline ml-1" />
-                      <span>تحديد كـ مؤكد</span>
-                    </button>
                   )}
                 </div>
               </div>
@@ -7194,13 +7093,13 @@ export default function AdminPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#ded2c0]">
                 <div className="flex items-center gap-2 flex-wrap">
                   <a
-                    href={getWhatsAppConfirmationUrl(order)}
+                    href={getWhatsAppInvoiceUrl(order)}
                     target="_blank"
                     rel="noreferrer"
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    <span>إرسال تأكيد الطلب للعميل (واتساب)</span>
+                    <span>إرسال الفاتورة عبر واتساب</span>
                   </a>
 
                   <button
