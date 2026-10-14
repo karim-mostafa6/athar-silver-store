@@ -1,11 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useRef, useCallback, ReactNode } from "react";
-import { Product, CartItem, PRODUCTS, StoreCategory, DEFAULT_CATEGORIES } from "@/data/products";
+import { Product, CartItem, PRODUCTS, StoreCategory, DEFAULT_CATEGORIES, CustomPage, DEFAULT_CUSTOM_PAGES } from "@/data/products";
 import { ToastMessage } from "@/components/Toast";
 
-export type { StoreCategory };
-export { DEFAULT_CATEGORIES };
+export type { StoreCategory, CustomPage };
+export { DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES };
 
 export interface NavLinkItem {
   id: string;
@@ -230,6 +230,9 @@ export interface StoreSettings {
   promoBannerPosition?: "top" | "after_hero" | "between_products" | "before_care" | "before_footer";
   promoBannerTheme?: "charcoal" | "sand" | "gold" | "burgundy";
   promoBannerImageUrl?: string;
+
+  // Custom Pages
+  customPages?: CustomPage[];
 }
 
 export interface CollectionPageSetting {
@@ -632,6 +635,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   promoBannerPosition: "after_hero",
   promoBannerTheme: "charcoal",
   promoBannerImageUrl: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1200&q=85",
+  customPages: DEFAULT_CUSTOM_PAGES,
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -681,6 +685,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             ...DEFAULT_SETTINGS.governorateShippingRates,
             ...(parsed.governorateShippingRates || {}),
           },
+          customPages:
+            Array.isArray(parsed.customPages) && parsed.customPages.length > 0
+              ? parsed.customPages
+              : DEFAULT_CUSTOM_PAGES,
         };
       }
     } catch {}
@@ -784,6 +792,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 ...prev.governorateShippingRates,
                 ...(data.settings.governorateShippingRates || {}),
               },
+              customPages:
+                Array.isArray(data.settings.customPages) && data.settings.customPages.length > 0
+                  ? data.settings.customPages
+                  : (prev.customPages || DEFAULT_CUSTOM_PAGES),
             };
             try {
               localStorage.setItem("athar_store_settings", JSON.stringify(merged));

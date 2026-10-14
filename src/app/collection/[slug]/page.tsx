@@ -113,9 +113,9 @@ export default function CollectionPage() {
         if (matched) {
           base = {
             title: matched.label,
-            englishTitle: (matched.slug || matched.id).toUpperCase(),
+            englishTitle: matched.englishTitle || (matched.slug || matched.id).toUpperCase(),
             subtitle: matched.description || `تشكيلة ${matched.label} الفاخرة من الفضة الإسترليني عيار 925`,
-            bannerImage: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
+            bannerImage: matched.bannerImage || "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
             showBanner: true,
             filterGender: undefined,
             filterCategory: matched.id,
@@ -160,19 +160,28 @@ export default function CollectionPage() {
     return allStoreProducts.filter((p) => {
       // By gender
       if (collectionInfo.filterGender) {
-        if (p.gender !== collectionInfo.filterGender && p.gender !== "unisex") {
+        const matchesGender = p.gender === collectionInfo.filterGender || p.gender === "unisex";
+        const inCollections = Array.isArray(p.collections) && p.collections.includes(collectionInfo.filterGender);
+        if (!matchesGender && !inCollections) {
           return false;
         }
       }
-      // By category
+      // By category / collection
       if (collectionInfo.filterCategory) {
-        if (p.category !== collectionInfo.filterCategory) {
+        const inCategory = p.category === collectionInfo.filterCategory;
+        const inCollections = Array.isArray(p.collections) && (p.collections.includes(collectionInfo.filterCategory) || p.collections.includes(slug));
+        const inTags = Array.isArray(p.tags) && (p.tags.includes(collectionInfo.filterCategory) || p.tags.includes(slug));
+        if (!inCategory && !inCollections && !inTags) {
           return false;
         }
       }
       // Sub-category filter
-      if (selectedSubCategory !== "all" && p.category !== selectedSubCategory) {
-        return false;
+      if (selectedSubCategory !== "all") {
+        const inCategory = p.category === selectedSubCategory;
+        const inCollections = Array.isArray(p.collections) && p.collections.includes(selectedSubCategory);
+        if (!inCategory && !inCollections) {
+          return false;
+        }
       }
       return true;
     }).sort((a, b) => {
@@ -181,7 +190,7 @@ export default function CollectionPage() {
       if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
       return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
     });
-  }, [collectionInfo, selectedSubCategory, sortBy, allStoreProducts]);
+  }, [collectionInfo, selectedSubCategory, sortBy, allStoreProducts, slug]);
 
   return (
     <div>

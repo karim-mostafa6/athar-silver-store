@@ -31,21 +31,39 @@ export const Footer: React.FC<FooterProps> = () => {
 
           {/* Center: Essential Navigation Links */}
           <nav className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium text-[#c4b6a4]">
-            <a href="#footer" className="hover:text-white transition-colors">
+            <Link href="/page/contact" className="hover:text-white transition-colors">
               تواصل معنا
-            </a>
-            <a href="#care" className="hover:text-white transition-colors">
+            </Link>
+            <Link href="/page/care" className="hover:text-white transition-colors">
               العناية بالفضة
-            </a>
-            <a href="#story" className="hover:text-white transition-colors">
+            </Link>
+            <Link href="/page/about" className="hover:text-white transition-colors">
               عن أَثَر
-            </a>
-            <Link href="/confirm-order" className="hover:text-white transition-colors">
+            </Link>
+            <Link href="/page/returns" className="hover:text-white transition-colors">
               الاستبدال والاسترجاع
             </Link>
-            <span className="text-[#8c7e70] cursor-default">
+            <Link href="/page/warranty" className="hover:text-white transition-colors">
               سياسة الضمان
-            </span>
+            </Link>
+
+            {/* Custom Dynamic Pages added from Dashboard */}
+            {storeSettings.customPages
+              ?.filter(
+                (p) =>
+                  p.isPublished &&
+                  p.showInFooter &&
+                  !["contact", "care", "about", "returns", "warranty"].includes(p.slug)
+              )
+              .map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/page/${p.slug}`}
+                  className="hover:text-white transition-colors"
+                >
+                  {p.footerLabel || p.title}
+                </Link>
+              ))}
           </nav>
 
           {/* Left: Social Handle & Contact */}

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useStore, StoreSettings, Order, NavLinkItem, MarqueeExtraMessage } from "@/context/StoreContext";
+import { useStore, StoreSettings, Order, NavLinkItem, MarqueeExtraMessage, StoreCategory, CustomPage, DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES } from "@/context/StoreContext";
 import { Product } from "@/data/products";
 import { playRoyalOrderChime } from "@/lib/sound";
 import { AtharLogo } from "@/components/AtharLogo";
@@ -9,12 +9,14 @@ import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
   Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image as ImageIcon,
-  RotateCw, X, Smartphone, Monitor
+  RotateCw, X, Smartphone, Monitor, BookOpen
 } from "lucide-react";
 
 type ActiveTab =
   | "orders"
   | "products"
+  | "collections"
+  | "pages"
   | "banners"
   | "hero"
   | "marquee"
@@ -121,6 +123,7 @@ export default function AdminPage() {
     reviewsCount: 1,
     weightGrams: 5.2,
     tags: ["فضة 925"],
+    collections: ["rings"],
   };
 
   const [productForm, setProductForm] = useState<Omit<Product, "id">>(initialProductForm);
@@ -128,6 +131,56 @@ export default function AdminPage() {
   const [productSizesText, setProductSizesText] = useState<string>("");
   const [productTagsText, setProductTagsText] = useState<string>("");
   const [newImageUrlInput, setNewImageUrlInput] = useState<string>("");
+
+  // Collections Modal & Form State
+  const [isCollectionModalOpen, setIsCollectionModalOpen] = useState<boolean>(false);
+  const [editingCollectionId, setEditingCollectionId] = useState<string | null>(null);
+  const [collectionForm, setCollectionForm] = useState<{
+    id: string;
+    label: string;
+    slug: string;
+    englishTitle: string;
+    description: string;
+    icon: string;
+    bannerImage: string;
+  }>({
+    id: "",
+    label: "",
+    slug: "",
+    englishTitle: "",
+    description: "",
+    icon: "✨",
+    bannerImage: "",
+  });
+  const collectionFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Custom Pages Modal & Form State
+  const [isPageModalOpen, setIsPageModalOpen] = useState<boolean>(false);
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [pageForm, setPageForm] = useState<{
+    id: string;
+    slug: string;
+    title: string;
+    englishTitle: string;
+    subtitle: string;
+    bannerImage: string;
+    content: string;
+    isPublished: boolean;
+    showInFooter: boolean;
+    footerLabel: string;
+  }>({
+    id: "",
+    slug: "",
+    title: "",
+    englishTitle: "",
+    subtitle: "",
+    bannerImage: "",
+    content: "",
+    isPublished: true,
+    showInFooter: true,
+    footerLabel: "",
+  });
+  const pageFileInputRef = useRef<HTMLInputElement>(null);
 
   // Store Settings Form State
   const [settingsForm, setSettingsForm] = useState<StoreSettings>(storeSettings);
@@ -309,6 +362,7 @@ export default function AdminPage() {
       arabicName: prod.arabicName,
       name: prod.name || "",
       category: prod.category,
+      collections: prod.collections && prod.collections.length > 0 ? prod.collections : [prod.category],
       gender: prod.gender,
       price: prod.price,
       originalPrice: prod.originalPrice,
@@ -335,7 +389,10 @@ export default function AdminPage() {
   // Open New Product Modal
   const handleOpenNewProduct = () => {
     setEditingProductId(null);
-    setProductForm(initialProductForm);
+    setProductForm({
+      ...initialProductForm,
+      collections: ["rings"],
+    });
     setProductFeaturesText(initialProductForm.features.join("\n"));
     setProductSizesText((initialProductForm.sizes || []).join(", "));
     setProductTagsText(initialProductForm.tags.join(", "));
@@ -367,6 +424,10 @@ export default function AdminPage() {
 
     const updatedData: Omit<Product, "id"> = {
       ...productForm,
+      collections:
+        productForm.collections && productForm.collections.length > 0
+          ? productForm.collections
+          : [productForm.category],
       features: parsedFeatures.length > 0 ? parsedFeatures : ["فضة إسترليني 925 معتمدة"],
       sizes: parsedSizes.length > 0 ? parsedSizes : undefined,
       tags: parsedTags.length > 0 ? parsedTags : ["فضة 925"],
@@ -385,6 +446,228 @@ export default function AdminPage() {
 
     setIsProductModalOpen(false);
     setEditingProductId(null);
+  };
+
+  // ----------------------------------------------------
+  // Collections Handlers
+  // ----------------------------------------------------
+  const handleOpenAddCollection = () => {
+    setEditingCollectionId(null);
+    setCollectionForm({
+      id: "",
+      label: "",
+      slug: "",
+      englishTitle: "",
+      description: "",
+      icon: "✨",
+      bannerImage: "",
+    });
+    setIsCollectionModalOpen(true);
+  };
+
+  const handleOpenEditCollection = (col: StoreCategory) => {
+    setEditingCollectionId(col.id);
+    setCollectionForm({
+      id: col.id,
+      label: col.label,
+      slug: col.slug || col.id,
+      englishTitle: col.englishTitle || "",
+      description: col.description || "",
+      icon: col.icon || "✨",
+      bannerImage: col.bannerImage || "",
+    });
+    setIsCollectionModalOpen(true);
+  };
+
+  const handleCollectionBannerUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const clientDataUrl = await compressImageFile(file);
+      if (clientDataUrl) {
+        setCollectionForm((prev) => ({ ...prev, bannerImage: clientDataUrl }));
+        addToast("تم اختيار الصورة ✦", "تم تعيين صورة غلاف الكولكشن", "info");
+      }
+    } catch {
+      addToast("خطأ", "فشل معالجة الصورة", "info");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSaveCollection = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!collectionForm.label.trim()) {
+      addToast("تنبيه", "يرجى كتابة اسم الكولكشن بالعربية", "info");
+      return;
+    }
+
+    const cleanSlug = (collectionForm.slug.trim() || collectionForm.label.trim())
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "") || `col-${Date.now()}`;
+
+    const newColId = editingCollectionId || cleanSlug;
+    const updatedCol: StoreCategory = {
+      id: newColId,
+      label: collectionForm.label.trim(),
+      slug: cleanSlug,
+      englishTitle: collectionForm.englishTitle.trim() || undefined,
+      description: collectionForm.description.trim() || undefined,
+      icon: collectionForm.icon.trim() || "✨",
+      bannerImage: collectionForm.bannerImage || undefined,
+    };
+
+    const currentCats =
+      settingsForm.categories && settingsForm.categories.length > 0
+        ? settingsForm.categories
+        : DEFAULT_CATEGORIES;
+
+    let nextCats: StoreCategory[];
+    if (editingCollectionId) {
+      nextCats = currentCats.map((c) => (c.id === editingCollectionId ? updatedCol : c));
+    } else {
+      nextCats = [...currentCats, updatedCol];
+    }
+
+    setSettingsForm((prev) => ({
+      ...prev,
+      categories: nextCats,
+      collectionPages: {
+        ...(prev.collectionPages || {}),
+        [updatedCol.id]: {
+          title: updatedCol.label,
+          englishTitle: updatedCol.englishTitle,
+          subtitle: updatedCol.description,
+          bannerImage: updatedCol.bannerImage,
+          showBanner: true,
+        },
+      },
+    }));
+
+    setIsCollectionModalOpen(false);
+    setEditingCollectionId(null);
+    addToast("تم حفظ الكولكشن ✦", `تم حفظ مجموعة "${updatedCol.label}" بنجاح`, "info");
+  };
+
+  const handleDeleteCollection = (id: string, label: string) => {
+    if (confirm(`هل أنت متأكد من حذف كولكشن "${label}"؟`)) {
+      const currentCats =
+        settingsForm.categories && settingsForm.categories.length > 0
+          ? settingsForm.categories
+          : DEFAULT_CATEGORIES;
+      const nextCats = currentCats.filter((c) => c.id !== id);
+      setSettingsForm((prev) => ({ ...prev, categories: nextCats }));
+      addToast("تم الحذف", `تم حذف كولكشن "${label}"`, "info");
+    }
+  };
+
+  // ----------------------------------------------------
+  // Custom Pages Handlers
+  // ----------------------------------------------------
+  const handleOpenAddPage = () => {
+    setEditingPageId(null);
+    setPageForm({
+      id: "",
+      slug: "",
+      title: "",
+      englishTitle: "",
+      subtitle: "",
+      bannerImage: "",
+      content: "",
+      isPublished: true,
+      showInFooter: true,
+      footerLabel: "",
+    });
+    setIsPageModalOpen(true);
+  };
+
+  const handleOpenEditPage = (page: CustomPage) => {
+    setEditingPageId(page.id);
+    setPageForm({
+      id: page.id,
+      slug: page.slug,
+      title: page.title,
+      englishTitle: page.englishTitle || "",
+      subtitle: page.subtitle || "",
+      bannerImage: page.bannerImage || "",
+      content: page.content || "",
+      isPublished: page.isPublished !== false,
+      showInFooter: page.showInFooter !== false,
+      footerLabel: page.footerLabel || page.title,
+    });
+    setIsPageModalOpen(true);
+  };
+
+  const handlePageBannerUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const clientDataUrl = await compressImageFile(file);
+      if (clientDataUrl) {
+        setPageForm((prev) => ({ ...prev, bannerImage: clientDataUrl }));
+        addToast("تم اختيار الصورة ✦", "تم تعيين صورة غلاف الصفحة", "info");
+      }
+    } catch {
+      addToast("خطأ", "فشل معالجة الصورة", "info");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSavePage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pageForm.title.trim()) {
+      addToast("تنبيه", "يرجى كتابة عنوان الصفحة", "info");
+      return;
+    }
+
+    const cleanSlug = (pageForm.slug.trim() || pageForm.title.trim())
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "") || `page-${Date.now()}`;
+
+    const newPageId = editingPageId || `page-${Date.now()}`;
+    const updatedPage: CustomPage = {
+      id: newPageId,
+      slug: cleanSlug,
+      title: pageForm.title.trim(),
+      englishTitle: pageForm.englishTitle.trim() || undefined,
+      subtitle: pageForm.subtitle.trim() || undefined,
+      bannerImage: pageForm.bannerImage || undefined,
+      content: pageForm.content.trim(),
+      isPublished: pageForm.isPublished,
+      showInFooter: pageForm.showInFooter,
+      footerLabel: pageForm.footerLabel.trim() || pageForm.title.trim(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const currentPages =
+      settingsForm.customPages && settingsForm.customPages.length > 0
+        ? settingsForm.customPages
+        : DEFAULT_CUSTOM_PAGES;
+
+    let nextPages: CustomPage[];
+    if (editingPageId) {
+      nextPages = currentPages.map((p) => (p.id === editingPageId ? updatedPage : p));
+    } else {
+      nextPages = [...currentPages, updatedPage];
+    }
+
+    setSettingsForm((prev) => ({ ...prev, customPages: nextPages }));
+    setIsPageModalOpen(false);
+    setEditingPageId(null);
+    addToast("تم حفظ الصفحة ✦", `تم حفظ صفحة "${updatedPage.title}" بنجاح`, "info");
+  };
+
+  const handleDeletePage = (id: string, title: string) => {
+    if (confirm(`هل أنت متأكد من حذف صفحة "${title}"؟`)) {
+      const currentPages =
+        settingsForm.customPages && settingsForm.customPages.length > 0
+          ? settingsForm.customPages
+          : DEFAULT_CUSTOM_PAGES;
+      const nextPages = currentPages.filter((p) => p.id !== id);
+      setSettingsForm((prev) => ({ ...prev, customPages: nextPages }));
+      addToast("تم الحذف", `تم حذف صفحة "${title}"`, "info");
+    }
   };
 
   // Save Settings to Cloud
@@ -434,7 +717,11 @@ export default function AdminPage() {
   // Filtered Products
   const filteredProductsList = useMemo(() => {
     return products.filter((p) => {
-      if (categoryFilter !== "all" && p.category !== categoryFilter) return false;
+      if (categoryFilter !== "all") {
+        const inCategory = p.category === categoryFilter;
+        const inCollections = Array.isArray(p.collections) && p.collections.includes(categoryFilter);
+        if (!inCategory && !inCollections) return false;
+      }
       if (productSearch.trim()) {
         const q = productSearch.toLowerCase();
         return p.arabicName.toLowerCase().includes(q) || (p.tags && p.tags.some((t) => t.includes(q)));
@@ -516,10 +803,12 @@ export default function AdminPage() {
     }));
   };
 
-  // 15 Sidebar Tabs Navigation Configuration (Shopify-like)
+  // 17 Sidebar Tabs Navigation Configuration (Shopify-like)
   const sidebarTabs: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: "orders", label: "الطلبات والمبيعات", icon: <ShoppingBag className="w-4 h-4" />, badge: orderMetrics.pending },
     { id: "products", label: "إدارة المنتجات", icon: <Package className="w-4 h-4" /> },
+    { id: "collections", label: "الكولكشن والمجموعات", icon: <Layers className="w-4 h-4" /> },
+    { id: "pages", label: "الصفحات المستقلة", icon: <BookOpen className="w-4 h-4" /> },
     { id: "banners", label: "البانرات الإعلانية ومواقعها", icon: <Sparkles className="w-4 h-4" /> },
     { id: "hero", label: "البانر الرئيسي", icon: <ImageIcon className="w-4 h-4" /> },
     { id: "marquee", label: "شريط الإعلانات", icon: <Megaphone className="w-4 h-4" /> },
@@ -1001,12 +1290,15 @@ export default function AdminPage() {
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     className="bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
                   >
-                    <option value="all">كافة الأقسام</option>
-                    <option value="rings">خواتم وسوليتير</option>
-                    <option value="chains">سلاسل إيطالي</option>
-                    <option value="bracelets">أساور وتنس</option>
-                    <option value="sets">أطقم ملكية</option>
-                    <option value="earrings">أقراط وحلقان</option>
+                    <option value="all">كافة الكولكشن والأقسام</option>
+                    {(settingsForm.categories && settingsForm.categories.length > 0
+                      ? settingsForm.categories
+                      : DEFAULT_CATEGORIES
+                    ).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.icon || "✨"} {c.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1054,7 +1346,7 @@ export default function AdminPage() {
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between text-xs mb-3">
+                      <div className="flex items-center justify-between text-xs mb-2">
                         <span className="font-bold text-[#161412]">
                           {product.price.toLocaleString("en-US")} ج.م
                         </span>
@@ -1063,6 +1355,26 @@ export default function AdminPage() {
                             {product.originalPrice.toLocaleString("en-US")} ج.م
                           </span>
                         )}
+                      </div>
+
+                      {/* Product Collections Badges */}
+                      <div className="flex flex-wrap items-center gap-1 mb-3">
+                        {(product.collections && product.collections.length > 0
+                          ? product.collections
+                          : [product.category]
+                        ).map((colId) => {
+                          const matchedCol = (settingsForm.categories || DEFAULT_CATEGORIES).find(
+                            (c) => c.id === colId || c.slug === colId
+                          );
+                          return (
+                            <span
+                              key={colId}
+                              className="text-[9px] bg-[#f0e7db] text-[#5c4f42] px-1.5 py-0.5 rounded font-medium"
+                            >
+                              {matchedCol?.icon || "✦"} {matchedCol?.label || colId}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -1101,6 +1413,259 @@ export default function AdminPage() {
                           }}
                           className="p-1.5 rounded text-[#baa894] hover:text-rose-600 hover:bg-rose-50"
                           title="حذف القطعة"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================
+              TAB: COLLECTIONS & CATEGORIES MANAGER
+              ======================================================== */}
+          {activeTab === "collections" && (
+            <div className="space-y-6">
+              {/* Header & Controls */}
+              <div className="bg-white rounded-xl p-5 border border-[#e8ded0] flex flex-wrap items-center justify-between gap-4 shadow-sm">
+                <div>
+                  <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-[#c5a880]" />
+                    <span>إدارة الكولكشن والمجموعات (Collections & Categories)</span>
+                  </h3>
+                  <p className="text-xs text-[#756555] mt-1">
+                    أنشئ كولكشن جديد، خصص صورته وعنوانه، ووزع المنتجات على أي كولكشن بحرية تامة.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleOpenAddCollection}
+                    className="px-5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4 text-[#c5a880]" />
+                    <span>إضافة كولكشن جديد ✦</span>
+                  </button>
+                  <button
+                    onClick={handleSaveSettings}
+                    disabled={isSavingSettings}
+                    className="px-4 py-2.5 rounded-lg bg-[#c5a880] text-[#161412] text-xs font-bold hover:bg-[#b8996e] transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>حفظ السحابة</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Collections Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {(settingsForm.categories && settingsForm.categories.length > 0
+                  ? settingsForm.categories
+                  : DEFAULT_CATEGORIES
+                ).map((col) => {
+                  const assignedCount = products.filter(
+                    (p) =>
+                      p.category === col.id ||
+                      (Array.isArray(p.collections) &&
+                        (p.collections.includes(col.id) || (col.slug && p.collections.includes(col.slug))))
+                  ).length;
+
+                  return (
+                    <div
+                      key={col.id}
+                      className="bg-white rounded-xl border border-[#e8ded0] overflow-hidden shadow-sm flex flex-col justify-between hover:border-[#b8a892] transition-colors"
+                    >
+                      {/* Banner Image Preview */}
+                      <div className="relative h-32 w-full bg-[#1c1815] overflow-hidden">
+                        {col.bannerImage ? (
+                          <img
+                            src={col.bannerImage}
+                            alt={col.label}
+                            className="w-full h-full object-cover brightness-[0.75]"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#211d19] to-[#332b24] text-[#c5a880] text-3xl">
+                            {col.icon || "✨"}
+                          </div>
+                        )}
+                        <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-full text-white text-[10px] font-bold flex items-center gap-1.5">
+                          <span>{assignedCount} قطع</span>
+                        </div>
+                        <div className="absolute bottom-2.5 right-2.5 text-white">
+                          <span className="text-xl ml-1">{col.icon || "✨"}</span>
+                          <span className="font-bold text-sm">{col.label}</span>
+                        </div>
+                      </div>
+
+                      {/* Details */}
+                      <div className="p-4 space-y-2 flex-1">
+                        {col.englishTitle && (
+                          <div className="text-[10px] font-mono uppercase tracking-wider text-[#8c7865]">
+                            {col.englishTitle}
+                          </div>
+                        )}
+                        <p className="text-xs text-[#756555] line-clamp-2">
+                          {col.description || `تشكيلة ${col.label} من الفضة الإسترليني عيار 925`}
+                        </p>
+                        <div className="pt-2 text-[11px] font-mono text-[#8c7865] dir-ltr flex items-center gap-1">
+                          <span className="text-[#c5a880]">URL:</span> /collection/{col.slug || col.id}
+                        </div>
+                      </div>
+
+                      {/* Card Actions */}
+                      <div className="p-3 bg-[#faf6f0] border-t border-[#e8ded0] flex items-center justify-between">
+                        <Link
+                          href={`/collection/${col.slug || col.id}`}
+                          target="_blank"
+                          className="px-3 py-1.5 rounded-lg bg-white border border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3] text-xs font-medium flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-[#c5a880]" />
+                          <span>معاينة في المتجر</span>
+                        </Link>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleOpenEditCollection(col)}
+                            className="p-1.5 rounded text-[#5c4f42] hover:text-[#161412] hover:bg-white"
+                            title="تعديل الكولكشن"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCollection(col.id, col.label)}
+                            className="p-1.5 rounded text-[#baa894] hover:text-rose-600 hover:bg-rose-50"
+                            title="حذف الكولكشن"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================
+              TAB: CUSTOM PAGES & BRAND STORY MANAGER
+              ======================================================== */}
+          {activeTab === "pages" && (
+            <div className="space-y-6">
+              {/* Header & Controls */}
+              <div className="bg-white rounded-xl p-5 border border-[#e8ded0] flex flex-wrap items-center justify-between gap-4 shadow-sm">
+                <div>
+                  <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-[#c5a880]" />
+                    <span>إدارة الصفحات المستقلة والبراند (Custom Pages & Brand)</span>
+                  </h3>
+                  <p className="text-xs text-[#756555] mt-1">
+                    أنشئ صفحات مستقلة بروابط خاصة (مثل قصة براند أثر، دليل الفضة، سياسات المتجر) وتحكم في روابط الفوتر.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleOpenAddPage}
+                    className="px-5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4 text-[#c5a880]" />
+                    <span>إنشاء صفحة جديدة ✦</span>
+                  </button>
+                  <button
+                    onClick={handleSaveSettings}
+                    disabled={isSavingSettings}
+                    className="px-4 py-2.5 rounded-lg bg-[#c5a880] text-[#161412] text-xs font-bold hover:bg-[#b8996e] transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>حفظ السحابة</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Pages Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {(settingsForm.customPages && settingsForm.customPages.length > 0
+                  ? settingsForm.customPages
+                  : DEFAULT_CUSTOM_PAGES
+                ).map((page) => (
+                  <div
+                    key={page.id}
+                    className="bg-white rounded-xl border border-[#e8ded0] overflow-hidden shadow-sm flex flex-col justify-between hover:border-[#b8a892] transition-colors"
+                  >
+                    {/* Page Banner Preview */}
+                    <div className="relative h-28 w-full bg-[#1c1815] overflow-hidden">
+                      {page.bannerImage ? (
+                        <img
+                          src={page.bannerImage}
+                          alt={page.title}
+                          className="w-full h-full object-cover brightness-[0.7]"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#211d19] to-[#332b24] text-[#c5a880] text-sm font-bold">
+                          {page.title}
+                        </div>
+                      )}
+                      <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            page.isPublished !== false
+                              ? "bg-emerald-600 text-white"
+                              : "bg-gray-600 text-white"
+                          }`}
+                        >
+                          {page.isPublished !== false ? "منشورة ✓" : "مسودة ✕"}
+                        </span>
+                        {page.showInFooter !== false && (
+                          <span className="px-2 py-0.5 rounded bg-amber-500 text-[#161412] text-[10px] font-bold">
+                            في الفوتر 📌
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Page Content Info */}
+                    <div className="p-4 space-y-2 flex-1">
+                      <h4 className="font-bold text-sm text-[#161412] line-clamp-1">{page.title}</h4>
+                      {page.englishTitle && (
+                        <div className="text-[10px] font-mono text-[#8c7865] uppercase">
+                          {page.englishTitle}
+                        </div>
+                      )}
+                      {page.subtitle && (
+                        <p className="text-xs text-[#756555] line-clamp-2">{page.subtitle}</p>
+                      )}
+                      <div className="pt-2 text-[11px] font-mono text-[#8c7865] dir-ltr">
+                        <span className="text-[#c5a880]">URL:</span> /page/{page.slug}
+                      </div>
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="p-3 bg-[#faf6f0] border-t border-[#e8ded0] flex items-center justify-between">
+                      <Link
+                        href={`/page/${page.slug}`}
+                        target="_blank"
+                        className="px-3 py-1.5 rounded-lg bg-white border border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3] text-xs font-medium flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-[#c5a880]" />
+                        <span>معاينة حية ↗</span>
+                      </Link>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleOpenEditPage(page)}
+                          className="p-1.5 rounded text-[#5c4f42] hover:text-[#161412] hover:bg-white"
+                          title="تعديل الصفحة"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePage(page.id, page.title)}
+                          className="p-1.5 rounded text-[#baa894] hover:text-rose-600 hover:bg-rose-50"
+                          title="حذف الصفحة"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -3990,11 +4555,14 @@ export default function AdminPage() {
                     onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
                   >
-                    <option value="rings">خواتم وسوليتير</option>
-                    <option value="chains">سلاسل إيطالي</option>
-                    <option value="bracelets">أساور وتنس</option>
-                    <option value="sets">أطقم ملكية</option>
-                    <option value="earrings">أقراط وحلقان</option>
+                    {(settingsForm.categories && settingsForm.categories.length > 0
+                      ? settingsForm.categories
+                      : DEFAULT_CATEGORIES
+                    ).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.icon || "✨"} {c.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -4020,6 +4588,58 @@ export default function AdminPage() {
                     placeholder="فضة إسترليني عيار 925 معتمدة"
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
                   />
+                </div>
+              </div>
+
+              {/* Collection Assignment Section (Multi-select) */}
+              <div className="p-3.5 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-xs text-[#161412] flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-[#c5a880]" />
+                    <span>الكولكشن والمجموعات التابعة لها القطعة (تحديد متعدد)</span>
+                  </label>
+                  <span className="text-[10px] text-[#756555]">
+                    اختر المجموعات التي ترغب بظهور المنتج بداخلها
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                  {(settingsForm.categories && settingsForm.categories.length > 0
+                    ? settingsForm.categories
+                    : DEFAULT_CATEGORIES
+                  ).map((col) => {
+                    const isChecked = (productForm.collections || [productForm.category]).includes(col.id) || (productForm.collections || []).includes(col.slug || "");
+                    return (
+                      <label
+                        key={col.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
+                          isChecked
+                            ? "bg-white border-[#161412] text-[#161412] font-bold shadow-xs"
+                            : "bg-white/60 border-[#ded2c0] text-[#756555] hover:border-[#b8a490]"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const cur = new Set(productForm.collections || [productForm.category]);
+                            if (e.target.checked) {
+                              cur.add(col.id);
+                              if (col.slug) cur.add(col.slug);
+                            } else {
+                              cur.delete(col.id);
+                              if (col.slug) cur.delete(col.slug);
+                            }
+                            setProductForm((prev) => ({
+                              ...prev,
+                              collections: Array.from(cur),
+                            }));
+                          }}
+                          className="rounded border-[#ded2c0] text-[#161412]"
+                        />
+                        <span className="truncate">{col.icon || "✨"} {col.label}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -4268,6 +4888,357 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* ========================================================
+          COLLECTION ADD/EDIT MODAL
+          ======================================================== */}
+      {isCollectionModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#e8ded0] shadow-2xl p-6 space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
+              <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#c5a880]" />
+                <span>{editingCollectionId ? "تعديل الكولكشن" : "إضافة كولكشن جديد للمتجر ✦"}</span>
+              </h3>
+              <button
+                onClick={() => setIsCollectionModalOpen(false)}
+                className="p-1 rounded-lg text-[#756555] hover:bg-[#f7f4ee]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCollection} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-medium text-[#756555] mb-1">
+                  اسم الكولكشن بالعربية * (يظهر في القوائم والتصنيفات)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={collectionForm.label}
+                  onChange={(e) => setCollectionForm({ ...collectionForm, label: e.target.value })}
+                  placeholder="مثال: روائع الشتاء أو هدايا الزفاف"
+                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-medium text-[#756555] mb-1">
+                    الرابط الإنجليزي (Slug) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={collectionForm.slug}
+                    onChange={(e) => setCollectionForm({ ...collectionForm, slug: e.target.value })}
+                    placeholder="winter-collection"
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr font-mono"
+                  />
+                  <span className="text-[10px] text-[#8c7865] mt-0.5 block">
+                    سيكون الرابط: /collection/{collectionForm.slug || "slug"}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block font-medium text-[#756555] mb-1">
+                    أيقونة / إيموجي الكولكشن
+                  </label>
+                  <input
+                    type="text"
+                    value={collectionForm.icon}
+                    onChange={(e) => setCollectionForm({ ...collectionForm, icon: e.target.value })}
+                    placeholder="✨ أو 💍 أو 🎁"
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none text-center"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium text-[#756555] mb-1">
+                  العنوان بالإنجليزية (English Title)
+                </label>
+                <input
+                  type="text"
+                  value={collectionForm.englishTitle}
+                  onChange={(e) => setCollectionForm({ ...collectionForm, englishTitle: e.target.value })}
+                  placeholder="WINTER SILVER COLLECTION"
+                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium text-[#756555] mb-1">
+                  وصف الكولكشن (يظهر أعلى صفحة المجموعة)
+                </label>
+                <textarea
+                  rows={2}
+                  value={collectionForm.description}
+                  onChange={(e) => setCollectionForm({ ...collectionForm, description: e.target.value })}
+                  placeholder="تشكيلة مختارة من أرقى قطع الفضة الإسترليني عيار 925..."
+                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                />
+              </div>
+
+              {/* Banner Image Uploader */}
+              <div className="p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-2">
+                <label className="block font-bold text-xs text-[#161412]">
+                  صورة غلاف / بانر الكولكشن (Banner Image)
+                </label>
+
+                {collectionForm.bannerImage && (
+                  <div className="relative h-24 w-full rounded-lg overflow-hidden border border-[#ded2c0] bg-black">
+                    <img
+                      src={collectionForm.bannerImage}
+                      alt="Banner Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCollectionForm({ ...collectionForm, bannerImage: "" })}
+                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-rose-600 text-white hover:bg-rose-700 shadow"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={collectionFileInputRef}
+                    accept="image/*"
+                    onChange={(e) => e.target.files?.[0] && handleCollectionBannerUpload(e.target.files[0])}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => collectionFileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="px-3 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
+                    <span>{isUploading ? "جاري المعالجة..." : "رفع بانر من الكمبيوتر"}</span>
+                  </button>
+                  <input
+                    type="text"
+                    value={collectionForm.bannerImage}
+                    onChange={(e) => setCollectionForm({ ...collectionForm, bannerImage: e.target.value })}
+                    placeholder="أو ضع رابط مباشر https://..."
+                    className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                  />
+                </div>
+              </div>
+
+              {/* Submit / Cancel */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#f0e8dc]">
+                <button
+                  type="button"
+                  onClick={() => setIsCollectionModalOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 text-[#5c4f42] hover:bg-gray-200 text-xs font-medium"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold shadow-md"
+                >
+                  {editingCollectionId ? "تحديث الكولكشن" : "إضافة الكولكشن"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          CUSTOM PAGE ADD/EDIT MODAL
+          ======================================================== */}
+      {isPageModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-xl w-full border border-[#e8ded0] shadow-2xl p-6 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
+              <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-[#c5a880]" />
+                <span>{editingPageId ? "تعديل محتوى الصفحة" : "إنشاء صفحة جديدة مستقلة ✦"}</span>
+              </h3>
+              <button
+                onClick={() => setIsPageModalOpen(false)}
+                className="p-1 rounded-lg text-[#756555] hover:bg-[#f7f4ee]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePage} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-medium text-[#756555] mb-1">
+                  عنوان الصفحة بالعربية *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={pageForm.title}
+                  onChange={(e) => setPageForm({ ...pageForm, title: e.target.value })}
+                  placeholder="مثال: قصة براند أَثَـر أو دليل اختيار المقاسات"
+                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-medium text-[#756555] mb-1">
+                    رابط الصفحة (Slug) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={pageForm.slug}
+                    onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value })}
+                    placeholder="our-story"
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr font-mono"
+                  />
+                  <span className="text-[10px] text-[#8c7865] mt-0.5 block">
+                    سيكون الرابط: /page/{pageForm.slug || "slug"}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block font-medium text-[#756555] mb-1">
+                    العنوان بالإنجليزية (English Title)
+                  </label>
+                  <input
+                    type="text"
+                    value={pageForm.englishTitle}
+                    onChange={(e) => setPageForm({ ...pageForm, englishTitle: e.target.value })}
+                    placeholder="THE ATHAR STORY"
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium text-[#756555] mb-1">
+                  الوصف الترويجي القصير (Subtitle)
+                </label>
+                <input
+                  type="text"
+                  value={pageForm.subtitle}
+                  onChange={(e) => setPageForm({ ...pageForm, subtitle: e.target.value })}
+                  placeholder="الأثر لا يُهدى بل يُترك • صياغة تخلد تفاصيلك"
+                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                />
+              </div>
+
+              {/* Cover Banner Uploader */}
+              <div className="p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-2">
+                <label className="block font-bold text-xs text-[#161412]">
+                  صورة الغلاف / البانر العلوي للصفحة
+                </label>
+
+                {pageForm.bannerImage && (
+                  <div className="relative h-24 w-full rounded-lg overflow-hidden border border-[#ded2c0] bg-black">
+                    <img
+                      src={pageForm.bannerImage}
+                      alt="Cover Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPageForm({ ...pageForm, bannerImage: "" })}
+                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-rose-600 text-white hover:bg-rose-700 shadow"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={pageFileInputRef}
+                    accept="image/*"
+                    onChange={(e) => e.target.files?.[0] && handlePageBannerUpload(e.target.files[0])}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => pageFileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="px-3 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
+                    <span>{isUploading ? "جاري المعالجة..." : "رفع غلاف من الكمبيوتر"}</span>
+                  </button>
+                  <input
+                    type="text"
+                    value={pageForm.bannerImage}
+                    onChange={(e) => setPageForm({ ...pageForm, bannerImage: e.target.value })}
+                    placeholder="أو ضع رابط مباشر https://..."
+                    className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium text-[#756555] mb-1">
+                  محتوى الصفحة بالتفصيل * (افصل بين الفقرات بسطر فارغ)
+                </label>
+                <textarea
+                  rows={6}
+                  required
+                  value={pageForm.content}
+                  onChange={(e) => setPageForm({ ...pageForm, content: e.target.value })}
+                  placeholder="اكتب هنا محتوى صفحتك بالتفصيل...&#10;&#10;يمكنك كتابة مقدمة وعناوين فرعية ونقاط توضيحية لتظهر بشكل ملكي وأنيق للزوار."
+                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none font-sans leading-relaxed"
+                />
+              </div>
+
+              {/* Page Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#f0e8dc]">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#161412]">
+                  <input
+                    type="checkbox"
+                    checked={pageForm.isPublished}
+                    onChange={(e) => setPageForm({ ...pageForm, isPublished: e.target.checked })}
+                    className="rounded border-[#ded2c0] text-[#161412]"
+                  />
+                  <span>نشر الصفحة وجعلها متاحة للزوار الآن</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#161412]">
+                  <input
+                    type="checkbox"
+                    checked={pageForm.showInFooter}
+                    onChange={(e) => setPageForm({ ...pageForm, showInFooter: e.target.checked })}
+                    className="rounded border-[#ded2c0] text-[#161412]"
+                  />
+                  <span>إظهار رابط الصفحة في قائمة الفوتر 📌</span>
+                </label>
+              </div>
+
+              {/* Submit / Cancel */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#f0e8dc]">
+                <button
+                  type="button"
+                  onClick={() => setIsPageModalOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-100 text-[#5c4f42] hover:bg-gray-200 text-xs font-medium"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold shadow-md"
+                >
+                  {editingPageId ? "تحديث الصفحة" : "حفظ ونشر الصفحة ✦"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
