@@ -18,7 +18,10 @@ import {
   Loader2,
   Mail,
   PhoneCall,
-  RefreshCw,
+  Package,
+  MessageCircle,
+  ShoppingBag,
+  ArrowLeft,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -68,11 +71,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     cardHolder: "",
   });
 
+  interface ConfirmedOrderDetails {
+    orderId: string;
+    items: Array<{
+      name: string;
+      arabicName: string;
+      quantity: number;
+      price: number;
+      selectedSize?: string;
+      image: string;
+    }>;
+    subtotal: number;
+    shippingFee: number;
+    discount: number;
+    grandTotal: number;
+    fullName: string;
+    phone: string;
+    email?: string;
+    governorate: string;
+    address: string;
+    notes?: string;
+    isGift?: boolean;
+    giftMessage?: string;
+    paymentMethod: "cod" | "wallet" | "card";
+  }
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [isOrderIdCopied, setIsOrderIdCopied] = useState(false);
-  const [countdown, setCountdown] = useState(8);
+  const [confirmedOrder, setConfirmedOrder] = useState<ConfirmedOrderDetails | null>(null);
+  const [countdown, setCountdown] = useState(45);
 
   useEffect(() => {
     if (!orderConfirmed) return;
@@ -80,7 +109,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          window.location.reload();
           return 0;
         }
         return prev - 1;
@@ -249,6 +277,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     });
     setOrderId(newOrderId);
 
+    // Save persistent snapshot of the order before cart is cleared
+    const orderSnapshot: ConfirmedOrderDetails = {
+      orderId: newOrderId,
+      items: cartItems.map((i) => ({
+        name: i.product.name,
+        arabicName: i.product.arabicName,
+        quantity: i.quantity,
+        price: i.product.price,
+        selectedSize: i.selectedSize,
+        image: i.product.images[0] || "",
+      })),
+      subtotal,
+      shippingFee,
+      discount: discountAmount,
+      grandTotal,
+      fullName: formData.fullName,
+      phone: formData.phone,
+      email: formData.email.trim() || undefined,
+      governorate: formData.governorate,
+      address: formData.address,
+      notes: formData.notes,
+      isGift: formData.isGift,
+      giftMessage: formData.giftMessage,
+      paymentMethod: formData.paymentMethod,
+    };
+    setConfirmedOrder(orderSnapshot);
+
     // If customer entered email, send order confirmation & invoice
     if (formData.email.trim() && formData.email.includes("@")) {
       fetch("/api/email/send", {
@@ -262,6 +317,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           governorate: formData.governorate,
           address: formData.address,
           total: grandTotal,
+          subtotal,
+          shippingFee,
+          discount: discountAmount,
+          paymentMethod: formData.paymentMethod,
+          isGift: formData.isGift,
+          giftMessage: formData.giftMessage,
           items: cartItems.map((i) => ({
             arabicName: i.product.arabicName,
             quantity: i.quantity,
@@ -300,10 +361,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setTimeout(() => setIsOrderIdCopied(false), 2500);
   };
 
-  const handleFinishAndRefresh = () => {
-    window.location.reload();
-  };
-
   return (
     <div
       onClick={(e) => {
@@ -327,128 +384,263 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         </button>
 
         {orderConfirmed ? (
-          /* Confirmation Success Screen */
-          <div className="text-center py-6 space-y-5">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 border-2 border-emerald-500/40 text-emerald-700 flex items-center justify-center mx-auto shadow-md">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
+          /* ========================================================
+             ROYAL CONFIRMATION SUCCESS SCREEN (ATHAR 925)
+             ======================================================== */
+          (() => {
+            const order = confirmedOrder || {
+              orderId,
+              items: [],
+              subtotal,
+              shippingFee,
+              discount: discountAmount,
+              grandTotal,
+              fullName: formData.fullName,
+              phone: formData.phone,
+              email: formData.email,
+              governorate: formData.governorate,
+              address: formData.address,
+              notes: formData.notes,
+              isGift: formData.isGift,
+              giftMessage: formData.giftMessage,
+              paymentMethod: formData.paymentMethod,
+            };
 
-            <div className="space-y-1.5">
-              <span className="text-xs font-bold text-emerald-700 tracking-wider">تم تسجيل واستلام طلبك بنجاح ✓</span>
-              <h3 className="text-2xl sm:text-3xl font-black text-[#1c1815] font-alexandria">
-                شكراً لاختيارك براند أَثَر! 💎
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5a4c3e] max-w-md mx-auto">
-                تم حفظ وتجهيز طلبك على السيستم وسيتواصل معك فريق خدمة العملاء هاتفياً.
-              </p>
-            </div>
+            const whatsappMessage = `أهلاً متجر أَثَر، قمت بعمل طلب جديد رقم #${order.orderId} بقيمة ${order.grandTotal.toLocaleString("ar-EG")} ج.م، وأرغب في متابعة تأكيد الشحنة.`;
+            const whatsappUrl = `https://wa.me/201143837730?text=${encodeURIComponent(whatsappMessage)}`;
 
-            {/* Prominent Official Order Number Card */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white border-2 border-emerald-400 shadow-lg max-w-md mx-auto space-y-2 text-center">
-              <span className="text-[11px] font-bold text-[#8c7865] block">
-                رقم طلبك الرسمي (يرجى حفظه لمتابعة شحنتك):
-              </span>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-2xl sm:text-3xl font-black font-mono text-[#1c1815] tracking-wider dir-ltr">
-                  #{orderId}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleCopyOrderId}
-                  className="px-3 py-1.5 rounded-xl bg-[#faf8f5] hover:bg-[#ede3d3] border border-[#d8c8b4] text-xs font-bold text-[#1c1815] transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
-                  title="نسخ رقم الطلب"
-                >
-                  {isOrderIdCopied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-emerald-700">تم النسخ ✓</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-[#8c7865]" />
-                      <span>نسخ الرقم</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Phone Confirmation Reassurance */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-[#faf8f5] border border-amber-300 text-xs text-[#5a4c3e] flex items-center gap-3 max-w-md mx-auto text-right shadow-sm">
-              <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center shrink-0">
-                <PhoneCall className="w-4 h-4" />
-              </div>
-              <div className="space-y-0.5">
-                <span className="font-bold text-[#1c1815] block">تأكيد الطلب هاتفياً 📞</span>
-                <p className="text-[11px] leading-relaxed text-[#756453]">
-                  سيتواصل معك ممثل خدمة العملاء هاتفياً على الرقم (<strong>{formData.phone}</strong>) لتأكيد تفاصيل القطع والعنوان وموعد الاستلام المناسب لك قبل خروج الشحنة.
-                </p>
-              </div>
-            </div>
-
-            {/* Email Notification Status */}
-            {formData.email && (
-              <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex items-center gap-3 max-w-md mx-auto text-right shadow-sm">
-                <div className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center shrink-0">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5">
-                  <span className="font-bold block">تم إرسال الفاتورة لبريدك الإلكتروني 📧</span>
-                  <p className="text-[11px] text-blue-800 leading-relaxed">
-                    تم إرسال ملخص الطلب وفاتورة الشراء إلى: <strong>{formData.email}</strong>
+            return (
+              <div className="py-4 space-y-5 text-right">
+                {/* Royal Success Header */}
+                <div className="text-center space-y-2">
+                  <div className="w-16 h-16 rounded-full bg-[#161412] text-[#c5a880] border-2 border-[#c5a880]/40 flex items-center justify-center mx-auto shadow-xl">
+                    <Check className="w-8 h-8 text-[#c5a880]" />
+                  </div>
+                  <div className="inline-block px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+                    تم استلام وتسجيل طلبك بنجاح
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-[#161412] font-amiri tracking-tight">
+                    شكراً لاختيارك براند أَثَـر
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#756555] font-light max-w-md mx-auto leading-relaxed">
+                    تم حفظ طلبك على السيستم وجاري مراجعته وتجهيزه في علبة إهداء مخملية فاخرة تليق بذوقك.
                   </p>
                 </div>
-              </div>
-            )}
 
-            {/* Order Bill Summary */}
-            <div className="p-4 rounded-2xl bg-white border border-[#e5dacb] text-right max-w-md mx-auto space-y-2 text-xs shadow-sm">
-              <div className="flex justify-between border-b border-[#eee4d6] pb-2">
-                <span className="text-[#756453]">العميل:</span>
-                <span className="font-bold text-[#1c1815]">{formData.fullName}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#eee4d6] pb-2">
-                <span className="text-[#756453]">العنوان:</span>
-                <span className="font-bold text-[#1c1815]">{formData.governorate} - {formData.address}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#eee4d6] pb-2">
-                <span className="text-[#756453]">الإجمالي للدفع:</span>
-                <span className="font-black text-emerald-800 font-alexandria text-sm">{grandTotal.toLocaleString("ar-EG")} ج.م</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#756453]">طريقة الدفع:</span>
-                <span className="text-[#1c1815] font-bold">
-                  {formData.paymentMethod === "cod"
-                    ? "الدفع عند الاستلام (نقداً عند التوصيل)"
-                    : formData.paymentMethod === "wallet"
-                    ? "تحويل إنستاباي / فودافون كاش"
-                    : "بطاقة بنكية (Paymob)"}
-                </span>
-              </div>
-            </div>
+                {/* Official Order Number & Action Card */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e8ded0] shadow-sm space-y-3 text-center">
+                  <span className="text-xs font-medium text-[#756555] block">
+                    رقم طلبك الرسمي (يرجى حفظه لمتابعة الشحنة):
+                  </span>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-2xl sm:text-3xl font-bold font-mono text-[#161412] tracking-wider dir-ltr">
+                      #{order.orderId}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyOrderId}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#d8c8b4] text-xs font-bold text-[#161412] transition-all flex items-center gap-1.5 active:scale-95 shadow-xs"
+                      title="نسخ رقم الطلب"
+                    >
+                      {isOrderIdCopied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-emerald-700">تم النسخ</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-[#8c7865]" />
+                          <span>نسخ الرقم</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
 
-            {/* Auto-Refresh Countdown & Buttons */}
-            <div className="p-3.5 rounded-2xl bg-[#faf8f5] border border-[#d8c8b4] text-xs flex flex-col sm:flex-row items-center justify-between gap-2 max-w-md mx-auto">
-              <div className="flex items-center gap-2 text-[#756453]">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-700" />
-                <span>سيتم تحديث الصفحة والعودة للمتجر تلقائياً خلال:</span>
-              </div>
-              <span className="font-mono font-black text-amber-900 bg-white px-2.5 py-1 rounded-lg border border-[#ebdcca] shadow-sm">
-                00:0{countdown}
-              </span>
-            </div>
+                  {/* Direct WhatsApp Followup Button */}
+                  <div className="pt-1">
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold transition-all shadow-sm active:scale-95"
+                    >
+                      <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                      <span>متابعة الطلب مباشرة عبر واتساب المتجر (01143837730)</span>
+                    </a>
+                  </div>
+                </div>
 
-            <div className="flex flex-col sm:flex-row gap-2.5 justify-center max-w-md mx-auto pt-1">
-              <button
-                type="button"
-                onClick={handleFinishAndRefresh}
-                className="w-full py-3 px-5 rounded-xl bg-[#1c1815] hover:bg-[#342c25] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
-              >
-                <RefreshCw className="w-4 h-4 text-amber-400" />
-                <span>تحديث الصفحة والعودة للمتجر الآن</span>
-              </button>
-            </div>
-          </div>
+                {/* Order Items Summary */}
+                {order.items && order.items.length > 0 && (
+                  <div className="p-4 rounded-2xl bg-white border border-[#e8ded0] shadow-sm space-y-3">
+                    <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-2 text-xs font-bold text-[#161412]">
+                      <div className="flex items-center gap-1.5">
+                        <ShoppingBag className="w-4 h-4 text-[#c5a880]" />
+                        <span>القطع المختارة في طلبك ({order.items.length})</span>
+                      </div>
+                      <span className="text-[11px] text-[#8c7865] font-light">فضة إسترليني 925</span>
+                    </div>
+
+                    <div className="divide-y divide-[#f7f4ee] max-h-48 overflow-y-auto custom-scrollbar">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-3 py-2 text-xs">
+                          <div className="flex items-center gap-2.5">
+                            {item.image && (
+                              <img
+                                src={item.image}
+                                alt={item.arabicName}
+                                className="w-11 h-11 rounded-lg object-cover border border-[#e8ded0] bg-[#f7f4ee] shrink-0"
+                              />
+                            )}
+                            <div>
+                              <span className="font-bold text-[#161412] block line-clamp-1">{item.arabicName}</span>
+                              <div className="flex items-center gap-2 text-[10px] text-[#8c7865] mt-0.5">
+                                <span>الكمية: {item.quantity}</span>
+                                {item.selectedSize && (
+                                  <span className="px-1.5 py-0.2 rounded bg-[#f7f4ee] border border-[#e8ded0] text-[#161412]">
+                                    مقاس {item.selectedSize}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-bold text-[#161412] font-cairo shrink-0">
+                            {(item.price * item.quantity).toLocaleString("ar-EG")} ج.م
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Comprehensive Financial Breakdown (The Core Fix) */}
+                <div className="p-4 rounded-2xl bg-white border border-[#e8ded0] shadow-sm space-y-2.5 text-xs">
+                  <div className="flex items-center gap-1.5 font-bold text-[#161412] border-b border-[#f0e8dc] pb-2">
+                    <Package className="w-4 h-4 text-[#c5a880]" />
+                    <span>الملخص المالي وتفاصيل الفاتورة</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[#756555] py-0.5">
+                    <span>المجموع الفرعي للقطع:</span>
+                    <span className="font-bold text-[#161412] font-cairo">
+                      {order.subtotal.toLocaleString("ar-EG")} ج.م
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[#756555] py-0.5">
+                    <span>مصاريف الشحن والتوصيل:</span>
+                    <span className={`font-bold font-cairo ${order.shippingFee === 0 ? "text-emerald-700" : "text-[#161412]"}`}>
+                      {order.shippingFee === 0 ? "شحن مجاني لكافة المحافظات" : `${order.shippingFee.toLocaleString("ar-EG")} ج.م`}
+                    </span>
+                  </div>
+
+                  {order.discount > 0 && (
+                    <div className="flex justify-between items-center text-rose-600 py-0.5 font-medium">
+                      <span>الخصم الترويجي:</span>
+                      <span className="font-bold font-cairo">
+                        -{order.discount.toLocaleString("ar-EG")} ج.م
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Prominent Total Card */}
+                  <div className="flex justify-between items-center p-3.5 rounded-xl bg-[#161412] text-[#f7f4ee] mt-2 shadow-sm">
+                    <div className="space-y-0.5">
+                      <span className="font-bold text-xs sm:text-sm text-[#d4b896] block">
+                        الإجمالي النهائي المطلوب دفعه:
+                      </span>
+                      <span className="text-[10px] text-[#b8a998]">
+                        شامل كافة القطع والشحن والضمان
+                      </span>
+                    </div>
+                    <span className="font-bold text-lg sm:text-xl text-[#ffffff] font-cairo">
+                      {order.grandTotal.toLocaleString("ar-EG")} ج.م
+                    </span>
+                  </div>
+                </div>
+
+                {/* Customer & Shipping Details Card */}
+                <div className="p-4 rounded-2xl bg-white border border-[#e8ded0] shadow-sm space-y-2 text-xs">
+                  <div className="flex justify-between border-b border-[#f0e8dc] pb-1.5">
+                    <span className="text-[#756555]">اسم العميل:</span>
+                    <span className="font-bold text-[#161412]">{order.fullName}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0e8dc] pb-1.5">
+                    <span className="text-[#756555]">رقم الهاتف:</span>
+                    <span className="font-bold text-[#161412] dir-ltr font-mono">{order.phone}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-[#f0e8dc] pb-1.5">
+                    <span className="text-[#756555]">عنوان الشحن:</span>
+                    <span className="font-bold text-[#161412]">{order.governorate} - {order.address}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#756555]">طريقة الدفع:</span>
+                    <span className="text-[#161412] font-bold">
+                      {order.paymentMethod === "cod"
+                        ? "الدفع عند الاستلام (نقداً عند التوصيل)"
+                        : order.paymentMethod === "wallet"
+                        ? "تحويل إنستاباي / فودافون كاش"
+                        : "بطاقة بنكية (Paymob)"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Phone Confirmation Reassurance */}
+                <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-[#5c4f42] flex items-start gap-3 shadow-xs">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center shrink-0 mt-0.5">
+                    <PhoneCall className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-[#161412] block">تأكيد ومتابعة الشحنة هاتفياً</span>
+                    <p className="text-[11px] leading-relaxed text-[#756555]">
+                      سيتواصل معك ممثل خدمة العملاء هاتفياً على الرقم (<strong>{order.phone}</strong>) لتأكيد تفاصيل المقاسات والعنوان وموعد الاستلام المناسب لك قبل خروج الشحنة.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Email Confirmation Notification */}
+                {order.email && (
+                  <div className="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/80 text-xs text-blue-900 flex items-start gap-3 shadow-xs">
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 border border-blue-300 text-blue-900 flex items-center justify-center shrink-0 mt-0.5">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="font-bold block text-[#161412]">تم إرسال الفاتورة لبريدك الإلكتروني</span>
+                      <p className="text-[11px] text-blue-800 leading-relaxed">
+                        تم إرسال ملخص الطلب وفاتورة الشراء الملكية الرسمية إلى: <strong>{order.email}</strong>
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons: Continue Shopping & Refresh */}
+                <div className="space-y-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderConfirmed(false);
+                      setConfirmedOrder(null);
+                      onClose();
+                    }}
+                    className="w-full py-3.5 px-6 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+                  >
+                    <span>متابعة التسوق والعودة للمتجر</span>
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center justify-between text-[11px] text-[#8c7865] px-1 pt-1">
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#c5a880]" />
+                      <span>فضة إسترليني معتمدة 925 • ضمان أصالة رسمي</span>
+                    </span>
+                    <span className="font-mono text-[10px]">
+                      العودة التلقائية: 00:{String(countdown).padStart(2, "0")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()
         ) : (
           /* Checkout Form */
           <div>
