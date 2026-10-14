@@ -231,8 +231,27 @@ export interface StoreSettings {
   promoBannerTheme?: "charcoal" | "sand" | "gold" | "burgundy";
   promoBannerImageUrl?: string;
 
+  // Hero Slider Slides (multi-image banner carousel)
+  heroSlides?: HeroSlideItem[];
+
   // Custom Pages
   customPages?: CustomPage[];
+}
+
+export interface HeroSlideItem {
+  id: string;
+  imageUrl: string;
+  badge?: string;
+  title: string;
+  titleLine2?: string;
+  subtitle?: string;
+  primaryButtonText?: string;
+  primaryButtonLink?: string;
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
+  overlayDarkness?: "light" | "medium" | "dark";
+  contentAlign?: "center" | "right" | "left";
+  enabled: boolean;
 }
 
 export interface CollectionPageSetting {
@@ -636,6 +655,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   promoBannerTheme: "charcoal",
   promoBannerImageUrl: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1200&q=85",
   customPages: DEFAULT_CUSTOM_PAGES,
+  heroSlides: [],
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -824,6 +844,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 Array.isArray(data.settings.customPages)
                   ? data.settings.customPages
                   : (prev.customPages || DEFAULT_CUSTOM_PAGES),
+              heroSlides:
+                Array.isArray(data.settings.heroSlides)
+                  ? data.settings.heroSlides
+                  : (prev.heroSlides || []),
             };
             try {
               localStorage.setItem("athar_store_settings", JSON.stringify(merged));
