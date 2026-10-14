@@ -173,9 +173,9 @@ export default function DynamicCustomPage() {
               <div className="w-10 h-10 rounded-full bg-[#f4ece0] text-[#8c7865] mx-auto flex items-center justify-center">
                 <CheckCircle2 className="w-5 h-5 text-[#c5a880]" />
               </div>
-              <h3 className="font-bold text-xs text-[#161412]">حق المعاينة باليد</h3>
+              <h3 className="font-bold text-xs text-[#161412]">فضة إسترليني أصلية 925</h3>
               <p className="text-[11px] text-[#756555] leading-relaxed">
-                افحص قطعتك وتأكد من مقاسها وجودتها أثناء وجود المندوب قبل الاستلام.
+                كافة القطع مصنوعة من الفضة الخالصة عيار 925 ومدموغة بالختم الرسمي مع كارت ضمان معتمد.
               </p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-[#e8ded0] text-center space-y-2 shadow-sm">

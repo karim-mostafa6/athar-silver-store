@@ -482,7 +482,7 @@ export default function AdminPage() {
           </div>
         </div>
         <div class="footer">
-          حق المعاينة التامة مكفول للعميل أثناء تواجد مندوب الشحن • ضمان أَثَر المعتمد على الفضة الإسترليني 925<br>
+          ضمان أَثَر المعتمد على الفضة الإسترليني عيار 925 • سياسة استبدال واسترجاع مرنة خلال 14 يوماً<br>
           خدمة العملاء والدعم: 01143837730
         </div>
         <script>
@@ -500,7 +500,7 @@ export default function AdminPage() {
     const itemsText = order.items
       .map((item) => `• ${item.arabicName} ${item.selectedSize ? `(مقاس: ${item.selectedSize})` : ""} × ${item.quantity} = ${(item.price * item.quantity).toLocaleString("en-US")} ج.م`)
       .join("%0A");
-    const msg = `مرحباً بك في دار أَثَر للفضة 925%0Aيسعدنا إبلاغك بتأكيد طلبك رقم: %23${order.id}%0A%0Aالعميل: ${encodeURIComponent(order.customerName)}%0Aالعنوان: ${encodeURIComponent(order.governorate)} - ${encodeURIComponent(order.address)}%0A%0Aالمنتجات المطلوبة:%0A${itemsText}%0A%0Aرسوم الشحن: ${order.shippingFee} ج.م%0Aإجمالي المبلغ المطلوب عند الاستلام: ${order.total.toLocaleString("en-US")} ج.م%0A%0Aحق المعاينة مكفول لك بالكامل قبل الاستلام والسداد.%0Aشكراً لاختيارك دار أَثَر.`;
+    const msg = `مرحباً بك في دار أَثَر للفضة 925%0Aيسعدنا إبلاغك بتأكيد طلبك رقم: %23${order.id}%0A%0Aالعميل: ${encodeURIComponent(order.customerName)}%0Aالعنوان: ${encodeURIComponent(order.governorate)} - ${encodeURIComponent(order.address)}%0A%0Aالمنتجات المطلوبة:%0A${itemsText}%0A%0Aرسوم الشحن: ${order.shippingFee} ج.م%0Aإجمالي المبلغ المطلوب عند الاستلام: ${order.total.toLocaleString("en-US")} ج.م%0A%0Aشكراً لاختيارك دار أَثَر.`;
     let phone = order.phone.replace(/[^0-9]/g, "");
     if (phone.startsWith("0")) phone = "2" + phone;
     return `https://wa.me/${phone}?text=${msg}`;
@@ -628,7 +628,7 @@ export default function AdminPage() {
             </div>
           </div>
           <div class="footer">
-            حق المعاينة التامة مكفول للعميل أثناء تواجد مندوب الشحن • ضمان أَثَر المعتمد على الفضة الإسترليني 925<br>
+            ضمان أَثَر المعتمد على الفضة الإسترليني عيار 925 • سياسة استبدال واسترجاع مرنة خلال 14 يوماً<br>
             خدمة العملاء والدعم: 01143837730
           </div>
         </div>
@@ -3520,13 +3520,13 @@ export default function AdminPage() {
                     <label className="block text-xs font-bold text-[#161412]">الميزة 2 (النص + الأيقونة)</label>
                     <input
                       type="text"
-                      value={settingsForm.trustItem2 || "معاينة القطعة قبل الاستلام"}
+                      value={settingsForm.trustItem2 || "شحن سريع لجميع مدن ومحافظات مصر"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2: e.target.value })}
                       className="w-full bg-white border border-[#ded2c0] rounded px-3 py-2 text-xs"
                     />
                     <input
                       type="text"
-                      value={settingsForm.trustItem2Icon || "eye"}
+                      value={settingsForm.trustItem2Icon || "truck"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2Icon: e.target.value })}
                       placeholder="eye"
                       className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
@@ -5566,7 +5566,7 @@ export default function AdminPage() {
                     <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
                       <input
                         type="checkbox"
-                        checked={settingsForm.returnPolicyInspectionAllowed !== false}
+                        checked={!!settingsForm.returnPolicyInspectionAllowed}
                         onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyInspectionAllowed: e.target.checked })}
                         className="rounded border-[#ded2c0] text-[#161412]"
                       />
