@@ -123,7 +123,6 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
   wishlistCount,
-  onOpenCart,
   onOpenWishlist,
   onOpenSizeGuide,
   searchQuery = "",
@@ -138,7 +137,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const effectiveCartCount = cartCount !== undefined ? cartCount : store.cartCount;
   const effectiveWishlistCount = wishlistCount !== undefined ? wishlistCount : store.wishlistCount;
-  const handleOpenCart = onOpenCart || (() => store.setIsCartOpen(true));
   const handleOpenWishlist = onOpenWishlist || (() => store.setIsWishlistOpen(true));
   const handleOpenSizeGuide = onOpenSizeGuide || (() => store.setIsSizeGuideOpen(true));
   const handleNotify = onNotify || store.addToast;
@@ -319,9 +317,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Cart Drawer Trigger */}
-            <button
-              onClick={handleOpenCart}
+            {/* Cart Standalone Page Link */}
+            <Link
+              href="/checkout"
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#161412] hover:bg-[#2d2926] text-white text-xs font-bold transition-all shadow-md active:scale-95 shrink-0"
             >
               <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -331,7 +329,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {effectiveCartCount}
                 </span>
               )}
-            </button>
+            </Link>
           </div>
         </div>
 

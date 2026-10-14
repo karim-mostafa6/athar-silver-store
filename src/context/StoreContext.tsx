@@ -143,6 +143,15 @@ export interface StoreSettings {
   senderEmailName?: string;
   gmailAppPassword?: string;
 
+  // Standalone Shopify-Style Checkout Customizer
+  checkoutHeaderTitle?: string;
+  checkoutShippingMethodTitle?: string;
+  checkoutSecurityBadgeText?: string;
+  checkoutEnableCOD?: boolean;
+  checkoutEnableWallets?: boolean;
+  checkoutEnableCards?: boolean;
+  checkoutEnableGiftOption?: boolean;
+
   // Return & Exchange & Warranty Policies
   returnPolicyDays: number;
   returnPolicyInspectionAllowed: boolean;
@@ -627,6 +636,15 @@ const DEFAULT_SETTINGS: StoreSettings = {
   paymobIntegrationId: "",
   paymobIframeId: "",
   paymobMode: "test",
+
+  // Standalone Shopify-Style Checkout Defaults
+  checkoutHeaderTitle: "أَثَـر للفضة الإسترليني 925",
+  checkoutShippingMethodTitle: "شحن قياسي سريع (خلال 2-4 أيام عمل)",
+  checkoutSecurityBadgeText: "جميع المعاملات مشفرة وآمنة بنسبة 100%",
+  checkoutEnableCOD: true,
+  checkoutEnableWallets: true,
+  checkoutEnableCards: true,
+  checkoutEnableGiftOption: true,
 
   // Policies & Guarantee Defaults
   returnPolicyDays: 14,

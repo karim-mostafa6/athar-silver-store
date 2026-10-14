@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { StoreProvider, useStore } from "@/context/StoreContext";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -16,7 +16,9 @@ import { Footer } from "@/components/Footer";
 const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const store = useStore();
   const pathname = usePathname();
+  const router = useRouter();
   const isAdmin = pathname?.startsWith("/admin");
+  const isCheckout = pathname === "/checkout" || pathname === "/cart";
 
   // Auto-scroll listener for Shopify Live Split Preview
   React.useEffect(() => {
@@ -49,12 +51,12 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  if (isAdmin) {
+  if (isAdmin || isCheckout) {
     return (
-      <div className="min-h-screen bg-[#f7f4ee] text-[#161412] flex flex-col selection:bg-[#dfd2bf] selection:text-[#161412]">
+      <div className="min-h-screen bg-white text-[#161412] flex flex-col selection:bg-[#dfd2bf] selection:text-[#161412]">
         {/* Toast Notifications */}
         <Toast toasts={store.toasts} onDismiss={store.removeToast} />
-        {/* Standalone Admin Portal Content */}
+        {/* Standalone Content */}
         <main className="flex-1 w-full">{children}</main>
       </div>
     );
@@ -88,7 +90,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         onRemoveItem={store.removeFromCart}
         onProceedToCheckout={() => {
           store.setIsCartOpen(false);
-          store.setIsCheckoutOpen(true);
+          router.push("/checkout");
         }}
         appliedPromo={store.appliedPromo}
         setAppliedPromo={store.setAppliedPromo}
