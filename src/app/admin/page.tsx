@@ -10,11 +10,14 @@ import {
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
   Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image as ImageIcon,
   RotateCw, X, Smartphone, Monitor, BookOpen, Printer, ChevronUp, ChevronDown,
-  Lock, Unlock, PhoneCall, Calendar, UserPlus, Ban, Download, Crown, Shield, KeyRound, UserCheck, Users
+  Lock, Unlock, PhoneCall, Calendar, UserPlus, Ban, Download, Crown, Shield, KeyRound, UserCheck, Users,
+  BarChart3, TrendingUp, MapPin
 } from "lucide-react";
 
 type ActiveTab =
   | "orders"
+  | "customers"
+  | "analytics"
   | "products"
   | "collections"
   | "pages"
@@ -118,6 +121,30 @@ export default function AdminPage() {
 
   // Selected Order for Full Details Modal (Inside View)
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+
+  // Edit Customer Info in Order Modal
+  const [isEditingCustomerInfo, setIsEditingCustomerInfo] = useState<boolean>(false);
+  const [editCustomerName, setEditCustomerName] = useState<string>("");
+  const [editCustomerPhone, setEditCustomerPhone] = useState<string>("");
+  const [editCustomerGovernorate, setEditCustomerGovernorate] = useState<string>("القاهرة");
+  const [editCustomerAddress, setEditCustomerAddress] = useState<string>("");
+  const [editCustomerNotes, setEditCustomerNotes] = useState<string>("");
+
+  // Customers Directory State
+  const [customerSearchQuery, setCustomerSearchQuery] = useState<string>("");
+  const [customerSortBy, setCustomerSortBy] = useState<"recent" | "orders" | "spent">("recent");
+
+  // Keep customer edit form synced with currently selected order
+  useEffect(() => {
+    if (selectedOrderForDetails) {
+      setEditCustomerName(selectedOrderForDetails.customerName || "");
+      setEditCustomerPhone(selectedOrderForDetails.phone || "");
+      setEditCustomerGovernorate(selectedOrderForDetails.governorate || "القاهرة");
+      setEditCustomerAddress(selectedOrderForDetails.address || "");
+      setEditCustomerNotes(selectedOrderForDetails.notes || "");
+      setIsEditingCustomerInfo(false);
+    }
+  }, [selectedOrderForDetails]);
 
   // Shopify-style Live Split Preview State
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
@@ -419,14 +446,17 @@ export default function AdminPage() {
   const canViewSettings = !currentUser || currentUser.role === "super_admin" || currentUser.role === "store_editor" || currentUser.role === "all";
   const canManageUsers = currentUser?.role === "super_admin" || currentUser?.username === "karim mostafa";
 
+  const isOrderRelatedTab = (tabId: ActiveTab) =>
+    tabId === "orders" || tabId === "customers" || tabId === "analytics";
+
   // Tab click with Settings Security Gate and Role Checking
   const handleTabClick = (tabId: ActiveTab) => {
-    if (tabId === "orders" && !canViewOrders) return;
-    if (tabId !== "orders" && !canViewSettings) return;
+    if (isOrderRelatedTab(tabId) && !canViewOrders) return;
+    if (!isOrderRelatedTab(tabId) && tabId !== "users" && !canViewSettings) return;
     if (tabId === "users" && !canManageUsers) return;
 
-    if (tabId === "orders") {
-      setActiveTab("orders");
+    if (isOrderRelatedTab(tabId)) {
+      setActiveTab(tabId);
       return;
     }
     if (isSettingsUnlocked || currentUser?.role === "super_admin" || currentUser?.role === "store_editor" || currentUser?.role === "all") {
@@ -1355,6 +1385,84 @@ export default function AdminPage() {
     return { total, pending, confirmed, revenue };
   }, [orders]);
 
+  // Aggregated Customers Directory from Orders
+  const customersList = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        name: string;
+        phone: string;
+        governorate: string;
+        address: string;
+        totalOrders: number;
+        totalSpent: number;
+        lastOrderDate: string;
+        lastOrderStatus: Order["status"];
+        orders: Order[];
+      }
+    >();
+
+    for (const order of orders) {
+      if (!order) continue;
+      const cleanPhone = (order.phone || "").replace(/\D/g, "");
+      const key = cleanPhone || (order.customerName || "").trim().toLowerCase() || order.id;
+      if (!key) continue;
+
+      const existing = map.get(key);
+      if (existing) {
+        existing.totalOrders += 1;
+        existing.totalSpent += Number(order.total) || 0;
+        existing.orders.push(order);
+        if (new Date(order.createdAt).getTime() > new Date(existing.lastOrderDate).getTime()) {
+          existing.name = order.customerName || existing.name;
+          existing.governorate = order.governorate || existing.governorate;
+          existing.address = order.address || existing.address;
+          existing.lastOrderDate = order.createdAt;
+          existing.lastOrderStatus = order.status;
+        }
+      } else {
+        map.set(key, {
+          name: order.customerName || "عميل غير معروف",
+          phone: order.phone || "",
+          governorate: order.governorate || "غير محدد",
+          address: order.address || "",
+          totalOrders: 1,
+          totalSpent: Number(order.total) || 0,
+          lastOrderDate: order.createdAt,
+          lastOrderStatus: order.status,
+          orders: [order],
+        });
+      }
+    }
+
+    return Array.from(map.values());
+  }, [orders]);
+
+  const filteredCustomers = useMemo(() => {
+    let result = [...customersList];
+    const q = customerSearchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.phone.includes(q) ||
+          c.governorate.toLowerCase().includes(q) ||
+          c.address.toLowerCase().includes(q)
+      );
+    }
+    if (customerSortBy === "orders") {
+      result.sort((a, b) => b.totalOrders - a.totalOrders);
+    } else if (customerSortBy === "spent") {
+      result.sort((a, b) => b.totalSpent - a.totalSpent);
+    } else {
+      result.sort(
+        (a, b) =>
+          new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime()
+      );
+    }
+    return result;
+  }, [customersList, customerSearchQuery, customerSortBy]);
+
   // Helper to format date YYYY-MM-DD
   const formatOrderDateYMD = (dateString: string) => {
     try {
@@ -1765,22 +1873,51 @@ export default function AdminPage() {
         {/* MOBILE HORIZONTAL TABS (< md) */}
         <div className="md:hidden flex items-center gap-1 mt-2.5 pt-2 border-t border-[#e8ded0] overflow-x-auto scrollbar-none text-xs">
           {canViewOrders && (
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-                activeTab === "orders"
-                  ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                  : "text-[#5c4f42] hover:bg-white/60"
-              }`}
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>الطلبات والمبيعات</span>
-              {orderMetrics.pending > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">
-                  {orderMetrics.pending}
+            <>
+              <button
+                onClick={() => setActiveTab("orders")}
+                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                  activeTab === "orders"
+                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:bg-white/60"
+                }`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>الطلبات</span>
+                {orderMetrics.pending > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">
+                    {orderMetrics.pending}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab("customers")}
+                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                  activeTab === "customers"
+                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:bg-white/60"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>العملاء</span>
+                <span className="px-1.5 py-0.2 rounded-full bg-[#e8ded0] text-[#161412] text-[10px] font-bold">
+                  {customersList.length}
                 </span>
-              )}
-            </button>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("analytics")}
+                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                  activeTab === "analytics"
+                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:bg-white/60"
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>التقارير</span>
+              </button>
+            </>
           )}
 
           {canViewOrders && canViewSettings && settingsTabs.length > 0 && (
@@ -1810,14 +1947,15 @@ export default function AdminPage() {
       <div className="flex-1 flex flex-col md:flex-row w-full">
         {/* DESKTOP SIDEBAR (w-64, sticky, scrolls independently) */}
         <aside className="hidden md:block w-64 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-l border-[#e8ded0] bg-[#f7f4ee]/80 p-3 space-y-3">
-          {/* Section 1: Orders (Direct & Accessible) */}
+          {/* Section 1: Orders, Customers & Analytics */}
           {canViewOrders && (
             <div className="space-y-1">
               <div className="text-[11px] font-bold text-[#8c7865] px-3 py-1 uppercase tracking-wider flex items-center gap-1.5">
                 <ShoppingBag className="w-3.5 h-3.5 text-[#c5a880]" />
-                <span>الطلبات والمبيعات</span>
+                <span>المبيعات والعملاء</span>
               </div>
 
+              {/* Tab: Orders */}
               <button
                 onClick={() => setActiveTab("orders")}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
@@ -1830,7 +1968,7 @@ export default function AdminPage() {
                   <span className={activeTab === "orders" ? "text-[#c5a880]" : "text-[#8c7865]"}>
                     <ShoppingBag className="w-4 h-4" />
                   </span>
-                  <span>الطلبات والعملاء</span>
+                  <span>إدارة الطلبات</span>
                 </div>
 
                 {orderMetrics.pending > 0 && (
@@ -1838,6 +1976,44 @@ export default function AdminPage() {
                     {orderMetrics.pending}
                   </span>
                 )}
+              </button>
+
+              {/* Tab: Customers */}
+              <button
+                onClick={() => setActiveTab("customers")}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
+                  activeTab === "customers"
+                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className={activeTab === "customers" ? "text-[#c5a880]" : "text-[#8c7865]"}>
+                    <Users className="w-4 h-4" />
+                  </span>
+                  <span>قاعدة العملاء</span>
+                </div>
+
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#e8ded0] text-[#161412]">
+                  {customersList.length}
+                </span>
+              </button>
+
+              {/* Tab: Analytics & Reports */}
+              <button
+                onClick={() => setActiveTab("analytics")}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
+                  activeTab === "analytics"
+                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className={activeTab === "analytics" ? "text-[#c5a880]" : "text-[#8c7865]"}>
+                    <BarChart3 className="w-4 h-4" />
+                  </span>
+                  <span>التقارير والإحصائيات</span>
+                </div>
               </button>
             </div>
           )}
@@ -1928,36 +2104,7 @@ export default function AdminPage() {
               TAB 1: ORDERS
               ======================================================== */}
           {activeTab === "orders" && (
-            <div className="space-y-6">
-              {/* Metric Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
-                  <span className="text-xs text-[#756555] block mb-1">إجمالي المبيعات</span>
-                  <span className="text-xl sm:text-2xl font-bold text-[#161412]">
-                    {orderMetrics.revenue.toLocaleString("en-US")}
-                    <span className="text-xs font-normal text-[#8c7865] mr-1">ج.م</span>
-                  </span>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
-                  <span className="text-xs text-[#756555] block mb-1">إجمالي الطلبات</span>
-                  <span className="text-xl sm:text-2xl font-bold text-[#161412]">
-                    {orderMetrics.total}
-                  </span>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
-                  <span className="text-xs text-amber-700 block mb-1">قيد الانتظار (جديدة)</span>
-                  <span className="text-xl sm:text-2xl font-bold text-amber-600">
-                    {orderMetrics.pending}
-                  </span>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
-                  <span className="text-xs text-emerald-700 block mb-1">مؤكدة وجاهزة للشحن</span>
-                  <span className="text-xl sm:text-2xl font-bold text-emerald-600">
-                    {orderMetrics.confirmed}
-                  </span>
-                </div>
-              </div>
-
+            <div className="space-y-4">
               {/* Filter and Search Bar with Day/Date Filter & Manual Order Creation */}
               <div className="bg-white rounded-xl p-4 border border-[#e8ded0] space-y-3 shadow-sm text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2195,15 +2342,15 @@ export default function AdminPage() {
                       <div
                         key={order.id}
                         onClick={() => setSelectedOrderForDetails(order)}
-                        className={`rounded-xl p-4 sm:p-5 border transition-all cursor-pointer group shadow-sm ${
+                        className={`rounded-xl py-2.5 px-3.5 sm:px-4 border transition-all cursor-pointer group shadow-2xs hover:shadow-md ${
                           isSelected
                             ? "bg-[#fdfbf7] border-[#c5a880] ring-1 ring-[#c5a880]"
-                            : "bg-white border-[#e8ded0] hover:border-[#c5a880] hover:shadow-md"
+                            : "bg-white border-[#e8ded0] hover:border-[#c5a880]"
                         }`}
                       >
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 sm:gap-3">
                           {/* Order Overview Right */}
-                          <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                             {/* Checkbox for Select All / Bulk */}
                             <div
                               onClick={(e) => e.stopPropagation()}
@@ -2221,51 +2368,48 @@ export default function AdminPage() {
                               />
                             </div>
 
-                            <div className="w-11 h-11 rounded-xl bg-[#f7f4ee] border border-[#ded2c0] flex items-center justify-center text-[#161412] group-hover:bg-[#161412] group-hover:text-[#c5a880] transition-colors shrink-0">
-                              <ShoppingBag className="w-5 h-5" />
+                            {/* Luxury Order ID Badge */}
+                            <div className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#161412] text-[#f7f4ee] font-mono font-bold text-xs border border-[#3e3832] shadow-xs tracking-wider shrink-0">
+                              <span className="text-[#c5a880] text-[10px]">#</span>
+                              <span>{order.id.replace(/^#/, "")}</span>
                             </div>
 
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-mono font-bold text-xs text-[#161412] bg-[#f7f4ee] px-2.5 py-0.5 rounded border border-[#ded2c0]">
-                                  #{order.id}
+                            {/* Date & Payment Badges */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-[11px] text-[#8c7865] whitespace-nowrap">
+                                {new Date(order.createdAt).toLocaleDateString("ar-EG", {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                              {order.paymentMethod && (
+                                <span className="hidden sm:inline-block text-[10px] font-semibold bg-[#faf8f5] px-2 py-0.5 rounded border border-[#e8ded0] text-[#756555] whitespace-nowrap">
+                                  {order.paymentMethod === "cod" ? "عند الاستلام" : order.paymentMethod === "wallet" ? "محفظة" : "فيزا"}
                                 </span>
-                                <span className="text-[11px] text-[#8c7865]">
-                                  {new Date(order.createdAt).toLocaleDateString("ar-EG", {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                                {order.paymentMethod && (
-                                  <span className="text-[10px] font-semibold bg-[#faf8f5] px-2 py-0.5 rounded border border-[#e8ded0] text-[#756555]">
-                                    {order.paymentMethod === "cod" ? "عند الاستلام" : order.paymentMethod === "wallet" ? "محفظة إلكترونية" : "بطاقة بنكية"}
-                                  </span>
-                                )}
-                              </div>
-                              <h4 className="text-sm font-bold text-[#161412] mt-1 truncate group-hover:text-[#8c6b3e] transition-colors">
+                              )}
+                            </div>
+
+                            {/* Customer & Item Details */}
+                            <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                              <h4 className="text-xs sm:text-sm font-bold text-[#161412] truncate group-hover:text-[#8c6b3e] transition-colors">
                                 {order.customerName}
                               </h4>
-                              <div className="flex items-center gap-2 text-xs text-[#756555] mt-0.5 flex-wrap">
-                                <span className="font-medium text-[#161412]">{order.governorate}</span>
-                                <span>•</span>
-                                <span className="bg-[#f7f4ee] px-1.5 py-0.5 rounded text-[11px] text-[#161412] font-bold">
-                                  {totalItemsCount} {totalItemsCount === 1 ? "قطعة" : "قطع"}
-                                </span>
-                                <span>•</span>
-                                <span className="dir-ltr text-[11px] text-[#8c7865]">{order.phone}</span>
-                              </div>
+                              <span className="text-xs text-[#756555] font-medium whitespace-nowrap">• {order.governorate}</span>
+                              <span className="dir-ltr text-xs font-mono text-[#8c7865] whitespace-nowrap">• {order.phone}</span>
+                              <span className="text-[10px] font-bold bg-[#f7f4ee] text-[#161412] px-1.5 py-0.5 rounded border border-[#ded2c0] whitespace-nowrap">
+                                {totalItemsCount} {totalItemsCount === 1 ? "قطعة" : "قطع"}
+                              </span>
                             </div>
                           </div>
 
                           {/* Order Financials & Quick Actions Left */}
-                          <div className="flex items-center justify-between lg:justify-end gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#f0e8dc]">
-                            <div className="text-right lg:text-left pl-2">
-                              <span className="block text-[10px] text-[#8c7865]">إجمالي الطلب:</span>
-                              <span className="text-base font-bold text-[#161412] font-mono">
-                                {order.total.toLocaleString("en-US")} <span className="text-xs font-normal">ج.م</span>
+                          <div className="flex items-center justify-between lg:justify-end gap-2.5 pt-2 lg:pt-0 border-t lg:border-t-0 border-[#f0e8dc] shrink-0">
+                            {/* Price */}
+                            <div className="text-right lg:text-left pl-1">
+                              <span className="text-sm sm:text-base font-bold text-[#161412] font-mono">
+                                {order.total.toLocaleString("en-US")} <span className="text-[10px] font-normal text-[#8c7865]">ج.م</span>
                               </span>
                             </div>
 
@@ -2274,7 +2418,7 @@ export default function AdminPage() {
                               <select
                                 value={order.status}
                                 onChange={(e) => updateOrderStatus(order.id, e.target.value as Order["status"])}
-                                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border focus:outline-none cursor-pointer ${
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold border focus:outline-none cursor-pointer ${
                                   order.status === "pending"
                                     ? "bg-amber-50 text-amber-900 border-amber-300"
                                     : order.status.startsWith("confirmed")
@@ -2303,7 +2447,7 @@ export default function AdminPage() {
                                 e.stopPropagation();
                                 setSelectedOrderForDetails(order);
                               }}
-                              className="px-3.5 py-1.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shrink-0"
+                              className="px-3 py-1 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all flex items-center gap-1 shadow-xs shrink-0"
                             >
                               <Eye className="w-3.5 h-3.5 text-[#c5a880]" />
                               <span>التفاصيل</span>
@@ -2315,13 +2459,11 @@ export default function AdminPage() {
                               target="_blank"
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors shrink-0"
+                              className="p-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors shrink-0"
                               title="محادثة واتساب سريعة"
                             >
-                              <MessageCircle className="w-4 h-4" />
+                              <MessageCircle className="w-3.5 h-3.5" />
                             </a>
-
-                            {/* NOTE: Hard-Delete button was removed completely as requested to protect customer data forever */}
                           </div>
                         </div>
                       </div>
@@ -2329,6 +2471,371 @@ export default function AdminPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========================================================
+              TAB: CUSTOMERS DIRECTORY (قاعدة العملاء)
+              ======================================================== */}
+          {activeTab === "customers" && canViewOrders && (
+            <div className="space-y-6">
+              {/* Header Box */}
+              <div className="bg-white rounded-2xl border border-[#e8ded0] p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#f7f4ee] border border-[#ded2c0] flex items-center justify-center text-[#161412]">
+                      <Users className="w-4 h-4 text-[#c5a880]" />
+                    </div>
+                    <h3 className="font-amiri text-xl font-bold text-[#161412]">
+                      قاعدة العملاء والمشترين
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[#756555] mt-1">
+                    سجل شامل ومحدث تلقائياً ببيانات كافة العملاء، مع إمكانية التواصل الفوري وإصدار طلبات جديدة.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setManualOrderForm({
+                        customerName: "",
+                        phone: "",
+                        email: "",
+                        governorate: "القاهرة",
+                        address: "",
+                        notes: "",
+                        paymentMethod: "cod",
+                        discount: 0,
+                        customShippingFee: null,
+                        items: [],
+                      });
+                      setIsCreateOrderModalOpen(true);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                  >
+                    <UserPlus className="w-4 h-4 text-[#c5a880]" />
+                    <span>+ إضافة طلب / عميل جديد</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Customer Metric Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl p-4 border border-[#e8ded0] shadow-sm">
+                  <span className="text-xs text-[#756555] block mb-1">إجمالي العملاء المسجلين</span>
+                  <span className="text-xl sm:text-2xl font-bold text-[#161412] font-mono">
+                    {customersList.length}
+                    <span className="text-xs font-normal text-[#8c7865] mr-1">عميل</span>
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl p-4 border border-[#e8ded0] shadow-sm">
+                  <span className="text-xs text-[#756555] block mb-1">عملاء متكررين الشراء</span>
+                  <span className="text-xl sm:text-2xl font-bold text-emerald-600 font-mono">
+                    {customersList.filter((c) => c.totalOrders > 1).length}
+                    <span className="text-xs font-normal text-[#8c7865] mr-1">عميل</span>
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl p-4 border border-[#e8ded0] shadow-sm">
+                  <span className="text-xs text-[#756555] block mb-1">متوسط إنفاق العميل</span>
+                  <span className="text-xl sm:text-2xl font-bold text-[#161412] font-mono">
+                    {customersList.length > 0
+                      ? Math.round(
+                          customersList.reduce((acc, c) => acc + c.totalSpent, 0) /
+                            customersList.length
+                        ).toLocaleString("en-US")
+                      : 0}
+                    <span className="text-xs font-normal text-[#8c7865] mr-1">ج.م</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Customer Filters and Search */}
+              <div className="bg-white rounded-xl p-4 border border-[#e8ded0] space-y-3 shadow-sm text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="relative flex-1 min-w-[220px]">
+                    <input
+                      type="text"
+                      placeholder="ابحث باسم العميل، رقم الهاتف، أو المحافظة..."
+                      value={customerSearchQuery}
+                      onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg pr-9 pl-4 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                    />
+                    <Search className="w-4 h-4 text-[#8c7865] absolute right-3 top-1/2 -translate-y-1/2" />
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#756555] font-medium">الترتيب حسب:</span>
+                    <select
+                      value={customerSortBy}
+                      onChange={(e) => setCustomerSortBy(e.target.value as "recent" | "orders" | "spent")}
+                      className="bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-2.5 py-2 text-xs text-[#161412] font-semibold focus:outline-none"
+                    >
+                      <option value="recent">الأحدث نشاطاً وطلباً</option>
+                      <option value="orders">الأكثر طلباً (عدد الطلبات)</option>
+                      <option value="spent">الأعلى إنفاقاً (إجمالي الشراء)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customers Grid */}
+              {filteredCustomers.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 text-center border border-[#e8ded0]">
+                  <Users className="w-12 h-12 text-[#baa996] mx-auto mb-3 opacity-60" />
+                  <h3 className="text-base font-bold text-[#161412] mb-1">لا يوجد عملاء مطابقين للبحث</h3>
+                  <p className="text-xs text-[#756555]">سيتم تسجيل أي عميل يقوم بالطلب تلقائياً هنا في قاعدة العملاء.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredCustomers.map((cust) => {
+                    const cleanPhone = cust.phone.replace(/\D/g, "");
+                    const waLink = `https://wa.me/20${cleanPhone}?text=${encodeURIComponent(
+                      `أهلاً بحضرتك يا ${cust.name}، بنكلمك من متجر أَثَـر للفضة الإسترليني 925.`
+                    )}`;
+
+                    return (
+                      <div
+                        key={cust.phone || cust.name}
+                        className="bg-white rounded-2xl border border-[#e8ded0] p-4 sm:p-5 shadow-xs hover:border-[#c5a880] hover:shadow-md transition-all flex flex-col justify-between gap-4"
+                      >
+                        <div className="space-y-3">
+                          {/* Top: Avatar & Name */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-10 h-10 rounded-full bg-[#161412] text-[#c5a880] font-bold text-sm flex items-center justify-center border border-[#c5a880]/30 shrink-0 shadow-xs">
+                                {cust.name.slice(0, 1)}
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className="text-sm font-bold text-[#161412] truncate">
+                                  {cust.name}
+                                </h4>
+                                <span className="font-mono text-xs text-[#8c7865] dir-ltr block">
+                                  {cust.phone}
+                                </span>
+                              </div>
+                            </div>
+
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#f7f4ee] text-[#161412] border border-[#ded2c0] shrink-0">
+                              {cust.totalOrders} {cust.totalOrders === 1 ? "طلب" : "طلبات"}
+                            </span>
+                          </div>
+
+                          {/* Address Info */}
+                          <div className="bg-[#faf8f5] p-2.5 rounded-xl border border-[#ede5d8] text-xs space-y-1">
+                            <div className="flex items-center gap-1.5 text-[#161412] font-semibold">
+                              <MapPin className="w-3.5 h-3.5 text-[#c5a880] shrink-0" />
+                              <span>{cust.governorate}</span>
+                            </div>
+                            {cust.address && (
+                              <p className="text-[11px] text-[#756555] truncate" title={cust.address}>
+                                {cust.address}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Financials & Last Order */}
+                          <div className="flex items-center justify-between text-xs pt-1 border-t border-[#f0e8dc]">
+                            <div>
+                              <span className="block text-[10px] text-[#8c7865]">إجمالي المشتريات:</span>
+                              <span className="font-bold text-[#161412] font-mono text-sm">
+                                {cust.totalSpent.toLocaleString("en-US")} ج.م
+                              </span>
+                            </div>
+                            <div className="text-left">
+                              <span className="block text-[10px] text-[#8c7865]">آخر نشاط:</span>
+                              <span className="text-[11px] text-[#5c4f42] font-medium">
+                                {new Date(cust.lastOrderDate).toLocaleDateString("ar-EG", {
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quick Actions Row */}
+                        <div className="flex items-center gap-1.5 pt-2 border-t border-[#f0e8dc]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOrderSearchQuery(cust.phone || cust.name);
+                              setActiveTab("orders");
+                            }}
+                            className="flex-1 py-1.5 px-2 rounded-lg bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[11px] font-bold text-[#161412] transition-colors text-center"
+                          >
+                            عرض الطلبات
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setManualOrderForm({
+                                customerName: cust.name,
+                                phone: cust.phone,
+                                email: "",
+                                governorate: cust.governorate || "القاهرة",
+                                address: cust.address || "",
+                                notes: "",
+                                paymentMethod: "cod",
+                                discount: 0,
+                                customShippingFee: null,
+                                items: [],
+                              });
+                              setIsCreateOrderModalOpen(true);
+                            }}
+                            className="py-1.5 px-2.5 rounded-lg bg-[#161412] hover:bg-[#2e2925] text-[11px] font-bold text-[#c5a880] transition-colors"
+                            title="إنشاء طلب جديد لهذا العميل"
+                          >
+                            + طلب
+                          </button>
+
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 transition-colors"
+                            title="محادثة واتساب"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </a>
+
+                          <a
+                            href={`tel:${cust.phone}`}
+                            className="p-1.5 rounded-lg bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[#161412] transition-colors"
+                            title="اتصال هاتفي"
+                          >
+                            <PhoneCall className="w-4 h-4 text-[#c5a880]" />
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================
+              TAB: ANALYTICS & REPORTS (التقارير والإحصائيات)
+              ======================================================== */}
+          {activeTab === "analytics" && canViewOrders && (
+            <div className="space-y-6">
+              {/* Header Box */}
+              <div className="bg-white rounded-2xl border border-[#e8ded0] p-5 sm:p-6 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#f7f4ee] border border-[#ded2c0] flex items-center justify-center text-[#161412]">
+                    <BarChart3 className="w-4 h-4 text-[#c5a880]" />
+                  </div>
+                  <h3 className="font-amiri text-xl font-bold text-[#161412]">
+                    التقارير ومؤشرات المبيعات
+                  </h3>
+                </div>
+                <p className="text-xs text-[#756555] mt-1">
+                  نظرة تفصيلية على حجم الإيرادات، توزيع حالات الطلبات، وإحصائيات المحافظات.
+                </p>
+              </div>
+
+              {/* The 4 Core Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
+                  <span className="text-xs text-[#756555] block mb-1">إجمالي المبيعات</span>
+                  <span className="text-xl sm:text-2xl font-bold text-[#161412]">
+                    {orderMetrics.revenue.toLocaleString("en-US")}
+                    <span className="text-xs font-normal text-[#8c7865] mr-1">ج.م</span>
+                  </span>
+                </div>
+                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
+                  <span className="text-xs text-[#756555] block mb-1">إجمالي الطلبات</span>
+                  <span className="text-xl sm:text-2xl font-bold text-[#161412]">
+                    {orderMetrics.total}
+                  </span>
+                </div>
+                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
+                  <span className="text-xs text-amber-700 block mb-1">قيد الانتظار (جديدة)</span>
+                  <span className="text-xl sm:text-2xl font-bold text-amber-600">
+                    {orderMetrics.pending}
+                  </span>
+                </div>
+                <div className="bg-white rounded-xl p-5 border border-[#e8ded0] shadow-sm">
+                  <span className="text-xs text-emerald-700 block mb-1">مؤكدة وجاهزة للشحن</span>
+                  <span className="text-xl sm:text-2xl font-bold text-emerald-600">
+                    {orderMetrics.confirmed}
+                  </span>
+                </div>
+              </div>
+
+              {/* Order Status Distribution */}
+              <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#e8ded0] shadow-sm space-y-4">
+                <h4 className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3">
+                  <TrendingUp className="w-4 h-4 text-[#c5a880]" />
+                  <span>توزيع حالات الطلبات الحالية</span>
+                </h4>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5">
+                    <span className="block text-amber-800 text-[11px] font-semibold mb-1">قيد الانتظار</span>
+                    <span className="text-lg font-bold text-amber-900 font-mono">
+                      {orders.filter((o) => o.status === "pending").length}
+                    </span>
+                  </div>
+
+                  <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5">
+                    <span className="block text-blue-800 text-[11px] font-semibold mb-1">مؤكدة هاتفياً</span>
+                    <span className="text-lg font-bold text-blue-900 font-mono">
+                      {orders.filter((o) => o.status === "confirmed_phone").length}
+                    </span>
+                  </div>
+
+                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3.5">
+                    <span className="block text-emerald-800 text-[11px] font-semibold mb-1">مؤكدة واتساب</span>
+                    <span className="text-lg font-bold text-emerald-900 font-mono">
+                      {orders.filter((o) => o.status === "confirmed_whatsapp").length}
+                    </span>
+                  </div>
+
+                  <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3.5">
+                    <span className="block text-indigo-800 text-[11px] font-semibold mb-1">جاري التجهيز</span>
+                    <span className="text-lg font-bold text-indigo-900 font-mono">
+                      {orders.filter((o) => o.status === "processing").length}
+                    </span>
+                  </div>
+
+                  <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-3.5">
+                    <span className="block text-purple-800 text-[11px] font-semibold mb-1">تم الشحن</span>
+                    <span className="text-lg font-bold text-purple-900 font-mono">
+                      {orders.filter((o) => o.status === "shipped").length}
+                    </span>
+                  </div>
+
+                  <div className="bg-teal-50/70 border border-teal-200 rounded-xl p-3.5">
+                    <span className="block text-teal-800 text-[11px] font-semibold mb-1">تم التوصيل بنجاح</span>
+                    <span className="text-lg font-bold text-teal-900 font-mono">
+                      {orders.filter((o) => o.status === "completed").length}
+                    </span>
+                  </div>
+
+                  <div className="bg-gray-100 border border-gray-200 rounded-xl p-3.5">
+                    <span className="block text-gray-700 text-[11px] font-semibold mb-1">ملغي</span>
+                    <span className="text-lg font-bold text-gray-800 font-mono">
+                      {orders.filter((o) => o.status === "cancelled").length}
+                    </span>
+                  </div>
+
+                  <div className="bg-[#f7f4ee] border border-[#ded2c0] rounded-xl p-3.5">
+                    <span className="block text-[#756555] text-[11px] font-semibold mb-1">متوسط قيمة الطلب</span>
+                    <span className="text-lg font-bold text-[#161412] font-mono">
+                      {orderMetrics.total > 0
+                        ? Math.round(orderMetrics.revenue / orderMetrics.total).toLocaleString("en-US")
+                        : 0}{" "}
+                      <span className="text-[10px] font-normal">ج.م</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -7235,68 +7742,180 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Customer & Delivery Information Card */}
+              {/* Customer & Delivery Information Card with Inline Edit Mode */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-3">
-                <div className="text-xs font-bold text-[#161412] flex items-center gap-2 pb-2 border-b border-[#f0e8dc]">
-                  <User className="w-3.5 h-3.5 text-[#c5a880]" />
-                  <span>بيانات العميل والشحن والتوصيل</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="block text-[11px] text-[#8c7865] mb-0.5">اسم العميل:</span>
-                    <span className="font-bold text-[#161412] text-sm">{order.customerName}</span>
+                <div className="text-xs font-bold text-[#161412] flex items-center justify-between pb-2 border-b border-[#f0e8dc]">
+                  <div className="flex items-center gap-2">
+                    <User className="w-3.5 h-3.5 text-[#c5a880]" />
+                    <span>بيانات العميل والشحن والتوصيل</span>
                   </div>
 
-                  <div>
-                    <span className="block text-[11px] text-[#8c7865] mb-0.5">رقم الهاتف والتواصل:</span>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="font-bold text-[#161412] font-mono dir-ltr">{order.phone}</span>
-                      <a
-                        href={`tel:${order.phone}`}
-                        className="px-2 py-0.5 rounded-md bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[10px] font-bold text-[#161412] flex items-center gap-1"
-                        title="اتصال هاتفي"
+                  {!isEditingCustomerInfo ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingCustomerInfo(true)}
+                      className="px-2.5 py-1 rounded-lg bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[#161412] font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs"
+                      title="تعديل بيانات العميل لو كتب الاسم أو الهاتف أو العنوان بالخطأ"
+                    >
+                      <Edit className="w-3 h-3 text-[#c5a880]" />
+                      <span>تعديل بيانات العميل</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateOrder(order.id, {
+                            customerName: editCustomerName.trim(),
+                            phone: editCustomerPhone.trim(),
+                            governorate: editCustomerGovernorate,
+                            address: editCustomerAddress.trim(),
+                            notes: editCustomerNotes.trim(),
+                          });
+                          setIsEditingCustomerInfo(false);
+                          addToast("بيانات العميل", "تم حفظ وتحديث بيانات العميل بنجاح", "info");
+                        }}
+                        className="px-3 py-1 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
                       >
-                        <PhoneCall className="w-2.5 h-2.5 text-[#c5a880]" />
-                        <span>اتصال</span>
-                      </a>
-                      <a
-                        href={whatsappLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-bold text-emerald-800 flex items-center gap-1"
-                        title="محادثة واتساب"
+                        <Save className="w-3 h-3 text-[#c5a880]" />
+                        <span>حفظ التعديلات</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditCustomerName(order.customerName || "");
+                          setEditCustomerPhone(order.phone || "");
+                          setEditCustomerGovernorate(order.governorate || "القاهرة");
+                          setEditCustomerAddress(order.address || "");
+                          setEditCustomerNotes(order.notes || "");
+                          setIsEditingCustomerInfo(false);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-gray-100 text-[#5c4f42] hover:bg-gray-200 font-bold text-xs transition-colors"
                       >
-                        <MessageCircle className="w-2.5 h-2.5 text-emerald-600" />
-                        <span>واتساب</span>
-                      </a>
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="block text-[11px] text-[#8c7865] mb-0.5">المحافظة:</span>
-                    <span className="font-semibold text-[#161412]">{order.governorate}</span>
-                  </div>
-
-                  <div>
-                    <span className="block text-[11px] text-[#8c7865] mb-0.5">العنوان التفصيلي:</span>
-                    <span className="font-medium text-[#161412]">{order.address}</span>
-                  </div>
-
-                  {order.notes && (
-                    <div className="sm:col-span-2 bg-[#f7f4ee] p-2.5 rounded-xl border border-[#ded2c0]">
-                      <span className="block text-[11px] font-bold text-[#756555] mb-0.5">ملاحظات العميل:</span>
-                      <p className="text-xs text-[#161412]">{order.notes}</p>
-                    </div>
-                  )}
-
-                  {order.isGift && (
-                    <div className="sm:col-span-2 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200">
-                      <span className="block text-[11px] font-bold text-amber-900 mb-0.5">طلب هدية وتغليف مخصص:</span>
-                      <p className="text-xs text-amber-800">{order.giftMessage || "تغليف كهدية فاخرة بدون طباعة السعر"}</p>
+                        إلغاء
+                      </button>
                     </div>
                   )}
                 </div>
+
+                {!isEditingCustomerInfo ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="block text-[11px] text-[#8c7865] mb-0.5">اسم العميل:</span>
+                      <span className="font-bold text-[#161412] text-sm">{order.customerName}</span>
+                    </div>
+
+                    <div>
+                      <span className="block text-[11px] text-[#8c7865] mb-0.5">رقم الهاتف والتواصل:</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="font-bold text-[#161412] font-mono dir-ltr">{order.phone}</span>
+                        <a
+                          href={`tel:${order.phone}`}
+                          className="px-2 py-0.5 rounded-md bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[10px] font-bold text-[#161412] flex items-center gap-1"
+                          title="اتصال هاتفي"
+                        >
+                          <PhoneCall className="w-2.5 h-2.5 text-[#c5a880]" />
+                          <span>اتصال</span>
+                        </a>
+                        <a
+                          href={whatsappLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-bold text-emerald-800 flex items-center gap-1"
+                          title="محادثة واتساب"
+                        >
+                          <MessageCircle className="w-2.5 h-2.5 text-emerald-600" />
+                          <span>واتساب</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="block text-[11px] text-[#8c7865] mb-0.5">المحافظة:</span>
+                      <span className="font-semibold text-[#161412]">{order.governorate}</span>
+                    </div>
+
+                    <div>
+                      <span className="block text-[11px] text-[#8c7865] mb-0.5">العنوان التفصيلي:</span>
+                      <span className="font-medium text-[#161412]">{order.address}</span>
+                    </div>
+
+                    {order.notes && (
+                      <div className="sm:col-span-2 bg-[#f7f4ee] p-2.5 rounded-xl border border-[#ded2c0]">
+                        <span className="block text-[11px] font-bold text-[#756555] mb-0.5">ملاحظات العميل:</span>
+                        <p className="text-xs text-[#161412]">{order.notes}</p>
+                      </div>
+                    )}
+
+                    {order.isGift && (
+                      <div className="sm:col-span-2 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200">
+                        <span className="block text-[11px] font-bold text-amber-900 mb-0.5">طلب هدية وتغليف مخصص:</span>
+                        <p className="text-xs text-amber-800">{order.giftMessage || "تغليف كهدية فاخرة بدون طباعة السعر"}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[#fdfbf7] p-3 rounded-xl border border-[#c5a880]/30">
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#161412] mb-1">اسم العميل:</label>
+                      <input
+                        type="text"
+                        value={editCustomerName}
+                        onChange={(e) => setEditCustomerName(e.target.value)}
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        placeholder="اسم العميل الكامل"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#161412] mb-1">رقم الهاتف:</label>
+                      <input
+                        type="tel"
+                        value={editCustomerPhone}
+                        onChange={(e) => setEditCustomerPhone(e.target.value)}
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] font-mono dir-ltr focus:outline-none focus:border-[#161412]"
+                        placeholder="01XXXXXXXXX"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#161412] mb-1">المحافظة:</label>
+                      <select
+                        value={editCustomerGovernorate}
+                        onChange={(e) => setEditCustomerGovernorate(e.target.value)}
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                      >
+                        {EGYPT_GOVERNORATES.map((gov) => (
+                          <option key={gov.name} value={gov.name}>
+                            {gov.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#161412] mb-1">العنوان التفصيلي:</label>
+                      <input
+                        type="text"
+                        value={editCustomerAddress}
+                        onChange={(e) => setEditCustomerAddress(e.target.value)}
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        placeholder="المنطقة، الشارع، رقم العمارة والشقة..."
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] font-bold text-[#161412] mb-1">ملاحظات الطلب أو التوصيل:</label>
+                      <textarea
+                        rows={2}
+                        value={editCustomerNotes}
+                        onChange={(e) => setEditCustomerNotes(e.target.value)}
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        placeholder="أي ملاحظات خاصة بالتوصيل أو تعديل العميل..."
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Payment Details Card */}
