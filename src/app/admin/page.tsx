@@ -1699,11 +1699,11 @@ export default function AdminPage() {
                   >
                     <div>
                       {/* Photo */}
-                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-[#e4dcce] mb-3 border border-[#d8c8b4]">
+                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-[#faf8f5] mb-3 border border-[#ded2c0]">
                         <img
                           src={product.images[0]}
                           alt={product.arabicName}
-                          className="w-full h-full object-cover mix-blend-multiply"
+                          className="w-full h-full object-cover"
                         />
                         {!product.inStock && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xs font-bold">
