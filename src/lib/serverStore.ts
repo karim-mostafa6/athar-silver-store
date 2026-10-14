@@ -96,9 +96,27 @@ async function saveCloudData(data: ServerStoreData): Promise<boolean> {
 }
 
 const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
-function cleanOrders(orders: unknown): Order[] {
+export function cleanOrders(orders: unknown): Order[] {
   if (!Array.isArray(orders)) return [];
   return (orders as Order[]).filter((o) => o && o.id && !DEMO_ORDER_IDS.has(o.id));
+}
+
+// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
+export function getNextSequentialOrderId(ordersList: Order[]): string {
+  let maxSeq = 999;
+  for (const o of ordersList) {
+    if (!o || !o.id) continue;
+    const m = o.id.match(/(?:#?ATH-?)(\d+)/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(o.id)) {
+        if (n > maxSeq) {
+          maxSeq = n;
+        }
+      }
+    }
+  }
+  return `ATH-${maxSeq + 1}`;
 }
 
 // ----------------------------------------------------

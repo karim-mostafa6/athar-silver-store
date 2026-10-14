@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+import { getServerStoreData, saveServerStoreData, getNextSequentialOrderId } from "@/lib/serverStore";
 import { Order } from "@/context/StoreContext";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +40,12 @@ export async function POST(request: NextRequest) {
     let updatedOrders: Order[];
 
     if (order && typeof order === "object") {
+      const finalOrder: Order = { ...order };
+      if (!finalOrder.id || finalOrder.id.startsWith("ath-temp") || !finalOrder.id.startsWith("ATH-")) {
+        finalOrder.id = getNextSequentialOrderId(current.orders);
+      }
       // Append single new order to top
-      updatedOrders = [order, ...current.orders.filter((o) => o.id !== order.id)];
+      updatedOrders = [finalOrder, ...current.orders.filter((o) => o.id !== finalOrder.id)];
     } else if (Array.isArray(orders)) {
       // Replace entire list
       updatedOrders = orders;

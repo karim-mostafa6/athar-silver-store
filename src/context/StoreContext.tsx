@@ -775,17 +775,37 @@ function recordDeletedOrderId(orderId: string) {
   } catch {}
 }
 
+const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
+const DEMO_NAMES = new Set(["مريم خالد", "سارة أحمد", "محمود إبراهيم", "كريم يوسف"]);
+
+// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
+export function getNextSequentialOrderId(ordersList: Order[]): string {
+  let maxSeq = 999;
+  for (const o of ordersList) {
+    if (!o || !o.id) continue;
+    const m = o.id.match(/(?:#?ATH-?)(\d+)/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      // Sequential numbers start at 1000 up to 99999 (ignores any legacy 6-digit demo IDs)
+      if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(o.id)) {
+        if (n > maxSeq) {
+          maxSeq = n;
+        }
+      }
+    }
+  }
+  return `ATH-${maxSeq + 1}`;
+}
+
 // Helper to filter out any old demo/mock sample orders or explicitly deleted orders
 function sanitizeOrders(rawOrders: unknown): Order[] {
   if (!Array.isArray(rawOrders)) return [];
-  const DEMO_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
-  const DEMO_NAMES = new Set(["مريم خالد", "سارة أحمد", "محمود إبراهيم", "كريم يوسف"]);
   const deletedIds = getDeletedOrderIds();
   return (rawOrders as Order[]).filter(
     (o) =>
       o &&
       o.id &&
-      !DEMO_IDS.has(o.id) &&
+      !DEMO_ORDER_IDS.has(o.id) &&
       !DEMO_NAMES.has(o.customerName) &&
       !deletedIds.has(o.id)
   );
@@ -1169,7 +1189,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Orders Management
   const addOrder = (orderData: Omit<Order, "id" | "createdAt" | "status">) => {
-    const newId = `ATH-${Math.floor(100000 + Math.random() * 900000)}`;
+    // Generate sequential 4-digit order number starting at ATH-1000 (#ATH-1000, #ATH-1001, ...)
+    const newId = getNextSequentialOrderId(orders);
     const newOrder: Order = {
       ...orderData,
       id: newId,
