@@ -152,12 +152,12 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
   // Visual Theme Styling - Dark Charcoal matching the mockup as default
   const themeClass =
     storeSettings.marqueeTheme === "gold"
-      ? "bg-[#7d5f26] text-white border-[#9c7835]"
+      ? "bg-[#8E7545] text-[#F5F0E7] border-[#B7A078]"
       : storeSettings.marqueeTheme === "burgundy"
       ? "bg-[#451421] text-[#fce7ef] border-[#5d1d2e]"
       : storeSettings.marqueeTheme === "default" || !storeSettings.marqueeTheme || storeSettings.marqueeTheme === "dark"
-      ? "bg-[#141210] text-[#f7f4ee] border-[#221f1c]"
-      : "bg-[#f4ece0] text-[#4b3e32] border-[#e5dacb]";
+      ? "bg-[#292722] text-[#F5F0E7] border-[#292722]/30"
+      : "bg-[#F5F0E7] text-[#292722] border-[#292722]/12";
 
   const speedDuration =
     storeSettings.marqueeSpeed === "slow"

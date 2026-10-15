@@ -67,7 +67,7 @@ export default function Home() {
     return filteredProducts.slice(0, 8);
   }, [filteredProducts, showAllProducts, selectedCategory, searchQuery]);
 
-  // Build hero slides from settings
+  // Build hero slides from settings (only if explicit slider slides are configured)
   const heroSlides: HeroSlide[] = useMemo(() => {
     const settingsSlides = storeSettings?.heroSlides?.filter((s) => s.enabled);
     if (settingsSlides && settingsSlides.length > 0) {
@@ -86,25 +86,6 @@ export default function Home() {
         contentAlign: s.contentAlign || "right",
       }));
     }
-    // If there's a hero image set in settings, build a single slide from it
-    if (storeSettings?.heroImageUrl) {
-      return [
-        {
-          id: "hero-main",
-          imageUrl: storeSettings.heroImageUrl,
-          badge: storeSettings.heroBadge,
-          title: storeSettings.heroTitle || "الأَثَر لا يُهدى",
-          titleLine2: "بل يُترك",
-          subtitle: storeSettings.heroSubtitle || "مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك",
-          primaryButtonText: storeSettings.heroButtonText || "تسوق المجموعة",
-          primaryButtonLink: storeSettings.heroButtonLink || "/collection/all",
-          secondaryButtonText: storeSettings.heroSecondaryButtonText || "اكتشف أثر",
-          secondaryButtonLink: "#story",
-          overlayDarkness: storeSettings.heroOverlayDarkness || "medium",
-          contentAlign: storeSettings.heroContentAlign || "right",
-        },
-      ];
-    }
     return [];
   }, [storeSettings]);
 
@@ -115,7 +96,7 @@ export default function Home() {
       {/* Position 1: Top of page (below navbar) */}
       <CustomPromoBanner settings={storeSettings} position="top" />
 
-      {/* Hero: Either multi-slide carousel OR classic hero */}
+      {/* Hero: Either multi-slide carousel OR classic split hero matching mockup */}
       {hasSlider ? (
         <HeroSlider
           slides={heroSlides}
@@ -148,19 +129,19 @@ export default function Home() {
         <ScrollReveal direction="up" delay={0}>
           <div className="text-center mb-12 sm:mb-16">
             {storeSettings.productsSectionBadge && (
-              <span className="inline-block text-[10px] font-mono tracking-[0.3em] uppercase text-[#8c7865] mb-3 border border-[#d9ccba] px-4 py-1.5 rounded-full bg-white">
+              <span className="inline-block text-[10px] font-mono tracking-[0.3em] uppercase text-[#8E7545] mb-3 border border-[#292722]/12 px-4 py-1.5 rounded-full bg-[#F5F0E7]">
                 {storeSettings.productsSectionBadge}
               </span>
             )}
-            <h2 className="font-amiri text-3xl sm:text-5xl font-bold text-[#161412]">
+            <h2 className="font-aref text-4xl sm:text-6xl font-bold text-[#292722]">
               {storeSettings.productsSectionTitle || "المجموعة"}
             </h2>
             {storeSettings.productsSectionSubtitle && (
-              <p className="text-sm text-[#8c7865] mt-3 font-light max-w-md mx-auto leading-relaxed">
+              <p className="text-sm sm:text-base text-[#292722]/75 mt-3 font-amiri font-light max-w-md mx-auto leading-relaxed">
                 {storeSettings.productsSectionSubtitle}
               </p>
             )}
-            <div className="w-10 h-[1.5px] bg-[#161412]/30 mx-auto mt-4 rounded-full" />
+            <div className="w-12 h-[2px] bg-[#8E7545] mx-auto mt-4 rounded-full" />
           </div>
         </ScrollReveal>
 
@@ -171,10 +152,10 @@ export default function Home() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap active:scale-95 ${
+                className={`px-4 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap active:scale-95 font-amiri ${
                   selectedCategory === cat.id
-                    ? "bg-[#161412] text-[#f7f4ee] font-medium"
-                    : "bg-white/70 text-[#615243] border border-[#e2d5c2] hover:bg-[#ede3d3] hover:text-[#161412] font-light"
+                    ? "bg-[#292722] text-[#F5F0E7] font-medium"
+                    : "bg-[#D8C8B3]/50 text-[#292722] border border-[#292722]/12 hover:bg-[#D8C8B3] hover:text-[#292722] font-light"
                 }`}
               >
                 {cat.label}
@@ -245,7 +226,7 @@ export default function Home() {
             <div className="text-center mt-12 sm:mt-16">
               <button
                 onClick={() => setShowAllProducts(!showAllProducts)}
-                className="px-10 sm:px-14 py-3 rounded border border-[#161412] text-[#161412] hover:bg-[#161412] hover:text-[#f7f4ee] transition-all duration-300 text-xs sm:text-sm font-medium active:scale-95 shadow-sm"
+                className="px-10 sm:px-14 py-3 rounded-sm border border-[#292722] text-[#292722] hover:bg-[#292722] hover:text-[#F5F0E7] transition-all duration-300 text-xs sm:text-sm font-amiri font-medium active:scale-95 shadow-xs"
               >
                 {showAllProducts ? "عرض أقل" : "عرض كل القطع"}
               </button>

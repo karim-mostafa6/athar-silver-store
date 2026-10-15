@@ -3,6 +3,7 @@
 import React from "react";
 import { useStore } from "@/context/StoreContext";
 import { ConcentricRipples } from "@/components/ConcentricRipples";
+import { OrmaLogo } from "@/components/OrmaLogo";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 export const BrandStorySection: React.FC = () => {
@@ -13,10 +14,10 @@ export const BrandStorySection: React.FC = () => {
   }
 
   const headline =
-    storeSettings.storyTitle || "أثر: ما يبقى طويلاً\nبعد أن تمضي اللحظة";
+    storeSettings.storyTitle || "القطعة اللي بتفضل\nبعد ما اللحظة تعدّي";
   const storyText =
     storeSettings.storySubtitle ||
-    "نصنع كل قطعة في أثر من الفضة الإسترليني عيار 925 لتكون أكثر من مجرد زينة، بل بصمة وذكرى تتناقلها الأيام وتخلد أدق تفاصيلك.";
+    "نصنع كل قطعة في ORMA من الفضة الإسترليني عيار 925 لتكون أكثر من مجرد زينة، بل بصمة وشعور يخلد أدق تفاصيلك ويبقى للأبد.";
 
   const headlineLines = headline.split("\n");
 
@@ -30,31 +31,31 @@ export const BrandStorySection: React.FC = () => {
   return (
     <section
       id="story"
-      className="relative w-full py-24 sm:py-32 bg-[#161412] text-[#f7f4ee] overflow-hidden border-b border-[#2d2926]"
+      className="relative w-full py-24 sm:py-32 bg-[#292722] text-[#F5F0E7] overflow-hidden border-b border-[#292722]/30"
     >
-      {/* Background Concentric Ripples */}
-      <ConcentricRipples variant="story" strokeColor="#c5a880" />
+      {/* Background Concentric Ripples in Champagne Gold */}
+      <ConcentricRipples variant="story" strokeColor="#B7A078" ringCount={12} />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center space-y-6">
-        {/* Emblem */}
+        {/* Emblem / ORMA Logo */}
         <ScrollReveal direction="none" delay={0} duration={800} threshold={0.15}>
           <div className="mb-2">
-            <ConcentricRipples variant="emblem" strokeColor="#c5a880" className="w-12 h-12" />
+            <OrmaLogo variant="dark" size="lg" showSlogan={false} />
           </div>
         </ScrollReveal>
 
         {/* Badge */}
         {storeSettings.storyBadge && (
           <ScrollReveal direction="up" delay={80} duration={700} threshold={0.12}>
-            <span className="inline-block text-[10px] font-mono tracking-[0.3em] uppercase text-[#c5a880] border border-[#c5a880]/30 px-4 py-1.5 rounded-full">
+            <span className="inline-block text-[10px] font-mono tracking-[0.3em] uppercase text-[#B7A078] border border-[#B7A078]/40 px-4 py-1.5 rounded-full">
               {storeSettings.storyBadge}
             </span>
           </ScrollReveal>
         )}
 
-        {/* Headline */}
+        {/* Headline in Aref Ruqaa */}
         <ScrollReveal direction="up" delay={150} duration={800} threshold={0.12}>
-          <h2 className="font-amiri text-3xl sm:text-5xl font-bold leading-relaxed tracking-tight text-[#f7f4ee]">
+          <h2 className="font-aref text-4xl sm:text-6xl font-bold leading-tight tracking-tight text-[#F5F0E7]">
             {headlineLines.map((line, idx) => (
               <span key={idx} className="block">
                 {line}
@@ -63,14 +64,14 @@ export const BrandStorySection: React.FC = () => {
           </h2>
         </ScrollReveal>
 
-        {/* Decorative line */}
+        {/* Decorative line: Champagne #B7A078 under title */}
         <ScrollReveal direction="none" delay={250} duration={600}>
-          <div className="w-12 h-[1px] bg-[#c5a880]/50 mx-auto" />
+          <div className="w-14 h-[2px] bg-[#B7A078] mx-auto rounded-full" />
         </ScrollReveal>
 
-        {/* Body Text */}
+        {/* Body Text: Amiri, Ivory with 75% opacity */}
         <ScrollReveal direction="up" delay={300} duration={700} threshold={0.12}>
-          <p className="text-sm sm:text-base text-[#b8a998] font-light leading-loose max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-[#F5F0E7]/75 font-amiri font-light leading-loose max-w-2xl mx-auto">
             {storyText}
           </p>
         </ScrollReveal>
@@ -81,14 +82,14 @@ export const BrandStorySection: React.FC = () => {
             {pillars.map((p, idx) => (
               <ScrollReveal key={idx} direction="up" delay={400 + idx * 100} duration={700} threshold={0.1}>
                 <div className="space-y-2">
-                  <div className="w-8 h-[1px] bg-[#c5a880]/40 mx-auto mb-3" />
+                  <div className="w-8 h-[1px] bg-[#B7A078]/50 mx-auto mb-3" />
                   {p.title && (
-                    <div className="text-[11px] font-bold text-[#d4b896] tracking-wider uppercase">
+                    <div className="text-[12px] font-bold text-[#B7A078] font-aref tracking-wider uppercase">
                       {p.title}
                     </div>
                   )}
                   {p.desc && (
-                    <div className="text-[11px] text-[#8c7865] font-light leading-relaxed">
+                    <div className="text-[12px] text-[#F5F0E7]/75 font-amiri font-light leading-relaxed">
                       {p.desc}
                     </div>
                   )}

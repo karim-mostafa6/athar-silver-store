@@ -177,7 +177,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    const validCode = (storeSettings.promoCode || "ATHAR10").toUpperCase();
+    const validCode = (storeSettings.promoCode || "ORMA10").toUpperCase();
     if (code === validCode) {
       setAppliedPromo(code);
       setPromoSuccess(`تم تفعيل خصم ${storeSettings.promoDiscountPercent || 10}% بنجاح! ✨`);
@@ -356,8 +356,8 @@ export default function CheckoutPage() {
             selectedSize: i.selectedSize,
           })),
           status: "new_order",
-          senderEmail: storeSettings.senderEmail || "theathar.eg@gmail.com",
-          senderName: storeSettings.senderEmailName || "أَثَـر للفضة 925",
+          senderEmail: storeSettings.senderEmail || "theorma.eg@gmail.com",
+          senderName: storeSettings.senderEmailName || "ORMA للفضة 925",
           gmailAppPassword: storeSettings.gmailAppPassword,
         }),
       }).catch((err) => console.warn("Email send notification:", err));

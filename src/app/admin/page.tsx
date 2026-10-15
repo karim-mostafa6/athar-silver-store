@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useStore, StoreSettings, Order, NavLinkItem, MarqueeExtraMessage, StoreCategory, CustomPage, DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES, HeroSlideItem, AdminUser, AdminRole } from "@/context/StoreContext";
 import { Product } from "@/data/products";
 import { playRoyalOrderChime } from "@/lib/sound";
-import { AtharLogo } from "@/components/AtharLogo";
+import { OrmaLogo } from "@/components/OrmaLogo";
 import { getAdminAuthHeaders } from "@/lib/clientAdmin";
 import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
@@ -643,7 +643,7 @@ export default function AdminPage() {
       </head>
       <body>
         <div class="header">
-          <div class="brand">أَثَـر للفضة الإسترليني 925</div>
+          <div class="brand">ORMA للفضة الإسترليني 925</div>
           <div class="subtitle">بوليصة تسليم الشحنة للعميل • فاتورة رسمية</div>
         </div>
         <div class="meta-grid">
@@ -789,7 +789,7 @@ export default function AdminPage() {
       return `
         <div class="sheet" style="${idx > 0 ? "page-break-before: always; margin-top: 40px;" : ""}">
           <div class="header">
-            <div class="brand">أَثَـر | ATHAR</div>
+            <div class="brand">ORMA | أورما</div>
             <div class="subtitle">الفضة الإسترليني عيار 925 • وثيقة الشحن والتسليم الرسمية</div>
           </div>
           <div class="meta-grid">
@@ -1651,7 +1651,7 @@ export default function AdminPage() {
       <div dir="rtl" className="min-h-screen bg-[#f7f4ee] flex items-center justify-center p-4 selection:bg-[#dfd2bf] font-cairo">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#e8ded0] p-8 sm:p-10 text-center">
           <div className="mb-6 flex justify-center">
-            <AtharLogo variant="light" size="lg" />
+            <OrmaLogo variant="light" size="lg" />
           </div>
 
           <h1 className="font-amiri text-2xl font-bold text-[#161412] mb-1">
@@ -1745,7 +1745,7 @@ export default function AdminPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Logo & Cloud Status */}
           <div className="flex items-center gap-4">
-            <AtharLogo variant="light" size="sm" />
+            <OrmaLogo variant="light" size="sm" />
             <div className="border-r border-[#d8c8b4] pr-4 hidden sm:block">
               <span className="text-xs font-bold text-[#161412] flex items-center gap-1.5">
                 <LayoutDashboard className="w-3.5 h-3.5 text-[#c5a880]" />
@@ -2336,7 +2336,7 @@ export default function AdminPage() {
                 <div className="space-y-3">
                   {filteredOrders.map((order) => {
                     const whatsappLink = `https://wa.me/20${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-                      `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أَثَـر للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
+                      `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر ORMA للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
                     )}`;
                     const totalItemsCount = order.items.reduce((acc, item) => acc + (item.quantity || 1), 0);
                     const isSelected = selectedOrderIds.includes(order.id);
@@ -2597,7 +2597,7 @@ export default function AdminPage() {
                   {filteredCustomers.map((cust) => {
                     const cleanPhone = cust.phone.replace(/\D/g, "");
                     const waLink = `https://wa.me/20${cleanPhone}?text=${encodeURIComponent(
-                      `أهلاً بحضرتك يا ${cust.name}، بنكلمك من متجر أَثَـر للفضة الإسترليني 925.`
+                      `أهلاً بحضرتك يا ${cust.name}، بنكلمك من متجر ORMA للفضة الإسترليني 925.`
                     )}`;
 
                     return (
@@ -3143,7 +3143,7 @@ export default function AdminPage() {
                     <span>إدارة الصفحات المستقلة والبراند (Custom Pages & Brand)</span>
                   </h3>
                   <p className="text-xs text-[#756555] mt-1">
-                    أنشئ صفحات مستقلة بروابط خاصة (مثل قصة براند أثر، دليل الفضة، سياسات المتجر) وتحكم في روابط الفوتر.
+                    أنشئ صفحات مستقلة بروابط خاصة (مثل قصة براند ORMA، دليل الفضة، سياسات المتجر) وتحكم في روابط الفوتر.
                   </p>
                 </div>
 
@@ -3559,12 +3559,12 @@ export default function AdminPage() {
                       const newSlide: HeroSlideItem = {
                         id: `slide-${Date.now()}`,
                         imageUrl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1920&q=85",
-                        title: "الأَثَر لا يُهدى",
-                        titleLine2: "بل يُترك",
+                        title: "مش بتتهدي..",
+                        titleLine2: "بتتساب",
                         subtitle: "مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك وتبقى بصمة لا تُمحى.",
-                        primaryButtonText: "تسوق المجموعة",
+                        primaryButtonText: "تسوّق المجموعة",
                         primaryButtonLink: "/collection/all",
-                        secondaryButtonText: "اكتشف أثر",
+                        secondaryButtonText: "اكتشف ORMA",
                         secondaryButtonLink: "#story",
                         overlayDarkness: "medium",
                         contentAlign: "right",
@@ -3888,7 +3888,7 @@ export default function AdminPage() {
                                   );
                                   setSettingsForm({ ...settingsForm, heroSlides: updated });
                                 }}
-                                placeholder="اكتشف أثر"
+                                placeholder="اكتشف ORMA"
                                 className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
                               />
                             </div>
@@ -4038,7 +4038,7 @@ export default function AdminPage() {
                         type="text"
                         value={settingsForm.heroSecondaryButtonText || ""}
                         onChange={(e) => setSettingsForm({ ...settingsForm, heroSecondaryButtonText: e.target.value })}
-                        placeholder="اكتشف أثر"
+                        placeholder="اكتشف ORMA"
                         className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
                       />
                     </div>
@@ -5054,7 +5054,7 @@ export default function AdminPage() {
                       type="text"
                       value={settingsForm.storyTitle || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, storyTitle: e.target.value })}
-                      placeholder="أثر: ما يبقى طويلاً بعد أن تمضي اللحظة"
+                      placeholder="القطعة اللي بتفضل بعد ما اللحظة تعدّي"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
                     />
                   </div>
@@ -5066,7 +5066,7 @@ export default function AdminPage() {
                     rows={3}
                     value={settingsForm.storySubtitle || ""}
                     onChange={(e) => setSettingsForm({ ...settingsForm, storySubtitle: e.target.value })}
-                    placeholder="نصنع كل قطعة في أثر من الفضة الإسترليني عيار 925..."
+                    placeholder="نصنع كل قطعة في ORMA من الفضة الإسترليني عيار 925..."
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
                   />
                 </div>
@@ -5305,7 +5305,7 @@ export default function AdminPage() {
                       rows={2}
                       value={settingsForm.careTip2Desc || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, careTip2Desc: e.target.value })}
-                      placeholder="احفظها في علبة أثر المبطنة بمكان جاف..."
+                      placeholder="احفظها في علبة ORMA المبطنة بمكان جاف..."
                       className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs"
                     />
                   </div>
@@ -5398,7 +5398,7 @@ export default function AdminPage() {
                     <label className="block text-xs font-medium text-[#756555] mb-1">عنوان البراند بالفوتر</label>
                     <input
                       type="text"
-                      value={settingsForm.footerBrandTitle || "أَثَـر للفضة"}
+                      value={settingsForm.footerBrandTitle || "ORMA"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, footerBrandTitle: e.target.value })}
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
                     />
@@ -5420,7 +5420,7 @@ export default function AdminPage() {
                     rows={2}
                     value={settingsForm.footerBrandBio || ""}
                     onChange={(e) => setSettingsForm({ ...settingsForm, footerBrandBio: e.target.value })}
-                    placeholder="نبذة موجزة عن علامة أثر ومصوغات الفضة 925..."
+                    placeholder="نبذة موجزة عن علامة ORMA ومصوغات الفضة 925..."
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
                   />
                 </div>
@@ -5538,7 +5538,7 @@ export default function AdminPage() {
                     <label className="block text-xs font-medium text-[#756555] mb-1">نص حقوق الملكية (Copyright)</label>
                     <input
                       type="text"
-                      value={settingsForm.footerCopyrightText || "جميع الحقوق محفوظة © 2026 متجر أَثَـر للفضة"}
+                      value={settingsForm.footerCopyrightText || "جميع الحقوق محفوظة © 2026 متجر ORMA للفضة"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, footerCopyrightText: e.target.value })}
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
                     />
@@ -5602,7 +5602,7 @@ export default function AdminPage() {
                       type="text"
                       value={settingsForm.checkoutHeaderTitle || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, checkoutHeaderTitle: e.target.value })}
-                      placeholder="أَثَـر للفضة الإسترليني 925"
+                      placeholder="ORMA للفضة الإسترليني 925"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none"
                     />
                   </div>
@@ -5750,7 +5750,7 @@ export default function AdminPage() {
                       type="text"
                       value={settingsForm.instaPayUsername || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, instaPayUsername: e.target.value })}
-                      placeholder="theathar@instapay"
+                      placeholder="theorma@instapay"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
                     />
                   </div>
@@ -6113,7 +6113,7 @@ export default function AdminPage() {
                       type="email"
                       value={settingsForm.contactEmail || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })}
-                      placeholder="theathar.eg@gmail.com"
+                      placeholder="theorma.eg@gmail.com"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
                     />
                   </div>
@@ -6144,7 +6144,7 @@ export default function AdminPage() {
                         type="text"
                         value={settingsForm.instagramUrl || ""}
                         onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
-                        placeholder="https://instagram.com/theathar.eg"
+                        placeholder="https://instagram.com/ormasilver"
                         className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] dir-ltr focus:outline-none"
                       />
                     </div>
@@ -6157,7 +6157,7 @@ export default function AdminPage() {
                         type="text"
                         value={settingsForm.facebookUrl || ""}
                         onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
-                        placeholder="https://facebook.com/theathar.eg"
+                        placeholder="https://facebook.com"
                         className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] dir-ltr focus:outline-none"
                       />
                     </div>
@@ -6170,7 +6170,7 @@ export default function AdminPage() {
                         type="text"
                         value={settingsForm.tiktokUrl || ""}
                         onChange={(e) => setSettingsForm({ ...settingsForm, tiktokUrl: e.target.value })}
-                        placeholder="https://tiktok.com/@theathar.eg"
+                        placeholder="https://tiktok.com"
                         className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] dir-ltr focus:outline-none"
                       />
                     </div>
@@ -6214,7 +6214,7 @@ export default function AdminPage() {
                       }
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2.5 text-xs text-[#161412]"
                     >
-                      <option value="text">نص خطي فقط (أَثَـر)</option>
+                      <option value="text">نص خطي فقط (ORMA)</option>
                       <option value="image">صورة شعار مخصصة (Image)</option>
                       <option value="both">كلاهما معاً (Both)</option>
                     </select>
@@ -6304,7 +6304,7 @@ export default function AdminPage() {
                     </label>
                     <input
                       type="text"
-                      value={settingsForm.brandNameArabic || "أَثَـر"}
+                      value={settingsForm.brandNameArabic || "أورما"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, brandNameArabic: e.target.value })}
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold text-[#161412]"
                     />
@@ -6316,7 +6316,7 @@ export default function AdminPage() {
                     </label>
                     <input
                       type="text"
-                      value={settingsForm.brandNameEnglish || "ATHAR"}
+                      value={settingsForm.brandNameEnglish || "ORMA"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, brandNameEnglish: e.target.value })}
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold font-mono text-[#161412] dir-ltr"
                     />
@@ -6329,7 +6329,7 @@ export default function AdminPage() {
                   </label>
                   <input
                     type="text"
-                    value={settingsForm.brandSubtitle || "الأثر لا يُهدى بل يُترك"}
+                    value={settingsForm.brandSubtitle || "مش بتتهدي.. بتتساب"}
                     onChange={(e) => setSettingsForm({ ...settingsForm, brandSubtitle: e.target.value })}
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
                   />
@@ -6338,7 +6338,7 @@ export default function AdminPage() {
                 {/* Live Logo Preview Box */}
                 <div className="p-6 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] flex flex-col items-center justify-center gap-2">
                   <span className="text-[10px] text-[#8c7865] uppercase tracking-wider mb-2">معاينة مباشرة للشعار:</span>
-                  <AtharLogo variant="light" size="lg" showSlogan />
+                  <OrmaLogo variant="light" size="lg" showSlogan />
                 </div>
               </div>
 
@@ -6376,7 +6376,7 @@ export default function AdminPage() {
                     </label>
                     <input
                       type="text"
-                      value={settingsForm.senderEmailName || "متجر أَثَـر للفضة"}
+                      value={settingsForm.senderEmailName || "متجر ORMA للفضة"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, senderEmailName: e.target.value })}
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
                     />
@@ -6390,7 +6390,7 @@ export default function AdminPage() {
                       type="email"
                       value={settingsForm.senderEmail || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, senderEmail: e.target.value })}
-                      placeholder="theathar.eg@gmail.com"
+                      placeholder="theorma.eg@gmail.com"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr"
                     />
                   </div>
@@ -6490,7 +6490,7 @@ export default function AdminPage() {
                     rows={3}
                     value={settingsForm.warrantyPolicyText || ""}
                     onChange={(e) => setSettingsForm({ ...settingsForm, warrantyPolicyText: e.target.value })}
-                    placeholder="جميع قطع متجر أثر مصوغة من الفضة الإسترليني عيار 925 المعتمدة والمختومة رسميًا..."
+                    placeholder="جميع قطع متجر ORMA مصوغة من الفضة الإسترليني عيار 925 المعتمدة والمختومة رسميًا..."
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
                   />
                 </div>
@@ -6867,7 +6867,7 @@ export default function AdminPage() {
                     required
                     value={productForm.arabicName}
                     onChange={(e) => setProductForm({ ...productForm, arabicName: e.target.value })}
-                    placeholder="خاتم الأثر الملكي فضة 925"
+                    placeholder="خاتم ORMA الملكي فضة 925"
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
                   />
                 </div>
@@ -7440,7 +7440,7 @@ export default function AdminPage() {
                   required
                   value={pageForm.title}
                   onChange={(e) => setPageForm({ ...pageForm, title: e.target.value })}
-                  placeholder="مثال: قصة براند أَثَـر أو دليل اختيار المقاسات"
+                  placeholder="مثال: قصة براند ORMA أو دليل اختيار المقاسات"
                   className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none font-bold"
                 />
               </div>
@@ -7471,7 +7471,7 @@ export default function AdminPage() {
                     type="text"
                     value={pageForm.englishTitle}
                     onChange={(e) => setPageForm({ ...pageForm, englishTitle: e.target.value })}
-                    placeholder="THE ATHAR STORY"
+                    placeholder="THE ORMA STORY"
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
                   />
                 </div>
@@ -7485,7 +7485,7 @@ export default function AdminPage() {
                   type="text"
                   value={pageForm.subtitle}
                   onChange={(e) => setPageForm({ ...pageForm, subtitle: e.target.value })}
-                  placeholder="الأثر لا يُهدى بل يُترك • صياغة تخلد تفاصيلك"
+                  placeholder="مش بتتهدي.. بتتساب • Not Given, But Left"
                   className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
                 />
               </div>

@@ -33,7 +33,7 @@ export const SilverCareSection: React.FC = () => {
       title: storeSettings.careTip2Title || "الحفظ في العلبة",
       desc:
         storeSettings.careTip2Desc ||
-        "احفظها في علبة أثر المبطنة بمكان جاف عند عدم ارتدائها.",
+        "احفظها في علبة ORMA المبطنة بمكان جاف عند عدم ارتدائها.",
       show: storeSettings.careTip2Show !== false,
     },
     {
@@ -48,34 +48,35 @@ export const SilverCareSection: React.FC = () => {
   const visibleCards = careCards.filter((c) => c.show && c.title.trim());
 
   return (
-    <section id="care" className="py-20 sm:py-28 bg-[#ddd2c1] border-b border-[#cfc2af]">
+    <section id="care" className="py-20 sm:py-28 bg-[#D8C8B3] border-b border-[#292722]/12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Title */}
+        {/* Section Title in Aref Ruqaa */}
         <div className="text-center mb-14">
-          <h2 className="font-amiri text-3xl sm:text-5xl font-bold text-[#161412]">
+          <h2 className="font-aref text-4xl sm:text-6xl font-bold text-[#292722]">
             {sectionTitle}
           </h2>
+          <div className="w-12 h-[2px] bg-[#8E7545] mx-auto mt-4 rounded-full" />
         </div>
 
-        {/* 4 Clean White Cards */}
+        {/* 4 Clean Ivory Cards with Charcoal 12% border */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {visibleCards.map((card, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-lg p-6 sm:p-7 text-center shadow-sm border border-[#e8dfd2] hover:shadow-md transition-all duration-300 flex flex-col items-center justify-between min-h-[220px]"
+              className="bg-[#F5F0E7] rounded-xl p-6 sm:p-7 text-center shadow-xs border border-[#292722]/12 hover:border-[#8E7545]/50 hover:shadow-md transition-all duration-300 flex flex-col items-center justify-between min-h-[220px]"
             >
-              {/* Circular Bronze Seal Emblem */}
+              {/* Circular Gold Seal Emblem */}
               <div className="mb-4">
-                <ConcentricRipples variant="emblem" strokeColor="#b39369" className="w-9 h-9" />
+                <ConcentricRipples variant="emblem" strokeColor="#8E7545" className="w-9 h-9" />
               </div>
 
               {/* Card Title */}
-              <h3 className="font-amiri text-lg sm:text-xl font-bold text-[#161412] mb-3 leading-snug">
+              <h3 className="font-amiri text-lg sm:text-xl font-bold text-[#292722] mb-3 leading-snug">
                 {card.title}
               </h3>
 
               {/* Card Description */}
-              <p className="text-xs sm:text-sm text-[#756555] font-light leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#292722]/75 font-amiri font-light leading-relaxed">
                 {card.desc}
               </p>
             </div>

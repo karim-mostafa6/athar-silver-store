@@ -246,7 +246,7 @@ export default function ProductDetailPage() {
           <div>
             {/* Hallmark Tag */}
             <div className="text-[11px] font-sans tracking-[0.2em] text-[#8a7663] uppercase mb-2 font-light">
-              ATHAR EXCLUSIVE • {product.purity}
+              ORMA EXCLUSIVE • {product.purity}
             </div>
 
             {/* Title */}
@@ -448,7 +448,7 @@ export default function ProductDetailPage() {
                 <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed font-light animate-fade-in">
                   <p>
                     • <strong className="font-medium text-[#1c1815]">تغليف محكم ومؤمن:</strong>{" "}
-                    تصلك الشحنة في بوكس أثر المخملي الملكي ومغلفة بشرائط أمان محكمة لضمان وصول القطعة جديدة وبأعلى درجات الخصوصية.
+                    تصلك الشحنة في بوكس ORMA المخملي الملكي ومغلفة بشرائط أمان محكمة لضمان وصول القطعة جديدة وبأعلى درجات الخصوصية.
                   </p>
                   <p>
                     • <strong className="font-medium text-[#1c1815]">مدة التوصيل:</strong>{" "}

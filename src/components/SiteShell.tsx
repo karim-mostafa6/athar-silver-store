@@ -64,7 +64,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f4ee] text-[#161412] flex flex-col selection:bg-[#dfd2bf] selection:text-[#161412]">
+    <div className="min-h-screen bg-[#F5F0E7] text-[#292722] flex flex-col selection:bg-[#D8C8B3] selection:text-[#292722]">
       {/* Toast Notifications */}
       <Toast toasts={store.toasts} onDismiss={store.removeToast} />
 

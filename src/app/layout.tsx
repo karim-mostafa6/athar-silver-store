@@ -22,12 +22,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://athar-silver-store.vercel.app"
   ),
-  title: "أَثَر | ATHAR",
+  title: "ORMA | Not Given, But Left - مجوهرات فضة إسترليني 925",
   description:
-    "كل قطعة وراها حكاية، وكل تفصيلة تترك أثراً. اكتشف تشكيلة «أَثَر» الفريدة من الفضة عيار 925، المصممة بعناية لتعكس شخصيتك وتمنح إطلالتك لمسة من الأصالة.",
+    "مش بتتهدي.. بتتساب. مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك وتبقى بصمة لا تُمحى. تشكيلة ORMA الحصرية.",
   keywords: [
-    "أَثَر",
-    "ATHAR",
+    "ORMA",
+    "أورما",
+    "orma silver",
     "فضة 925",
     "فضة إسترليني",
     "خواتم فضة",
@@ -36,28 +37,28 @@ export const metadata: Metadata = {
     "مجوهرات فضة مصر",
   ],
   openGraph: {
-    title: "أَثَر | ATHAR",
+    title: "ORMA | Not Given, But Left",
     description:
-      "كل قطعة وراها حكاية، وكل تفصيلة تترك أثراً. اكتشف تشكيلة «أَثَر» الفريدة من الفضة عيار 925، المصممة بعناية لتعكس شخصيتك وتمنح إطلالتك لمسة من الأصالة.",
+      "مش بتتهدي.. بتتساب. مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك وتبقى بصمة لا تُمحى. تشكيلة ORMA الحصرية.",
     url: "/",
-    siteName: "أَثَر | ATHAR",
+    siteName: "ORMA | أورما لفضة 925",
     locale: "ar_EG",
     type: "website",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/images/orma/orma-logo-card.jpg",
         width: 1200,
         height: 630,
-        alt: "أَثَر | ATHAR",
+        alt: "ORMA | Not Given, But Left",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "أَثَر | ATHAR",
+    title: "ORMA | Not Given, But Left",
     description:
-      "كل قطعة وراها حكاية، وكل تفصيلة تترك أثراً. اكتشف تشكيلة «أَثَر» الفريدة من الفضة عيار 925، المصممة بعناية لتعكس شخصيتك وتمنح إطلالتك لمسة من الأصالة.",
-    images: ["/og-image.jpg"],
+      "مش بتتهدي.. بتتساب. مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك وتبقى بصمة لا تُمحى.",
+    images: ["/images/orma/orma-logo-card.jpg"],
   },
   icons: {
     icon: [
@@ -79,7 +80,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
       <body
-        className={`${cairo.variable} ${alexandria.variable} font-cairo bg-[#f7f4ee] text-[#161412] antialiased selection:bg-[#dfd2bf] selection:text-[#161412] min-h-screen`}
+        className={`${cairo.variable} ${alexandria.variable} font-cairo bg-[#F5F0E7] text-[#292722] antialiased selection:bg-[#B7A078] selection:text-[#292722] min-h-screen`}
       >
         <SiteShell>{children}</SiteShell>
       </body>

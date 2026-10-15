@@ -1,12 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #f7f4ee;
-  --foreground: #161412;
+  --background: #F5F0E7;
+  --foreground: #292722;
+  --charcoal: #292722;
+  --ivory: #F5F0E7;
+  --beige: #D8C8B3;
+  --champagne: #B7A078;
+  --gold: #8E7545;
+  --logo-gold: #A88F5F;
 }
 
 body {
@@ -21,15 +27,15 @@ body {
   width: 9px;
 }
 ::-webkit-scrollbar-track {
-  background: #f5f0e8;
+  background: #F5F0E7;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d8cdbe;
+  background: #D8C8B3;
   border-radius: 6px;
-  border: 2px solid #f5f0e8;
+  border: 2px solid #F5F0E7;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #baa996;
+  background: #B7A078;
 }
 
 /* Luxury Metallic & Pearl Typography */

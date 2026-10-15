@@ -26,13 +26,13 @@ export const ReviewsSection: React.FC = () => {
     {
       name: "نوران الشريف",
       city: "الشيخ زايد",
-      product: "طقم أثر الملكي الكامل",
+      product: "طقم ORMA الملكي الكامل",
       text: "طلبته لخطوبة وكان أجمل هدية في الحفلة. كل تفصيلة في الطقم من السلسلة للحلق غاية في الأناقة.",
     },
   ];
 
   return (
-    <section id="reviews" className="py-20 border-b border-[#e8ded0] bg-[#faf8f5]">
+    <section id="reviews" className="py-20 border-b border-[#292722]/12 bg-[#F5F0E7]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-xl mx-auto mb-14 space-y-2">
           <span className="text-[11px] font-mono tracking-[0.25em] text-[#8a7663] uppercase">

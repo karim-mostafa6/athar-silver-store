@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Search, ShoppingBag, Heart, X, Menu, User, ChevronDown } from "lucide-react";
 import { MarqueeAnnouncement } from "@/components/MarqueeAnnouncement";
-import { AtharLogo } from "@/components/AtharLogo";
+import { OrmaLogo } from "@/components/OrmaLogo";
 import { useStore, NavLinkItem } from "@/context/StoreContext";
 
 interface SubNavItem {
@@ -157,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const defaultNavItems: NavLinkItem[] = [
     { id: "home", label: "الرئيسية", href: "/", visible: true },
     { id: "products", label: "المصوغات", href: "/#products", visible: true },
-    { id: "story", label: "عن أَثَر", href: "/#story", visible: true },
+    { id: "story", label: "عن ORMA", href: "/#story", visible: true },
     { id: "care", label: "العناية بالفضة", href: "/#care", visible: true },
     { id: "contact", label: "تواصل معنا", href: "/#footer", visible: true },
   ];
@@ -168,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       : defaultNavItems;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#f7f4ee] border-b border-[#e8ded0] transition-colors shadow-sm">
+    <header className="sticky top-0 z-40 w-full bg-[#F5F0E7] border-b border-[#292722]/12 transition-colors shadow-xs">
       {/* Live Marquee Ticker */}
       <MarqueeAnnouncement onNotify={handleNotify} />
 
@@ -179,7 +179,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-1.5 rounded-xl text-[#5c4f42] hover:text-[#161412] hover:bg-[#ede3d3] transition-colors"
+              className="lg:hidden p-1.5 rounded-xl text-[#292722] hover:bg-[#D8C8B3]/40 transition-colors"
               aria-label="القائمة"
             >
               {mobileMenuOpen ? (
@@ -189,12 +189,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Athar Calligraphic Logo */}
-            <AtharLogo variant="light" size="md" href="/" />
+            {/* ORMA Signature Logo */}
+            <OrmaLogo variant="light" size="md" href="/" />
           </div>
 
           {/* Center: Navigation Links with Animated Underline and Solid Opaque Dropdowns */}
-          <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs sm:text-sm font-medium text-[#4a3f35]">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs sm:text-sm font-medium text-[#292722]">
             {activeNavLinks.map((item) => {
               const subItems = getSubNavItems(item);
               const badgeNode = item.badge ? (
@@ -274,13 +274,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 placeholder={storeSettings.searchPlaceholder || "ابحث عن خاتم، سلسلة..."}
                 value={currentQuery}
                 onChange={(e) => handleQueryChange(e.target.value)}
-                className="w-full bg-[#ede5d8]/60 text-xs text-[#161412] placeholder-[#8f806f] rounded-full py-2 pr-9 pl-8 border border-[#ded2c0] focus:outline-none focus:border-[#7d6953] focus:bg-white transition-all shadow-inner"
+                className="w-full bg-[#D8C8B3]/35 text-xs text-[#292722] placeholder-[#292722]/50 rounded-full py-2 pr-9 pl-8 border border-[#292722]/12 focus:outline-none focus:border-[#8E7545] focus:bg-white transition-all shadow-inner"
               />
-              <Search className="w-3.5 h-3.5 text-[#8c7865] absolute right-3 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[#292722]/60 absolute right-3 pointer-events-none" />
               {currentQuery && (
                 <button
                   onClick={() => handleQueryChange("")}
-                  className="absolute left-2.5 p-0.5 text-[#8c7865] hover:text-[#161412]"
+                  className="absolute left-2.5 p-0.5 text-[#292722]/60 hover:text-[#292722]"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -290,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile Search Toggle */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="xl:hidden p-2 rounded-full text-[#5c4f42] hover:bg-[#ede3d3] transition-colors"
+              className="xl:hidden p-2 rounded-full text-[#292722]/75 hover:bg-[#D8C8B3]/40 transition-colors"
               aria-label="البحث"
             >
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -300,7 +300,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={handleOpenCustomerModal}
-              className="p-2 rounded-full text-[#5c4f42] hover:bg-[#ede3d3] hover:text-[#161412] transition-colors"
+              className="p-2 rounded-full text-[#292722]/75 hover:bg-[#D8C8B3]/40 hover:text-[#292722] transition-colors"
               title="حسابي / تتبع طلبي"
               aria-label="حسابي / تتبع طلبي"
             >
@@ -310,7 +310,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Wishlist Button */}
             <button
               onClick={handleOpenWishlist}
-              className="relative p-2 rounded-full text-[#5c4f42] hover:bg-[#ede3d3] hover:text-[#161412] transition-colors"
+              className="relative p-2 rounded-full text-[#292722]/75 hover:bg-[#D8C8B3]/40 hover:text-[#292722] transition-colors"
               aria-label="قائمة المفضلة"
             >
               <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -324,12 +324,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Cart Standalone Page Link */}
             <Link
               href="/checkout"
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#161412] hover:bg-[#2d2926] text-white text-xs font-bold transition-all shadow-md active:scale-95 shrink-0"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#292722] hover:bg-[#3d3a33] text-[#F5F0E7] text-xs font-bold transition-all shadow-md active:scale-95 shrink-0"
             >
               <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">السلة</span>
               {effectiveCartCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-[#c5a880] text-[#161412] text-[10px] font-black flex items-center justify-center">
+                <span className="w-4 h-4 rounded-full bg-[#8E7545] text-white text-[10px] font-black flex items-center justify-center">
                   {effectiveCartCount}
                 </span>
               )}
@@ -365,8 +365,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#ebdcca] bg-[#faf8f5] px-6 py-6 space-y-4 text-right shadow-2xl">
-          <div className="flex flex-col space-y-3 text-sm font-medium text-[#4d4034]">
+        <div className="lg:hidden border-t border-[#292722]/12 bg-[#F5F0E7] px-6 py-6 space-y-4 text-right shadow-2xl">
+          <div className="flex flex-col space-y-3 text-sm font-medium text-[#292722]">
             {activeNavLinks.map((item) => {
               const subItems = getSubNavItems(item);
               const badgeNode = item.badge ? (
@@ -380,7 +380,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? "bg-emerald-100 text-emerald-800 border-emerald-300"
                       : item.badgeColor === "blue"
                       ? "bg-blue-100 text-blue-800 border-blue-300"
-                      : "bg-amber-100 text-amber-900 border-amber-300"
+                      : "bg-[#D8C8B3] text-[#292722] border-[#292722]/20"
                   }`}
                 >
                   {item.badge}
@@ -395,7 +395,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setMobileMenuOpen(false);
                       handleOpenSizeGuide();
                     }}
-                    className="text-right py-2 hover:text-[#1c1815] border-b border-[#ebdcca]/50 flex items-center justify-between"
+                    className="text-right py-2 hover:text-[#8E7545] border-b border-[#292722]/10 flex items-center justify-between"
                   >
                     <span>{item.label}</span>
                     {badgeNode}
@@ -403,25 +403,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                 );
               }
               return (
-                <div key={item.id} className="border-b border-[#ebdcca]/50 pb-2">
+                <div key={item.id} className="border-b border-[#292722]/10 pb-2">
                   <Link
                     href={item.href}
                     target={item.targetBlank ? "_blank" : undefined}
                     rel={item.targetBlank ? "noreferrer" : undefined}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="py-1.5 hover:text-[#1c1815] flex items-center justify-between font-medium"
+                    className="py-1.5 hover:text-[#8E7545] flex items-center justify-between font-medium"
                   >
                     <span>{item.label}</span>
                     {badgeNode}
                   </Link>
                   {subItems && (
-                    <div className="pr-3 pt-1 pb-1 space-y-1.5 border-r-2 border-[#d9ccba] mr-1 mt-1">
+                    <div className="pr-3 pt-1 pb-1 space-y-1.5 border-r-2 border-[#D8C8B3] mr-1 mt-1">
                       {subItems.map((sub, sIdx) => (
                         <Link
                           key={sIdx}
                           href={sub.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className="block py-1 text-xs text-[#705e4d] hover:text-[#1c1815]"
+                          className="block py-1 text-xs text-[#292722]/70 hover:text-[#292722]"
                         >
                           {sub.label}
                         </Link>

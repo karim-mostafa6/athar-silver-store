@@ -42,8 +42,8 @@ export default function DynamicCustomPage() {
 
   const whatsappNumber = storeSettings.whatsappNumber || "01143837730";
   const contactPhone = storeSettings.contactPhone || "01143837730";
-  const contactEmail = storeSettings.contactEmail || storeSettings.senderEmail || "theathar.eg@gmail.com";
-  const instagramUrl = storeSettings.instagramUrl || "https://instagram.com/theathar.eg";
+  const contactEmail = storeSettings.contactEmail || storeSettings.senderEmail || "theorma.eg@gmail.com";
+  const instagramUrl = storeSettings.instagramUrl || "https://instagram.com/ormasilver";
 
   // Clean whatsapp url helper
   const cleanPhone = whatsappNumber.replace(/[^0-9]/g, "");
@@ -220,7 +220,7 @@ export default function DynamicCustomPage() {
                 <h3 className="font-bold text-xs text-[#161412]">الحفظ في العلبة الأصلية</h3>
               </div>
               <p className="text-xs text-[#756555] leading-relaxed pr-11">
-                احفظ مجوهراتك داخل علبة أثر المخملية المبطنة بمكان جاف عند عدم ارتدائها.
+                احفظ مجوهراتك داخل علبة ORMA المخملية المبطنة بمكان جاف عند عدم ارتدائها.
               </p>
             </div>
           </div>
@@ -228,15 +228,15 @@ export default function DynamicCustomPage() {
 
         {slug === "about" && (
           <div className="mb-10 bg-white rounded-2xl p-6 sm:p-8 border border-[#e8ded0] shadow-sm flex flex-col sm:flex-row items-center gap-6">
-            <div className="w-16 h-16 rounded-full bg-[#161412] text-[#f7f4ee] flex items-center justify-center shrink-0 shadow-md">
-              <HeartHandshake className="w-8 h-8 text-[#c5a880]" />
+            <div className="w-16 h-16 rounded-full bg-[#292722] text-[#F5F0E7] flex items-center justify-center shrink-0 shadow-md">
+              <HeartHandshake className="w-8 h-8 text-[#B7A078]" />
             </div>
             <div className="space-y-1 text-center sm:text-right">
               <h2 className="font-amiri text-lg sm:text-xl font-bold text-[#161412]">
-                شعارنا الدائم: الأثر لا يُهدى بل يُترك
+                شعارنا الدائم: مش بتتهدي.. بتتساب
               </h2>
               <p className="text-xs sm:text-sm text-[#756555] leading-relaxed">
-                كل قطعة من روائع أثر مصممة لتكون بصمة تخلد حضورك، ومصنوعة بأيدي أمهر الصاغة الإيطاليين من الفضة عيار 925 النقية.
+                كل قطعة من روائع ORMA مصممة لتكون بصمة تخلد حضورك، ومصنوعة بأيدي أمهر الصاغة من الفضة عيار 925 النقية.
               </p>
             </div>
           </div>
@@ -328,7 +328,7 @@ export default function DynamicCustomPage() {
                 </div>
                 <div>
                   <div className="text-xs font-bold">حساب إنستجرام الرسمي</div>
-                  <div className="text-[11px] text-white/90 font-mono mt-0.5">@theathar.eg</div>
+                  <div className="text-[11px] text-white/90 font-mono mt-0.5">@ormasilver</div>
                   <div className="text-[10px] text-white/80 mt-1">شاهد أحدث التشكيلات والكواليس الحصرية</div>
                 </div>
               </a>

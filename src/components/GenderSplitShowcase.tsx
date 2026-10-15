@@ -24,14 +24,14 @@ export const GenderSplitShowcase: React.FC = () => {
   const menButtonText = storeSettings.splitMenButtonText !== undefined ? storeSettings.splitMenButtonText : "EXPLORE NOW";
 
   return (
-    <section className="w-full bg-[#faf8f5] py-12 sm:py-16 border-b border-[#e8ded0]">
+    <section className="w-full bg-[#F5F0E7] py-12 sm:py-16 border-b border-[#292722]/12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Centered "VIEW ALL" Button - Links to /collection/all */}
         {showTopButton && (
           <div className="flex justify-center mb-10">
             <Link
               href="/collection/all"
-              className="px-8 py-3 rounded-full bg-[#6b1d2f] hover:bg-[#521524] text-white font-bold text-xs uppercase tracking-[0.2em] shadow-md hover:shadow-lg transition-all duration-300 active:scale-95 inline-flex items-center gap-2"
+              className="px-8 py-3 rounded-full bg-[#292722] hover:bg-[#3d3a33] text-[#F5F0E7] font-bold text-xs uppercase tracking-[0.2em] shadow-md hover:shadow-lg transition-all duration-300 active:scale-95 inline-flex items-center gap-2"
             >
               <span>{topButtonText}</span>
             </Link>
