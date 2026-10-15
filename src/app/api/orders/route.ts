@@ -297,9 +297,14 @@ export async function POST(request: NextRequest) {
 
     // Send Real-time Telegram Order Invoice Notification to Store Owner
     try {
-      await sendTelegramOrderNotification(finalOrder);
+      const tgResult = await sendTelegramOrderNotification(finalOrder);
+      if (!tgResult.success) {
+        console.error("[Orders Route] Telegram notification failed:", tgResult.error);
+      } else {
+        console.log("[Orders Route] Telegram notification sent successfully for order:", finalOrder.id);
+      }
     } catch (telegramErr) {
-      console.warn("Failed to dispatch Telegram notification:", telegramErr);
+      console.error("[Orders Route] Failed to dispatch Telegram notification:", telegramErr);
     }
 
     return NextResponse.json(

@@ -1,22 +1,10 @@
 import { Order } from "@/context/StoreContext";
 
 /**
- * Escape HTML characters for Telegram Bot API HTML mode.
- * Guarantees no parse errors from user input (customer name, address, notes, etc.)
- */
-function escapeHtml(text: unknown): string {
-  if (text === null || text === undefined) return "";
-  return String(text)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-/**
  * Format Egyptian phone number for WhatsApp link
  */
 function cleanPhoneForWhatsApp(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
+  const digits = (phone || "").replace(/\D/g, "");
   if (digits.startsWith("20")) return digits;
   if (digits.startsWith("0")) return "2" + digits;
   return "20" + digits;
@@ -39,7 +27,8 @@ function getPaymentMethodLabel(method?: string): string {
 }
 
 /**
- * Formats order as a luxury invoice message for Telegram
+ * Formats order as a clean Plain Text invoice for Telegram.
+ * Sent WITHOUT parse_mode to guarantee 100% delivery without parsing errors from symbols (#, _, -, etc.).
  */
 export function formatOrderInvoiceTelegramMessage(order: Order): string {
   const dateStr = order.createdAt
@@ -60,14 +49,14 @@ export function formatOrderInvoiceTelegramMessage(order: Order): string {
   const itemsText = (order.items || [])
     .map((item, index) => {
       const num = index + 1;
-      const itemName = escapeHtml(item.arabicName || item.name || "قطعة فضة");
-      const sizeText = item.selectedSize ? `\n   📏 المقاس: <b>${escapeHtml(item.selectedSize)}</b>` : "";
+      const itemName = item.arabicName || item.name || "قطعة فضة";
+      const sizeText = item.selectedSize ? `\n   📏 المقاس: ${item.selectedSize}` : "";
       const priceText = Number(item.price || 0).toLocaleString("en-US");
       const totalItemPrice = (Number(item.price || 0) * Number(item.quantity || 1)).toLocaleString("en-US");
 
-      return `▫️ <b>${num}. ${itemName}</b>
-   🔢 الكمية: <b>${item.quantity}</b>${sizeText}
-   💰 السعر: <b>${priceText} ج.م</b> (الإجمالي: <b>${totalItemPrice} ج.م</b>)`;
+      return `▫️ ${num}. ${itemName}
+   🔢 الكمية: ${item.quantity}${sizeText}
+   💰 السعر: ${priceText} ج.م (الإجمالي: ${totalItemPrice} ج.م)`;
     })
     .join("\n\n");
 
@@ -76,73 +65,76 @@ export function formatOrderInvoiceTelegramMessage(order: Order): string {
     order.shippingFee === 0 ? "مجاني 🎁" : `${Number(order.shippingFee || 0).toLocaleString("en-US")} ج.م`;
   const discountLine =
     order.discount && order.discount > 0
-      ? `\n🔖 <b>الخصم المطبق:</b> -${Number(order.discount).toLocaleString("en-US")} ج.م`
+      ? `\n🔖 الخصم المطبق: -${Number(order.discount).toLocaleString("en-US")} ج.م`
       : "";
   const totalFormatted = Number(order.total || 0).toLocaleString("en-US");
 
   // Optional notes / gift message
-  const notesLine = order.notes
-    ? `\n📝 <b>ملاحظات العميل:</b> <i>${escapeHtml(order.notes)}</i>`
-    : "";
+  const notesLine = order.notes ? `\n📝 ملاحظات العميل: ${order.notes}` : "";
   const giftLine = order.isGift
-    ? `\n🎁 <b>طلب كهدية:</b> نعم${order.giftMessage ? `\n💌 <b>رسالة الإهداء:</b> <i>${escapeHtml(order.giftMessage)}</i>` : ""}`
+    ? `\n🎁 طلب كهدية: نعم${order.giftMessage ? `\n💌 رسالة الإهداء: ${order.giftMessage}` : ""}`
     : "";
   const walletNumberLine = order.senderWalletNumber
-    ? `\n📱 <b>رقم المحفظة المحول منها:</b> <code>${escapeHtml(order.senderWalletNumber)}</code>`
+    ? `\n📱 رقم المحفظة المحول منها: ${order.senderWalletNumber}`
     : "";
   const receiptLine = order.paymentReceiptImage
-    ? `\n🧾 <b>إيصال التحويل:</b> <a href="${escapeHtml(order.paymentReceiptImage)}">عرض صورة الإيصال 📎</a>`
+    ? `\n🧾 صورة إيصال التحويل: ${order.paymentReceiptImage}`
     : "";
 
-  return `👑 <b>فاتورة طلب جديد • ORMA SILVER</b> 👑
-<i>Not Given, But Left • صياغة فضة إسترليني 925</i>
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🏷️ <b>رقم الطلب:</b> <code>#${escapeHtml(order.id)}</code>
-📅 <b>تاريخ الطلب:</b> ${dateStr}
-💳 <b>طريقة الدفع:</b> ${escapeHtml(paymentLabel)}${walletNumberLine}${receiptLine}
-📊 <b>حالة الطلب:</b> ⏳ قيد الانتظار (جديد)
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 <b>بيانات العميل والشحن:</b>
-• <b>الاسم:</b> ${escapeHtml(order.customerName)}
-• <b>رقم الهاتف:</b> <code>${escapeHtml(order.phone)}</code>
-• <b>المحافظة:</b> ${escapeHtml(order.governorate)}
-• <b>العنوان التفصيلي:</b> ${escapeHtml(order.address)}${notesLine}${giftLine}
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📦 <b>تفاصيل المنتجات المطلوبة (${order.items?.length || 0} قطعة):</b>
+  return `👑 فاتورة طلب جديد • ORMA SILVER 👑
+Not Given, But Left • صياغة فضة إسترليني 925
+━━━━━━━━━━━━━━━━━━━━━━
+🏷️ رقم الطلب: #${order.id}
+📅 تاريخ الطلب: ${dateStr}
+💳 طريقة الدفع: ${paymentLabel}${walletNumberLine}${receiptLine}
+📊 حالة الطلب: ⏳ قيد الانتظار (جديد)
+━━━━━━━━━━━━━━━━━━━━━━
+👤 بيانات العميل والشحن:
+• الاسم: ${order.customerName}
+• رقم الهاتف: ${order.phone}
+• المحافظة: ${order.governorate}
+• العنوان التفصيلي: ${order.address}${notesLine}${giftLine}
+━━━━━━━━━━━━━━━━━━━━━━
+📦 تفاصيل المنتجات المطلوبة (${order.items?.length || 0} قطعة):
 
 ${itemsText}
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-💵 <b>الملخص المالي للفاتورة:</b>
-• قيمة المنتجات: <b>${subtotalFormatted} ج.م</b>
-• مصاريف الشحن: <b>${shippingFormatted}</b>${discountLine}
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-💎 <b>إجمالي المبلغ المطلوب تحصيله:</b> <b>${totalFormatted} ج.م</b>
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚡ <i>تم حفظ الطلب بنجاح وهو بانتظار التجهيز والشحن من الورشة.</i>
-📱 <a href="https://wa.me/${cleanPhone}">فتح محادثة واتساب فورية مع العميل 💬</a>`;
+━━━━━━━━━━━━━━━━━━━━━━
+💵 الملخص المالي للفاتورة:
+• قيمة المنتجات: ${subtotalFormatted} ج.م
+• مصاريف الشحن: ${shippingFormatted}${discountLine}
+━━━━━━━━━━━━━━━━━━━━━━
+💎 إجمالي المبلغ المطلوب تحصيله: ${totalFormatted} ج.م
+━━━━━━━━━━━━━━━━━━━━━━
+⚡ تم حفظ الطلب بنجاح وهو بانتظار التجهيز والشحن من الورشة.
+💬 رابط واتساب العميل المباشر:
+https://wa.me/${cleanPhone}`;
 }
 
 /**
- * Sends order notification to Telegram Bot
+ * Sends order notification to Telegram Bot.
+ * Awaits completion and handles errors with detailed console.error logs for Vercel.
  */
 export async function sendTelegramOrderNotification(order: Order): Promise<{
   success: boolean;
   message?: string;
   error?: string;
 }> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const rawBotToken = process.env.TELEGRAM_BOT_TOKEN;
+  const rawChatId = process.env.TELEGRAM_CHAT_ID;
+
+  const botToken = rawBotToken ? rawBotToken.trim().replace(/^["']|["']$/g, "") : "";
+  const chatId = rawChatId ? rawChatId.trim().replace(/^["']|["']$/g, "") : "";
 
   if (!botToken || !chatId) {
-    const warning =
-      "Telegram bot notification skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured in environment variables.";
-    console.warn(warning);
+    const warning = `[Telegram Config Warning] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing in environment variables. (botToken: ${Boolean(
+      botToken
+    )}, chatId: ${Boolean(chatId)})`;
+    console.error(warning);
     return { success: false, error: warning };
   }
 
   try {
     const text = formatOrderInvoiceTelegramMessage(order);
-
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
     const response = await fetch(telegramApiUrl, {
@@ -153,23 +145,36 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
       body: JSON.stringify({
         chat_id: chatId,
         text,
-        parse_mode: "HTML",
+        // No parse_mode specified: Plain Text mode prevents any Markdown/HTML parsing rejection
         disable_web_page_preview: true,
       }),
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => null);
 
-    if (!response.ok || !data.ok) {
-      const errMsg = data.description || `Telegram API error: ${response.status}`;
-      console.error("Failed to send Telegram notification:", errMsg);
+    if (!response.ok || !data || !data.ok) {
+      const errMsg =
+        data?.description || `Telegram API responded with HTTP status ${response.status}`;
+      console.error(
+        "[Telegram API Error] Failed to send message to chatId:",
+        chatId,
+        "HTTP Status:",
+        response.status,
+        "Response body:",
+        data
+      );
       return { success: false, error: errMsg };
     }
 
+    console.log(
+      "[Telegram Success] Order notification sent successfully! Telegram Message ID:",
+      data.result?.message_id
+    );
     return { success: true, message: "تم إرسال إشعار التليجرام بنجاح" };
   } catch (err: unknown) {
-    const errMsg = err instanceof Error ? err.message : "Unknown error sending Telegram notification";
-    console.error("Telegram notification exception:", errMsg);
+    const errMsg =
+      err instanceof Error ? err.message : "Unknown error sending Telegram notification";
+    console.error("[Telegram Network/Fetch Exception]:", err);
     return { success: false, error: errMsg };
   }
 }
