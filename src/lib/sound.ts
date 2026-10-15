@@ -1,4 +1,4 @@
-// Web Audio API Luxury Chime Generator for Athar Silver Store
+// Web Audio API Luxury Chime Generator for ORMA Silver Store
 // 100% Client-side, zero latency, no external mp3 assets needed
 
 export const playRoyalOrderChime = () => {

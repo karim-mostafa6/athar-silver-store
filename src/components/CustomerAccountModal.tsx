@@ -61,7 +61,9 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
   // Load customer profile from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("athar_customer_profile");
+      const saved =
+        localStorage.getItem("orma_customer_profile") ||
+        localStorage.getItem("athar_customer_profile");
       if (saved) {
         const parsed = JSON.parse(saved);
         setProfile(parsed);
@@ -137,6 +139,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
     setProfile(newProfile);
     setIsEditingProfile(false);
     try {
+      localStorage.setItem("orma_customer_profile", JSON.stringify(newProfile));
       localStorage.setItem("athar_customer_profile", JSON.stringify(newProfile));
       addToast("تم حفظ الحساب", "تم حفظ بياناتك بنجاح لتسريع الطلبات القادمة", "info");
     } catch {
@@ -153,6 +156,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
     setGovInput("القاهرة");
     setAddressInput("");
     try {
+      localStorage.removeItem("orma_customer_profile");
       localStorage.removeItem("athar_customer_profile");
       addToast("تم تسجيل الخروج", "تم تسجيل الخروج من حسابك في هذا المتصفح", "info");
     } catch {}

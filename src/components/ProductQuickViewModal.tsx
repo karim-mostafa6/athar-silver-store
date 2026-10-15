@@ -66,7 +66,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
     const productUrl =
       typeof window !== "undefined"
         ? `${window.location.origin}/product/${product.id}`
-        : `https://athar-silver-store.vercel.app/product/${product.id}`;
+        : `https://orma-silver.vercel.app/product/${product.id}`;
     const cleanPhone = (storeSettings?.whatsappNumber || "01143837730").replace(/\D/g, "");
     const formattedPhone = cleanPhone.startsWith("20") ? cleanPhone : `20${cleanPhone.replace(/^0/, "")}`;
     const msg = encodeURIComponent(

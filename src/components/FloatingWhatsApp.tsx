@@ -15,7 +15,7 @@ export const FloatingWhatsApp: React.FC = () => {
         <div className="hidden sm:flex items-center gap-2.5 p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#ded1be] shadow-xl text-right animate-float">
           <div className="text-xs">
             <span className="font-bold text-[#1c1815] block">تحتاج مساعدة أو استفسار؟</span>
-            <span className="text-[11px] text-[#6d5b4a]">فريق أَثَر متاح لمساعدتك فوراً عبر واتساب</span>
+            <span className="text-[11px] text-[#6d5b4a]">فريق ORMA متاح لمساعدتك فوراً عبر واتساب</span>
           </div>
           <button
             onClick={() => setShowTooltip(false)}
@@ -29,7 +29,9 @@ export const FloatingWhatsApp: React.FC = () => {
 
       {/* Floating Button */}
       <a
-        href={`https://wa.me/${storeSettings.whatsappNumber}?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%A3%D8%AB%D9%8E%D8%B1%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D9%81%D9%8A%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1%20%D8%B9%D9%86%20%D9%82%D8%B7%D8%B9%20%D8%A7%D9%84%D9%81%D8%B6%D8%A9%20%D9%88%D8%A7%D9%84%D8%B7%D9%84%D8%A8`}
+        href={`https://wa.me/${storeSettings.whatsappNumber}?text=${encodeURIComponent(
+          "مرحباً ORMA، أرغب في الاستفسار عن قطع الفضة والطلب"
+        )}`}
         target="_blank"
         rel="noreferrer"
         className="relative group p-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xl shadow-emerald-600/30 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center"

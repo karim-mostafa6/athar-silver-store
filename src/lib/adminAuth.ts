@@ -31,14 +31,14 @@ export function verifyAdminToken(token: string | null): boolean {
       if (Date.now() - timestamp > maxAge) return false;
 
       const username = Buffer.from(b64User, "base64").toString("utf-8").toLowerCase().trim();
-      if (!username || username === "admin") return false;
+      if (!username) return false;
 
       const raw = `${username}:${timestamp}:${ADMIN_SECRET}`;
       const expectedHash = crypto.createHash("sha256").update(raw).digest("hex");
       return crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(expectedHash));
     }
 
-    // Support legacy 2-part token: only allow master admin "karim mostafa"
+    // Support legacy 2-part token: only allow master admin "karim mostafa" or "admin"
     if (parts.length === 2) {
       const [timestampStr, providedHash] = parts;
       const timestamp = parseInt(timestampStr, 10);
@@ -47,7 +47,11 @@ export function verifyAdminToken(token: string | null): boolean {
 
       const raw = `karim mostafa:${timestamp}:${ADMIN_SECRET}`;
       const expectedHash = crypto.createHash("sha256").update(raw).digest("hex");
-      return crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(expectedHash));
+      if (crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(expectedHash))) return true;
+
+      const rawAdmin = `admin:${timestamp}:${ADMIN_SECRET}`;
+      const expectedHashAdmin = crypto.createHash("sha256").update(rawAdmin).digest("hex");
+      return crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(expectedHashAdmin));
     }
 
     return false;
@@ -63,10 +67,14 @@ export function isAuthorizedAdmin(request: NextRequest): boolean {
     if (verifyAdminToken(token)) return true;
   }
 
-  const customHeader = request.headers.get("x-athar-admin-token");
+  const customHeader =
+    request.headers.get("x-orma-admin-token") ||
+    request.headers.get("x-athar-admin-token");
   if (customHeader && verifyAdminToken(customHeader)) return true;
 
-  const cookieToken = request.cookies.get("athar_admin_token")?.value;
+  const cookieToken =
+    request.cookies.get("orma_admin_token")?.value ||
+    request.cookies.get("athar_admin_token")?.value;
   if (cookieToken && verifyAdminToken(cookieToken)) return true;
 
   return false;

@@ -835,7 +835,7 @@ export function recordDeletedProductId(productId: string) {
   } catch {}
 }
 
-const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
+const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952", "ORM-819230"]);
 
 // Monotonic sequence tracking: sequence counter NEVER decreases even if orders are deleted
 export function getLastOrderSeq(): number {
@@ -864,7 +864,7 @@ export function recordLastOrderSeq(seq: number): number {
 
 export function extractOrderSequence(id: string): number | null {
   if (!id) return null;
-  const m = id.match(/(?:#?ATH-?)(\d+)/i);
+  const m = id.match(/(?:#?(?:ATH|ORM)-?)(\d+)/i);
   if (m) {
     const n = parseInt(m[1], 10);
     if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(id)) {
@@ -905,7 +905,7 @@ export function calculateHighestOrderSeq(
   return highest;
 }
 
-// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
+// Helper to generate sequential 4-digit order numbers starting from ORM-1000 (#ORM-1000, #ORM-1001, etc.)
 // Strictly monotonic: even if orders are deleted, this sequence never goes backward
 export function getNextSequentialOrderId(
   ordersList: Order[] = [],
@@ -913,7 +913,7 @@ export function getNextSequentialOrderId(
   deletedIds: string[] = []
 ): string {
   const highest = calculateHighestOrderSeq(ordersList, storedLastSeq, deletedIds);
-  return `ATH-${highest + 1}`;
+  return `ORM-${highest + 1}`;
 }
 
 // Helper to filter out any old demo/mock sample orders or explicitly deleted orders
@@ -1029,27 +1029,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     ordersRef.current = orders;
   }, [orders]);
 
-  // Helper to push orders to server directly
-  const pushOrdersToServerDirectly = (ordersToPush: Order[]) => {
-    const currentSeq = getLastOrderSeq();
-    const deletedArr = Array.from(getDeletedOrderIds());
-    fetch("/api/orders", {
-      method: "PUT",
-      headers: getAdminAuthHeaders(),
-      body: JSON.stringify({
-        orders: ordersToPush,
-        lastOrderSeq: currentSeq,
-        deletedOrderIds: deletedArr,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
-        if (data.lastOrderSeq) recordLastOrderSeq(data.lastOrderSeq);
-      })
-      .catch((err) => console.warn("Could not sync orders to server:", err));
-  };
-
   // Background Central Server Sync (Optimized & non-blocking)
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
@@ -1075,35 +1054,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
         lastServerUpdatedRef.current = data.updatedAt || "";
 
+        // Server product catalog is the single source of truth across all devices
         if (Array.isArray(data.products) && data.products.length > 0) {
           const deletedProdIds = getDeletedProductIds();
-          setProducts((currentLocal) => {
-            const serverProds = data.products.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
-            const serverIdMap = new Map<string, Product>();
-            serverProds.forEach((p: Product) => serverIdMap.set(p.id, p));
-
-            // Custom or locally added products not on server
-            const localCustomOnly = currentLocal.filter(
-              (p) => p && p.id && !deletedProdIds.has(p.id) && !serverIdMap.has(p.id)
-            );
-
-            // Merged catalog preserves user's newly added items alongside server catalog
-            const merged = [...localCustomOnly, ...serverProds];
+          const serverProds = data.products.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
+          if (serverProds.length > 0) {
+            setProducts(serverProds);
             try {
-              localStorage.setItem("athar_custom_products", JSON.stringify(merged));
+              localStorage.setItem("athar_custom_products", JSON.stringify(serverProds));
             } catch {}
-
-            // If local had custom products the server was missing, push back to server
-            if (localCustomOnly.length > 0) {
-              fetch("/api/products", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ products: merged }),
-              }).catch(() => {});
-            }
-
-            return merged;
-          });
+          }
         }
 
         if (data.settings && typeof data.settings === "object") {
@@ -1148,35 +1108,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           data.deletedOrderIds.forEach((id: string) => recordDeletedOrderId(id));
         }
 
-        if (Array.isArray(data.orders)) {
-          // Guard against overwriting local optimistic updates if an action was performed recently (<4000ms)
+        // Only update orders if server returned them (i.e. logged-in admin)
+        if (Array.isArray(data.orders) && data.orders.length > 0) {
           if (Date.now() - lastLocalOrderMutationRef.current > 4000) {
             const serverOrders = sanitizeOrders(data.orders);
-            const localOrders = ordersRef.current || [];
-
-            // SMART MERGE & ANTI-WIPE SHIELD:
-            if (serverOrders.length === 0 && localOrders.length > 0) {
-              // Server has no orders (e.g. after a fresh deploy or cold start),
-              // but this browser HAS existing orders! NEVER WIPE LOCAL ORDERS!
-              // Instead, preserve local orders and upload them to cloud database immediately.
-              pushOrdersToServerDirectly(localOrders);
-            } else {
-              // Merge: combine server orders with any local orders not present on server
-              const serverIdSet = new Set(serverOrders.map((o) => o.id));
-              const localUnsynced = localOrders.filter((o) => !serverIdSet.has(o.id));
-
-              const mergedOrders = [...serverOrders, ...localUnsynced];
-              ordersRef.current = mergedOrders;
-              setOrders(mergedOrders);
-              try {
-                localStorage.setItem("athar_orders", JSON.stringify(mergedOrders));
-              } catch {}
-
-              if (localUnsynced.length > 0) {
-                // If there were local orders not yet on server, push the full merged list
-                pushOrdersToServerDirectly(mergedOrders);
-              }
-            }
+            ordersRef.current = serverOrders;
+            setOrders(serverOrders);
+            try {
+              localStorage.setItem("athar_orders", JSON.stringify(serverOrders));
+            } catch {}
           }
         }
       })
@@ -1236,7 +1176,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Live cross-frame preview synchronization (Shopify Model: instant 0ms preview updates)
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
-      if (e.data?.type === "ATHAR_SETTINGS_UPDATE" && e.data.settings && typeof e.data.settings === "object") {
+      if (
+        (e.data?.type === "ORMA_SETTINGS_UPDATE" || e.data?.type === "ATHAR_SETTINGS_UPDATE") &&
+        e.data.settings &&
+        typeof e.data.settings === "object"
+      ) {
         setStoreSettings((prev) => ({
           ...prev,
           ...e.data.settings,
@@ -1336,7 +1280,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
       try {
-        const channel = new BroadcastChannel("athar_orders_sync_channel");
+        const channel = new BroadcastChannel("orma_orders_sync_channel");
         orderBroadcastChannelRef.current = channel;
 
         channel.onmessage = (event) => {
@@ -1357,6 +1301,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const flushOrdersSync = useCallback(() => {
+    const authHeaders = getAdminAuthHeaders();
+    if (!authHeaders["Authorization"] && !authHeaders["x-orma-admin-token"] && !authHeaders["x-athar-admin-token"]) {
+      isOrderSyncingRef.current = false;
+      hasPendingOrderSyncRef.current = false;
+      return;
+    }
+
     if (isOrderSyncingRef.current) {
       hasPendingOrderSyncRef.current = true;
       return;
@@ -1371,7 +1322,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     fetch("/api/orders", {
       method: "PUT",
-      headers: getAdminAuthHeaders(),
+      headers: authHeaders,
       body: JSON.stringify({
         orders: currentSnapshot,
         lastOrderSeq: currentSeq,

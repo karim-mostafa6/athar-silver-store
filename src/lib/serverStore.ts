@@ -392,7 +392,17 @@ export async function saveServerStoreData(
 
       if (updates.products !== undefined) {
         const dbProducts = updates.products.map(mapModelProductToDb);
-        await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
+        if (dbProducts.length > 0) {
+          await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
+          const activeIds = updates.products.map((p) => p.id);
+          // Delete any products in Supabase that are no longer in the active catalog
+          await supabase
+            .from("products")
+            .delete()
+            .not("id", "in", `(${activeIds.map((id) => `"${id}"`).join(",")})`);
+        } else {
+          await supabase.from("products").delete().neq("id", "");
+        }
       }
 
       if (updates.settings !== undefined) {
@@ -406,6 +416,10 @@ export async function saveServerStoreData(
         if (dbOrders.length > 0) {
           await supabase.from("orders").upsert(dbOrders, { onConflict: "id" });
         }
+      }
+
+      if (combinedDeletedIds.length > 0) {
+        await supabase.from("orders").delete().in("id", combinedDeletedIds);
       }
 
       await supabase.from("store_metadata").upsert([

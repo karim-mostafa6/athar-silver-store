@@ -345,7 +345,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
-        { type: "ATHAR_SETTINGS_UPDATE", settings: settingsForm },
+        { type: "ORMA_SETTINGS_UPDATE", settings: settingsForm },
         "*"
       );
     }
@@ -392,7 +392,10 @@ export default function AdminPage() {
           localStorage.setItem("athar_admin_user", JSON.stringify(data.user));
         }
         if (data.token) {
+          localStorage.setItem("orma_admin_token", data.token);
           localStorage.setItem("athar_admin_token", data.token);
+          sessionStorage.setItem("orma_admin_token", data.token);
+          sessionStorage.setItem("athar_admin_token", data.token);
         }
         if (data.user.role === "store_editor") {
           setActiveTab("products");
@@ -418,7 +421,10 @@ export default function AdminPage() {
     sessionStorage.removeItem("athar_settings_unlocked");
     localStorage.removeItem("athar_admin_auth");
     localStorage.removeItem("athar_admin_user");
+    localStorage.removeItem("orma_admin_token");
     localStorage.removeItem("athar_admin_token");
+    sessionStorage.removeItem("orma_admin_token");
+    sessionStorage.removeItem("athar_admin_token");
     setUsernameInput("");
     setPasswordInput("");
   };
@@ -468,7 +474,9 @@ export default function AdminPage() {
 
       if (data.success && data.valid) {
         if (data.token) {
+          localStorage.setItem("orma_admin_token", data.token);
           localStorage.setItem("athar_admin_token", data.token);
+          sessionStorage.setItem("orma_admin_token", data.token);
           sessionStorage.setItem("athar_admin_token", data.token);
         }
         setIsSettingsUnlocked(true);
@@ -888,7 +896,7 @@ export default function AdminPage() {
       const timer = setTimeout(() => {
         try {
           iframeRef.current?.contentWindow?.postMessage(
-            { type: "ATHAR_SCROLL_TO", tab: activeTab },
+            { type: "ORMA_SCROLL_TO", tab: activeTab },
             "*"
           );
         } catch {}
@@ -1045,7 +1053,7 @@ export default function AdminPage() {
     } else {
       addProduct({
         ...updatedData,
-        id: `ath-${Date.now()}`,
+        id: `orm-${Date.now()}`,
       });
       addToast("تمت الإضافة", `تمت إضافة "${productForm.arabicName}" إلى المتجر`, "info");
     }
@@ -6823,11 +6831,11 @@ export default function AdminPage() {
                   onLoad={() => {
                     setTimeout(() => {
                       iframeRef.current?.contentWindow?.postMessage(
-                        { type: "ATHAR_SETTINGS_UPDATE", settings: settingsForm },
+                        { type: "ORMA_SETTINGS_UPDATE", settings: settingsForm },
                         "*"
                       );
                       iframeRef.current?.contentWindow?.postMessage(
-                        { type: "ATHAR_SCROLL_TO", tab: activeTab },
+                        { type: "ORMA_SCROLL_TO", tab: activeTab },
                         "*"
                       );
                     }, 250);

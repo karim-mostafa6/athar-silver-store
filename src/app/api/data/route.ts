@@ -3,6 +3,7 @@ import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,14 +13,13 @@ export async function GET(request: NextRequest) {
     // Data Privacy: Only authenticated admin can view orders & customer data
     const safeOrders = isAdmin ? data.orders : [];
 
-    const headers: Record<string, string> = isAdmin
-      ? {
-          "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-        }
-      : {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-        };
+    const headers: Record<string, string> = {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0",
+      "CDN-Cache-Control": "no-store",
+      "Vercel-CDN-Cache-Control": "no-store",
+      "Pragma": "no-cache",
+      "Expires": "0",
+    };
 
     return NextResponse.json(
       {

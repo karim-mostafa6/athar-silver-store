@@ -6,10 +6,13 @@ export function getAdminAuthHeaders(): Record<string, string> {
   };
   if (typeof window !== "undefined") {
     const token =
+      localStorage.getItem("orma_admin_token") ||
+      sessionStorage.getItem("orma_admin_token") ||
       localStorage.getItem("athar_admin_token") ||
       sessionStorage.getItem("athar_admin_token");
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+      headers["x-orma-admin-token"] = token;
       headers["x-athar-admin-token"] = token;
     }
   }

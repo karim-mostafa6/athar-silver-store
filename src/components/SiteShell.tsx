@@ -24,7 +24,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Auto-scroll listener for Shopify Live Split Preview
   React.useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
-      if (e.data && e.data.type === "ATHAR_SCROLL_TO") {
+      if (e.data && (e.data.type === "ORMA_SCROLL_TO" || e.data.type === "ATHAR_SCROLL_TO")) {
         const { tab } = e.data;
         if (tab === "hero" || tab === "marquee" || tab === "nav" || tab === "logo") {
           window.scrollTo({ top: 0, behavior: "smooth" });
