@@ -2,7 +2,10 @@ import { NextRequest } from "next/server";
 import crypto from "crypto";
 
 // Server-side secure secret
-const ADMIN_SECRET = process.env.ADMIN_SESSION_SECRET || "athar-silver-store-hyper-secure-key-2026";
+const ADMIN_SECRET =
+  process.env.ADMIN_SESSION_SECRET ||
+  process.env.ADMIN_JWT_SECRET ||
+  "athar-silver-store-hyper-secure-key-2026";
 
 // Rate limiting state for login attempts (in-memory per serverless instance)
 const failedAttempts = new Map<string, { count: number; lastAttempt: number }>();

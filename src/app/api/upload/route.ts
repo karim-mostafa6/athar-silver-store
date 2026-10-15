@@ -8,16 +8,18 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Security Check: Only authorized admin can upload product images
-    if (!isAuthorizedAdmin(request)) {
-      return NextResponse.json({ error: "غير مصرح لك برفع الصور" }, { status: 401 });
-    }
-
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const uploadType = (formData.get("type") as string) || "product";
 
     if (!file) {
       return NextResponse.json({ error: "لم يتم اختيار أي ملف" }, { status: 400 });
+    }
+
+    // 1. Security Check: Customers can upload payment receipts; general product uploads require admin auth
+    const isReceipt = uploadType === "receipt";
+    if (!isReceipt && !isAuthorizedAdmin(request)) {
+      return NextResponse.json({ error: "غير مصرح لك برفع صور المنتجات" }, { status: 401 });
     }
 
     // 2. Strict File Validation
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
     // 3. Upload to Supabase Storage (product-images bucket)
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseAdminClient();
-      const storagePath = `products/${uniqueName}`;
+      const storagePath = isReceipt ? `receipts/${uniqueName}` : `products/${uniqueName}`;
 
       const { data, error } = await supabase.storage
         .from("product-images")

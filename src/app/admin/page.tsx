@@ -5,6 +5,7 @@ import { useStore, StoreSettings, Order, NavLinkItem, MarqueeExtraMessage, Store
 import { Product } from "@/data/products";
 import { playRoyalOrderChime } from "@/lib/sound";
 import { AtharLogo } from "@/components/AtharLogo";
+import { getAdminAuthHeaders } from "@/lib/clientAdmin";
 import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
@@ -330,10 +331,25 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Sync settings when storeSettings updates from context
+  const isSettingsInitializedRef = useRef(false);
+
+  // Initialize settingsForm only on initial mount to protect unsaved user edits from background sync
   useEffect(() => {
-    setSettingsForm(storeSettings);
+    if (!isSettingsInitializedRef.current && storeSettings) {
+      setSettingsForm(storeSettings);
+      isSettingsInitializedRef.current = true;
+    }
   }, [storeSettings]);
+
+  // Live Preview Realtime Broadcast (Shopify Model: instant 0ms preview updates inside iframe)
+  useEffect(() => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: "ATHAR_SETTINGS_UPDATE", settings: settingsForm },
+        "*"
+      );
+    }
+  }, [settingsForm]);
 
   // Audio alert on new incoming order
   useEffect(() => {
@@ -451,6 +467,10 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (data.success && data.valid) {
+        if (data.token) {
+          localStorage.setItem("athar_admin_token", data.token);
+          sessionStorage.setItem("athar_admin_token", data.token);
+        }
         setIsSettingsUnlocked(true);
         sessionStorage.setItem("athar_settings_unlocked", "true");
         setIsSettingsPasswordModalOpen(false);
@@ -521,7 +541,7 @@ export default function AdminPage() {
     try {
       await fetch("/api/admin/settings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ settings: updatedSettings }),
       });
     } catch {}
@@ -547,7 +567,7 @@ export default function AdminPage() {
     try {
       await fetch("/api/admin/settings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ settings: updatedSettings }),
       });
     } catch {}
@@ -568,7 +588,7 @@ export default function AdminPage() {
     try {
       await fetch("/api/admin/settings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ settings: updatedSettings }),
       });
     } catch {}
@@ -1137,7 +1157,7 @@ export default function AdminPage() {
     try {
       await fetch("/api/admin/settings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ settings: newSettings }),
       });
     } catch (e) {
@@ -1171,7 +1191,7 @@ export default function AdminPage() {
       try {
         await fetch("/api/admin/settings", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAdminAuthHeaders(),
           body: JSON.stringify({ settings: newSettings }),
         });
         addToast("تم الحذف بنجاح", `تم حذف كولكشن "${label}" نهائياً من السحابة والمتجر`, "info");
@@ -1284,7 +1304,7 @@ export default function AdminPage() {
     try {
       await fetch("/api/admin/settings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ settings: newSettings }),
       });
     } catch (e) {
@@ -1315,7 +1335,7 @@ export default function AdminPage() {
       try {
         await fetch("/api/admin/settings", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: getAdminAuthHeaders(),
           body: JSON.stringify({ settings: newSettings }),
         });
         addToast("تم الحذف بنجاح", `تم حذف صفحة "${title}" نهائياً من السحابة والمتجر`, "info");
@@ -1333,15 +1353,22 @@ export default function AdminPage() {
       updateStoreSettings(settingsForm);
       const res = await fetch("/api/admin/settings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminAuthHeaders(),
         body: JSON.stringify({ settings: settingsForm }),
       });
       if (res.ok) {
         setSaveSuccess(true);
-        addToast("تم الحفظ في السحابة", "تم مزامنة كافة التعديلات فورياً على جميع الهواتف والمتصفحات", "info");
+        addToast("تم الحفظ في السحابة ⚡", "تم مزامنة كافة التعديلات فورياً في Supabase وعلى جميع الأجهزة", "info");
         setTimeout(() => setSaveSuccess(false), 3000);
+      } else if (res.status === 401) {
+        setIsSettingsUnlocked(false);
+        setSettingsPasswordInput("");
+        setIsSettingsPasswordModalOpen(true);
+        setPendingTabAfterUnlock(activeTab);
+        addToast("تأكيد الصلاحية", "يرجى إدخال كلمة المرور لتأكيد حفظ الإعدادات في السحابة", "info");
       } else {
-        addToast("خطأ", "فشل الحفظ في السحابة، يرجى المحاولة مجدداً", "info");
+        const errData = await res.json().catch(() => ({}));
+        addToast("خطأ", errData.error || "فشل الحفظ في السحابة، يرجى المحاولة مجدداً", "info");
       }
     } catch {
       addToast("خطأ", "حدث خطأ أثناء حفظ الإعدادات", "info");
@@ -6795,6 +6822,10 @@ export default function AdminPage() {
                   className="w-full h-full border-0"
                   onLoad={() => {
                     setTimeout(() => {
+                      iframeRef.current?.contentWindow?.postMessage(
+                        { type: "ATHAR_SETTINGS_UPDATE", settings: settingsForm },
+                        "*"
+                      );
                       iframeRef.current?.contentWindow?.postMessage(
                         { type: "ATHAR_SCROLL_TO", tab: activeTab },
                         "*"

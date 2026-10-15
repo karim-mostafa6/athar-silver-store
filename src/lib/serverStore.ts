@@ -14,6 +14,9 @@ export interface ServerStoreData {
   isDefault?: boolean;
 }
 
+// In-memory stable timestamp tracker for client sync
+let cachedLastUpdated = "2026-10-15T12:00:00.000Z";
+
 // File path detection for local fallback if Supabase is not yet configured
 function getStoreFilePath(): string {
   const rootPath = path.join(process.cwd(), "store-data.json");
@@ -225,7 +228,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
 
       const [productsRes, settingsRes, ordersRes, metaRes] = await Promise.all([
         supabase.from("products").select("*").order("created_at", { ascending: false }),
-        supabase.from("store_settings").select("settings").eq("id", "primary").maybeSingle(),
+        supabase.from("store_settings").select("settings, updated_at").eq("id", "primary").maybeSingle(),
         supabase.from("orders").select("*").order("created_at", { ascending: false }),
         supabase.from("store_metadata").select("*"),
       ]);
@@ -276,13 +279,17 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
 
       lastOrderSeq = calculateHighestOrderSeq(orders, lastOrderSeq, deletedOrderIds);
 
+      const updatedAt =
+        (settingsRes.data as { updated_at?: string })?.updated_at ||
+        cachedLastUpdated;
+
       return {
         products,
         settings,
         orders,
         lastOrderSeq,
         deletedOrderIds,
-        updatedAt: new Date().toISOString(),
+        updatedAt,
         isDefault: false,
       };
     } catch (err) {
@@ -375,6 +382,8 @@ export async function saveServerStoreData(
     updatedAt: new Date().toISOString(),
     isDefault: false,
   };
+
+  cachedLastUpdated = updated.updatedAt;
 
   // 1. Save to Supabase Cloud Database
   if (isSupabaseConfigured()) {

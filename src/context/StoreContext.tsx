@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useRef, useCallback, ReactNode } from "react";
 import { Product, CartItem, PRODUCTS, StoreCategory, DEFAULT_CATEGORIES, CustomPage, DEFAULT_CUSTOM_PAGES } from "@/data/products";
 import { ToastMessage } from "@/components/Toast";
+import { getAdminAuthHeaders } from "@/lib/clientAdmin";
 
 export type { StoreCategory, CustomPage };
 export { DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES };
@@ -1034,7 +1035,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const deletedArr = Array.from(getDeletedOrderIds());
     fetch("/api/orders", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({
         orders: ordersToPush,
         lastOrderSeq: currentSeq,
@@ -1243,6 +1244,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  // Live cross-frame preview synchronization (Shopify Model: instant 0ms preview updates)
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === "ATHAR_SETTINGS_UPDATE" && e.data.settings && typeof e.data.settings === "object") {
+        setStoreSettings((prev) => ({
+          ...prev,
+          ...e.data.settings,
+        }));
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
   // Save to localStorage
   useEffect(() => {
     try {
@@ -1309,7 +1324,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const syncProductsToServer = (prods: Product[]) => {
     fetch("/api/products", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ products: prods }),
     })
       .then((res) => res.json())
@@ -1367,7 +1382,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     fetch("/api/orders", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({
         orders: currentSnapshot,
         lastOrderSeq: currentSeq,
@@ -1440,7 +1455,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const syncSettingsToServer = (stngs: Partial<StoreSettings>) => {
     fetch("/api/admin/settings", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ settings: stngs }),
     })
       .then((res) => res.json())
