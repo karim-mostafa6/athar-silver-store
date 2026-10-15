@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { AtharLogo } from "@/components/AtharLogo";
+import { OrmaLogo } from "@/components/OrmaLogo";
 import { useStore, Order } from "@/context/StoreContext";
 import {
   X,
@@ -193,7 +193,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <AtharLogo variant="dark" size="sm" />
+                <OrmaLogo variant="dark" size="sm" />
                 <span className="text-xs text-[#c5a880] font-bold">| حساب العميل</span>
               </div>
               <p className="text-[11px] text-[#baa996] mt-0.5">

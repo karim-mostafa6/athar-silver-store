@@ -83,12 +83,12 @@ export async function POST(request: NextRequest) {
       process.env.GMAIL_USER ||
       serverConfig.senderEmail ||
       bodySenderEmail ||
-      "theathar.eg@gmail.com";
+      "contact@ormasilver.com";
     const officialSenderName =
       process.env.GMAIL_SENDER_NAME ||
       serverConfig.senderEmailName ||
       bodySenderName ||
-      "أَثَـر للفضة 925";
+      "ORMA للفضة 925";
     const effectiveAppPassword = (
       process.env.GMAIL_APP_PASSWORD ||
       serverConfig.gmailAppPassword ||
@@ -171,10 +171,10 @@ export async function POST(request: NextRequest) {
               OFFICIAL ORDER INVOICE
             </div>
             <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 2px;">
-              أَثَـر • ATHAR
+              ORMA • SILVER
             </h1>
             <p style="color: #d4b896; margin: 8px 0 0 0; font-size: 13px; font-weight: 300;">
-              فضة إسترليني عيار 925 • صياغة تخلد تفاصيلك
+              فضة إسترليني عيار 925 • Not Given, But Left
             </p>
           </td>
         </tr>
@@ -313,13 +313,13 @@ export async function POST(request: NextRequest) {
               <tr>
                 <td>
                   <p style="margin: 2px 0; font-weight: bold; color: #161412;">
-                    براند أَثَر للفضة 925 • صياغة إيطالية وتركية فاخرة
+                    دار ORMA للفضة 925 • صياغة إيطالية وتركية فاخرة
                   </p>
                   <p style="margin: 2px 0;">
                     خدمة العملاء هاتفياً وواتساب: <strong>01143837730</strong> | البريد الرسمي: <strong>${officialSenderEmail}</strong>
                   </p>
                   <p style="margin: 6px 0 0 0; color: #c5a880; font-weight: bold;">
-                    صُنع بحرفية وشغف ليترك أثراً لا يُمحى
+                    Not Given, But Left • مش بتتهدي.. بتتساب
                   </p>
                 </td>
               </tr>

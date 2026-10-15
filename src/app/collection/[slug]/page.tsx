@@ -51,7 +51,7 @@ function CollectionPageContent() {
         base = {
           title: "التشكيلة النسائية",
           englishTitle: "WOMEN'S COLLECTION",
-          subtitle: "مجوهرات رقيقة صُممت لتبرز أنوثتك وتترك أثراً استثنائياً في كل إطلالة",
+          subtitle: "مجوهرات رقيقة صُممت لتبرز أنوثتك وتبقى بصمة استثنائية في كل إطلالة",
           bannerImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=85",
           showBanner: true,
           filterGender: "women",

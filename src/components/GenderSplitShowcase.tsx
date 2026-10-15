@@ -64,7 +64,7 @@ export const GenderSplitShowcase: React.FC = () => {
                 </div>
               )}
               {(womenEnglishTitle.trim() || womenTitle.trim()) && (
-                <h3 className="text-3xl sm:text-4xl font-light font-alexandria tracking-tight text-[#faf8f5]">
+                <h3 className="text-3xl sm:text-4xl font-medium font-tajawal tracking-tight text-[#faf8f5]">
                   {womenEnglishTitle.trim() && <span>{womenEnglishTitle}</span>}
                   {womenTitle.trim() && (
                     <span className="block text-sm font-normal text-white/80 mt-1">
@@ -114,7 +114,7 @@ export const GenderSplitShowcase: React.FC = () => {
                 </div>
               )}
               {(menEnglishTitle.trim() || menTitle.trim()) && (
-                <h3 className="text-3xl sm:text-4xl font-light font-alexandria tracking-tight text-[#faf8f5]">
+                <h3 className="text-3xl sm:text-4xl font-medium font-tajawal tracking-tight text-[#faf8f5]">
                   {menEnglishTitle.trim() && <span>{menEnglishTitle}</span>}
                   {menTitle.trim() && (
                     <span className="block text-sm font-normal text-white/80 mt-1">

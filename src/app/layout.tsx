@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Cairo, Alexandria } from "next/font/google";
+import { Tajawal, Cairo } from "next/font/google";
 import "./globals.css";
+
+const tajawal = Tajawal({
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "500", "700", "800", "900"],
+  variable: "--font-tajawal",
+  display: "swap",
+});
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-cairo",
-  display: "swap",
-});
-
-const alexandria = Alexandria({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "600", "700", "800"],
-  variable: "--font-alexandria",
   display: "swap",
 });
 
@@ -80,7 +80,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
       <body
-        className={`${cairo.variable} ${alexandria.variable} font-cairo bg-[#F5F0E7] text-[#292722] antialiased selection:bg-[#B7A078] selection:text-[#292722] min-h-screen`}
+        className={`${tajawal.variable} ${cairo.variable} font-tajawal bg-[#F5F0E7] text-[#292722] antialiased selection:bg-[#B7A078] selection:text-[#292722] min-h-screen`}
       >
         <SiteShell>{children}</SiteShell>
       </body>

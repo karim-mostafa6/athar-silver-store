@@ -158,16 +158,16 @@ export function mapModelOrderToDb(o: Order): Record<string, unknown> {
   };
 }
 
-const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
+const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952", "ORM-819230"]);
 export function cleanOrders(orders: unknown): Order[] {
   if (!Array.isArray(orders)) return [];
   return (orders as Order[]).filter((o) => o && o.id && !DEMO_ORDER_IDS.has(o.id));
 }
 
-// Extract numeric sequence from order ID (e.g. "ATH-1002" -> 1002)
+// Extract numeric sequence from order ID (e.g. "ORM-1002" or "ATH-1002" -> 1002)
 export function extractOrderSequence(id: string): number | null {
   if (!id) return null;
-  const m = id.match(/(?:#?ATH-?)(\d+)/i);
+  const m = id.match(/(?:#?(?:ATH|ORM)-?)(\d+)/i);
   if (m) {
     const n = parseInt(m[1], 10);
     if (n >= 1000 && n < 100000 && !DEMO_ORDER_IDS.has(id)) {
@@ -214,7 +214,7 @@ export function getNextSequentialOrderId(
   deletedIds: string[] = []
 ): string {
   const highest = calculateHighestOrderSeq(ordersList, storedLastSeq, deletedIds);
-  return `ATH-${highest + 1}`;
+  return `ORM-${highest + 1}`;
 }
 
 // ----------------------------------------------------
@@ -251,8 +251,8 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       } else {
         settings = {
           categories: DEFAULT_CATEGORIES,
-          senderEmail: process.env.GMAIL_USER || "theathar.eg@gmail.com",
-          senderEmailName: process.env.GMAIL_SENDER_NAME || "أَثَـر للفضة 925",
+          senderEmail: process.env.GMAIL_USER || "contact@ormasilver.com",
+          senderEmailName: process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
         };
         try {
           await supabase.from("store_settings").upsert({ id: "primary", settings });
@@ -325,8 +325,8 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     products: PRODUCTS,
     settings: {
       categories: DEFAULT_CATEGORIES,
-      senderEmail: process.env.GMAIL_USER || "theathar.eg@gmail.com",
-      senderEmailName: process.env.GMAIL_SENDER_NAME || "أَثَـر للفضة 925",
+      senderEmail: process.env.GMAIL_USER || "contact@ormasilver.com",
+      senderEmailName: process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
     },
     orders: [],
     lastOrderSeq: 999,

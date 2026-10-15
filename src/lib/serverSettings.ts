@@ -15,8 +15,8 @@ export function getServerSettings(): ServerSettings {
       const data = fs.readFileSync(CONFIG_PATH, "utf-8");
       const parsed = JSON.parse(data);
       return {
-        senderEmail: parsed.senderEmail || process.env.GMAIL_USER || "theathar.eg@gmail.com",
-        senderEmailName: parsed.senderEmailName || process.env.GMAIL_SENDER_NAME || "أَثَـر للفضة 925",
+        senderEmail: parsed.senderEmail || process.env.GMAIL_USER || "contact@ormasilver.com",
+        senderEmailName: parsed.senderEmailName || process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
         gmailAppPassword: (parsed.gmailAppPassword || process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, ""),
       };
     }
@@ -25,8 +25,8 @@ export function getServerSettings(): ServerSettings {
   }
 
   return {
-    senderEmail: process.env.GMAIL_USER || "theathar.eg@gmail.com",
-    senderEmailName: process.env.GMAIL_SENDER_NAME || "أَثَـر للفضة 925",
+    senderEmail: process.env.GMAIL_USER || "contact@ormasilver.com",
+    senderEmailName: process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
     gmailAppPassword: (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, ""),
   };
 }

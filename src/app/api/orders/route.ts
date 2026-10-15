@@ -7,6 +7,7 @@ import {
 } from "@/lib/serverStore";
 import { Order, OrderItem } from "@/context/StoreContext";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
+import { sendTelegramOrderNotification } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -248,9 +249,9 @@ export async function POST(request: NextRequest) {
 
     const verifiedTotal = Math.max(0, serverSubtotal + verifiedShippingFee - verifiedDiscount);
 
-    // 7. Sequential Order Number Assignment (#ATH-XXXX)
+    // 7. Sequential Order Number Assignment (#ORM-XXXX)
     let newId = rawOrder.id;
-    if (!newId || newId.startsWith("ath-temp") || !newId.startsWith("ATH-")) {
+    if (!newId || newId.startsWith("ath-temp") || (!newId.startsWith("ATH-") && !newId.startsWith("ORM-"))) {
       newId = getNextSequentialOrderId(
         currentData.orders,
         currentData.lastOrderSeq,
@@ -293,6 +294,13 @@ export async function POST(request: NextRequest) {
       orders: updatedOrders,
       lastOrderSeq: newSeq,
     });
+
+    // Send Real-time Telegram Order Invoice Notification to Store Owner
+    try {
+      await sendTelegramOrderNotification(finalOrder);
+    } catch (telegramErr) {
+      console.warn("Failed to dispatch Telegram notification:", telegramErr);
+    }
 
     return NextResponse.json(
       {

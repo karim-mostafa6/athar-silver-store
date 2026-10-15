@@ -137,7 +137,7 @@ export default function Home() {
               {storeSettings.productsSectionTitle || "المجموعة"}
             </h2>
             {storeSettings.productsSectionSubtitle && (
-              <p className="text-sm sm:text-base text-[#292722]/75 mt-3 font-amiri font-light max-w-md mx-auto leading-relaxed">
+              <p className="text-sm sm:text-base text-[#292722]/80 mt-3 font-tajawal font-normal max-w-md mx-auto leading-relaxed">
                 {storeSettings.productsSectionSubtitle}
               </p>
             )}
@@ -152,10 +152,10 @@ export default function Home() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap active:scale-95 font-amiri ${
+                className={`px-4 py-2 rounded-full transition-all duration-300 whitespace-nowrap active:scale-95 font-tajawal ${
                   selectedCategory === cat.id
-                    ? "bg-[#292722] text-[#F5F0E7] font-medium"
-                    : "bg-[#D8C8B3]/50 text-[#292722] border border-[#292722]/12 hover:bg-[#D8C8B3] hover:text-[#292722] font-light"
+                    ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
+                    : "bg-[#D8C8B3]/50 text-[#292722] border border-[#292722]/12 hover:bg-[#D8C8B3] hover:text-[#292722] font-medium"
                 }`}
               >
                 {cat.label}
@@ -226,7 +226,7 @@ export default function Home() {
             <div className="text-center mt-12 sm:mt-16">
               <button
                 onClick={() => setShowAllProducts(!showAllProducts)}
-                className="px-10 sm:px-14 py-3 rounded-sm border border-[#292722] text-[#292722] hover:bg-[#292722] hover:text-[#F5F0E7] transition-all duration-300 text-xs sm:text-sm font-amiri font-medium active:scale-95 shadow-xs"
+                className="px-10 sm:px-14 py-3 rounded-full border border-[#292722] text-[#292722] hover:bg-[#292722] hover:text-[#F5F0E7] transition-all duration-300 text-xs sm:text-sm font-tajawal font-bold active:scale-95 shadow-xs"
               >
                 {showAllProducts ? "عرض أقل" : "عرض كل القطع"}
               </button>

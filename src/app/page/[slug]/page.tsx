@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useStore, DEFAULT_CUSTOM_PAGES, CustomPage } from "@/context/StoreContext";
-import { AtharLogo } from "@/components/AtharLogo";
+import { OrmaLogo } from "@/components/OrmaLogo";
 import {
   ShieldCheck,
   Sparkles,
@@ -48,7 +48,7 @@ export default function DynamicCustomPage() {
   // Clean whatsapp url helper
   const cleanPhone = whatsappNumber.replace(/[^0-9]/g, "");
   const whatsappUrl = `https://wa.me/2${cleanPhone.startsWith("0") ? cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(
-    `مرحباً دار أَثَر ✦ أنا مهتم بـ "${page?.title || "منتجاتكم"}" ومحتاج استفسار سريع.`
+    `مرحباً دار ORMA ✦ أنا مهتم بـ "${page?.title || "منتجاتكم"}" ومحتاج استفسار سريع.`
   )}`;
 
   if (!page || page.isPublished === false) {
@@ -123,7 +123,7 @@ export default function DynamicCustomPage() {
         ) : (
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
             <div className="flex justify-center mb-4">
-              <AtharLogo variant="dark" size="md" />
+              <OrmaLogo variant="dark" size="md" />
             </div>
             {page.englishTitle && (
               <div className="text-[11px] font-sans tracking-[0.25em] text-[#c5a880] uppercase mb-2 font-medium">

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState, ReactNode, CSSProperties } from "react";
+import React, { ReactNode } from "react";
+import { motion } from "framer-motion";
 
 interface ScrollRevealProps {
   children: ReactNode;
@@ -18,55 +19,58 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   className = "",
   delay = 0,
   direction = "up",
-  distance = 40,
-  duration = 600,
-  threshold = 0.12,
+  distance = 32,
+  duration = 0.6,
   once = true,
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  const getTransform = (): string => {
-    if (visible) return "translate3d(0,0,0)";
+  const getInitial = () => {
     switch (direction) {
-      case "up":    return `translate3d(0,${distance}px,0)`;
-      case "down":  return `translate3d(0,-${distance}px,0)`;
-      case "left":  return `translate3d(${distance}px,0,0)`;
-      case "right": return `translate3d(-${distance}px,0,0)`;
-      default:      return "translate3d(0,0,0)";
+      case "up":
+        return { opacity: 0, y: distance };
+      case "down":
+        return { opacity: 0, y: -distance };
+      case "left":
+        return { opacity: 0, x: distance };
+      case "right":
+        return { opacity: 0, x: -distance };
+      case "none":
+        return { opacity: 0 };
+      default:
+        return { opacity: 0, y: distance };
     }
   };
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => setVisible(true), delay);
-          if (once) observer.unobserve(el);
-        } else if (!once) {
-          setVisible(false);
-        }
-      },
-      { threshold }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [delay, threshold, once]);
-
-  const style: CSSProperties = {
-    opacity: visible ? 1 : 0,
-    transform: getTransform(),
-    transition: `opacity ${duration}ms cubic-bezier(0.25,0.46,0.45,0.94) ${delay}ms, transform ${duration}ms cubic-bezier(0.25,0.46,0.45,0.94) ${delay}ms`,
-    willChange: "opacity, transform",
+  const getAnimate = () => {
+    switch (direction) {
+      case "up":
+      case "down":
+        return { opacity: 1, y: 0 };
+      case "left":
+      case "right":
+        return { opacity: 1, x: 0 };
+      case "none":
+        return { opacity: 1 };
+      default:
+        return { opacity: 1, y: 0 };
+    }
   };
 
+  const delayInSeconds = delay > 5 ? delay / 1000 : delay;
+  const durationInSeconds = duration > 5 ? duration / 1000 : duration;
+
   return (
-    <div ref={ref} className={className} style={style}>
+    <motion.div
+      initial={getInitial()}
+      whileInView={getAnimate()}
+      viewport={{ once, margin: "-30px" }}
+      transition={{
+        duration: durationInSeconds,
+        delay: delayInSeconds,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className={className}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 };

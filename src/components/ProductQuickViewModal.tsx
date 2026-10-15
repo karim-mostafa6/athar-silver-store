@@ -70,7 +70,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
     const cleanPhone = (storeSettings?.whatsappNumber || "01143837730").replace(/\D/g, "");
     const formattedPhone = cleanPhone.startsWith("20") ? cleanPhone : `20${cleanPhone.replace(/^0/, "")}`;
     const msg = encodeURIComponent(
-      `مرحباً براند أَثَر، أود طلب: ${product.arabicName}${sizeText}${qtyText} بإجمالي ${total} ج.م.\n\n*رابط صفحة المنتج:* ${productUrl}`
+      `مرحباً دار ORMA، أود طلب: ${product.arabicName}${sizeText}${qtyText} بإجمالي ${total} ج.م.\n\n*رابط صفحة المنتج:* ${productUrl}`
     );
     window.open(`https://wa.me/${formattedPhone}?text=${msg}`, "_blank");
   };

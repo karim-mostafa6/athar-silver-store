@@ -660,11 +660,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           /* Checkout Form */
           <div>
             <div className="mb-6">
-              <h2 className="text-xl sm:text-2xl font-black text-[#1c1815] font-alexandria">
+              <h2 className="text-xl sm:text-2xl font-black text-[#1c1815] font-tajawal">
                 إتمام الطلب وتأكيد الشحن
               </h2>
-              <p className="text-xs text-[#6e5d4c] mt-1">
-                املأ بياناتك للشحن السريع. تصلك القطعة في بوكس أثر المخملي الملكي مع كارت الضمان والفاتورة الرسمية.
+              <p className="text-xs text-[#6e5d4c] mt-1 font-tajawal">
+                املأ بياناتك للشحن السريع. تصلك القطعة في بوكس ORMA المخملي الفاخر مع كارت الضمان والفاتورة الرسمية.
               </p>
             </div>
 

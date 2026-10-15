@@ -405,7 +405,7 @@ export const DEFAULT_COLLECTION_PAGES: Record<string, CollectionPageSetting> = {
   women: {
     title: "التشكيلة النسائية",
     englishTitle: "WOMEN'S COLLECTION",
-    subtitle: "مجوهرات رقيقة صُممت لتبرز أنوثتك وتترك أثراً استثنائياً في كل إطلالة",
+    subtitle: "مجوهرات رقيقة صُممت لتبرز أنوثتك وتبقى بصمة استثنائية في كل إطلالة",
     bannerImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=85",
     showBanner: true,
   },
@@ -500,7 +500,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   trustItem4Icon: "gift",
   trustItem4Show: false,
   splitWomenTitle: "التشكيلة النسائية",
-  splitWomenSubtitle: "مجوهرات رقيقة تبرز أنوثتك وتترك أثراً استثنائياً",
+  splitWomenSubtitle: "مجوهرات رقيقة تبرز أنوثتك وتبقى بصمة استثنائية",
   splitWomenImage: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1200&q=85",
   splitMenTitle: "التشكيلة الرجالية",
   splitMenSubtitle: "صياغة ثقيلة وتصاميم عصرية تعكس الهيبة والأصالة",
@@ -710,7 +710,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   // Products Section on Homepage
   productsSectionBadge: "SIGNATURE PIECES • روائع ORMA",
   productsSectionTitle: "المجموعة",
-  productsSectionSubtitle: "صيغت بعناية من الفضة الإسترليني عيار 925 لتترك أثراً استثنائياً في كل حضور",
+  productsSectionSubtitle: "صيغت بعناية من الفضة الإسترليني عيار 925 لتخلد حضورك وتبقى بصمة لا تُمحى",
 
   // Gender Split Showcase Copy
   splitTopButtonText: "VIEW ALL • كافة القطع",
@@ -760,7 +760,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
 
   // Footer Defaults
   footerBrandTitle: "ORMA",
-  footerBrandBio: "براند مصري راقٍ متخصص في الفضة الإسترليني عيار 925 الإيطالية والتركية، نصوغ قطعاً خالدة تجمع بين أصالة المعدن النفيس والأناقة العصرية لتترك أثراً استثنائياً في كل مكان.",
+  footerBrandBio: "دار ORMA للمجوهرات الفضية عيار 925 الإيطالية والتركية، نصوغ قطعاً خالدة تجمع بين أصالة المعدن النفيس والأناقة العصرية... Not Given, But Left.",
   footerEnglishTag: "ORMA SILVER JEWELRY 925",
   footerColCategoriesTitle: "أقسام المتجر",
   footerColCategoriesShow: true,
@@ -778,7 +778,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   // Custom Promotional Banner Defaults
   promoBannerShow: true,
   promoBannerTitle: "تألقي ببريق الفضة الإيطالية عيار 925",
-  promoBannerSubtitle: "احصل على خصم 10% فوري عند استخدام كود ATHAR10 مع شحن مجاني للطلبات المؤكدة اليوم.",
+  promoBannerSubtitle: "احصل على خصم 10% فوري عند استخدام كود ORMA10 مع شحن مجاني للطلبات المؤكدة اليوم.",
   promoBannerBadge: "عرض استثنائي لفترة محدودة",
   promoBannerButtonText: "تسوق العروض الآن",
   promoBannerButtonLink: "#products",
@@ -1735,7 +1735,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       return [...prev, { product, quantity, selectedSize: size }];
     });
     addToast(
-      "أَثَر في سلتك",
+      "ORMA في سلتك",
       `تمت إضافة "${product.arabicName}" بنجاح`,
       "cart"
     );
@@ -1792,7 +1792,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (appliedPromo === storeSettings.promoCode) {
       return Math.round((subtotal * storeSettings.promoDiscountPercent) / 100);
     }
-    if (appliedPromo === "ATHAR20") return Math.round(subtotal * 0.2);
+    if (appliedPromo === "ORMA20" || appliedPromo === "ATHAR20") return Math.round(subtotal * 0.2);
     return 0;
   }, [appliedPromo, subtotal, storeSettings]);
 

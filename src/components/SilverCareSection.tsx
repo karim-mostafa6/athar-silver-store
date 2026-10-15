@@ -63,7 +63,7 @@ export const SilverCareSection: React.FC = () => {
           {visibleCards.map((card, idx) => (
             <div
               key={idx}
-              className="bg-[#F5F0E7] rounded-xl p-6 sm:p-7 text-center shadow-xs border border-[#292722]/12 hover:border-[#8E7545]/50 hover:shadow-md transition-all duration-300 flex flex-col items-center justify-between min-h-[220px]"
+              className="bg-[#F5F0E7] rounded-xl p-6 sm:p-7 text-center shadow-xs border border-[#292722]/12 hover:border-[#8E7545] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-between min-h-[220px]"
             >
               {/* Circular Gold Seal Emblem */}
               <div className="mb-4">
@@ -71,12 +71,12 @@ export const SilverCareSection: React.FC = () => {
               </div>
 
               {/* Card Title */}
-              <h3 className="font-amiri text-lg sm:text-xl font-bold text-[#292722] mb-3 leading-snug">
+              <h3 className="font-tajawal text-base sm:text-lg font-bold text-[#292722] mb-3 leading-snug">
                 {card.title}
               </h3>
 
               {/* Card Description */}
-              <p className="text-xs sm:text-sm text-[#292722]/75 font-amiri font-light leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#292722]/80 font-tajawal font-normal leading-relaxed">
                 {card.desc}
               </p>
             </div>

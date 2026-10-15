@@ -57,15 +57,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     const clean = promoInput.trim().toUpperCase();
     if (!clean) return;
 
-    if (clean === "ATHAR10") {
-      setAppliedPromo("ATHAR10");
+    if (clean === "ORMA10" || clean === "ATHAR10") {
+      setAppliedPromo(clean);
       setPromoMessage({ text: "تم تطبيق خصم 10% بنجاح!", error: false });
-    } else if (clean === "ATHAR20") {
+    } else if (clean === "ORMA20" || clean === "ATHAR20") {
       if (subtotal >= 3000) {
-        setAppliedPromo("ATHAR20");
+        setAppliedPromo(clean);
         setPromoMessage({ text: "تم تطبيق كود VIP بخصم 20%!", error: false });
       } else {
-        setPromoMessage({ text: "كود ATHAR20 يتطلب مشتريات بـ 3,000 ج.م كحد أدنى", error: true });
+        setPromoMessage({ text: "كود الخصم يتطلب مشتريات بـ 3,000 ج.م كحد أدنى", error: true });
       }
     } else {
       setPromoMessage({ text: "كوبون الخصم غير صحيح أو منتهي الصلاحية", error: true });
@@ -131,9 +131,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <ShoppingBag className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#1c1815] mb-1">سلتك فارغة حالياً</h3>
-                  <p className="text-xs text-[#705e4d] max-w-xs">
-                    استكشف تشكيلة الفضة الإسترليني 925 واختر قطعتك المفضلة لتترك أثراً استثنائياً.
+                  <h3 className="text-base font-bold text-[#1c1815] mb-1 font-tajawal">سلتك فارغة حالياً</h3>
+                  <p className="text-xs text-[#705e4d] max-w-xs font-tajawal">
+                    استكشف تشكيلة ORMA للفضة الإسترليني 925 واختر قطعتك المفضلة لتترك بصمة لا تُمحى.
                   </p>
                 </div>
                 <button
@@ -221,7 +221,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="كود الخصم (مثال: ATHAR10)"
+                    placeholder="كود الخصم (مثال: ORMA10)"
                     value={promoInput}
                     onChange={(e) => setPromoInput(e.target.value)}
                     className="flex-1 bg-white border border-[#ded1be] rounded-xl px-3 py-2 text-xs text-[#1c1815] placeholder-[#8f806f] focus:outline-none focus:border-[#7c6953] font-mono uppercase shadow-inner"

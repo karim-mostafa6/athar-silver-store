@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
 import { GOVERNORATES, CartItem } from "@/data/products";
-import { AtharLogo } from "@/components/AtharLogo";
+import { OrmaLogo } from "@/components/OrmaLogo";
 import {
   ShoppingBag,
   ArrowRight,
@@ -388,7 +388,7 @@ export default function CheckoutPage() {
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Header Branding */}
           <div className="text-center pb-4 border-b border-[#ded2c0]">
-            <AtharLogo variant="light" size="lg" href="/" />
+            <OrmaLogo variant="light" size="lg" href="/" />
           </div>
 
           {/* Success Hero Card */}
@@ -535,7 +535,7 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-white text-[#161412] font-cairo flex flex-col justify-center items-center py-16 px-4" dir="rtl">
         <div className="text-center max-w-md mx-auto space-y-5">
           <div className="pb-4">
-            <AtharLogo variant="light" size="lg" href="/" />
+            <OrmaLogo variant="light" size="lg" href="/" />
           </div>
 
           <div className="w-20 h-20 rounded-full bg-[#f7f4ee] text-[#8c7865] mx-auto flex items-center justify-center border border-[#ded2c0]">
@@ -578,7 +578,7 @@ export default function CheckoutPage() {
           </Link>
 
           <div className="flex-1 flex justify-center">
-            <AtharLogo variant="light" size="md" href="/" />
+            <OrmaLogo variant="light" size="md" href="/" />
           </div>
 
           <div className="flex items-center gap-1 text-xs text-[#8c7865]">

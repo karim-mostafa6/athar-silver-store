@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { Product } from "@/data/products";
-import { Heart, ShoppingBag, Eye, Check } from "lucide-react";
+import { Heart, ShoppingBag, Eye, Check, Sparkles } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 
 interface ProductCardProps {
@@ -68,135 +69,169 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const secondaryImage = product.images[1] || product.images[0];
 
   return (
-    <Link
-      href={`/product/${product.id}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -6 }}
       className="group flex flex-col cursor-pointer select-none text-center block transition-all duration-300"
     >
-      {/* Product Image Container: Beige #D8C8B3 with Charcoal 12% border */}
-      <div className="relative aspect-[4/5] w-full rounded-md overflow-hidden bg-[#D8C8B3] mb-3.5 transition-all duration-500 border border-[#292722]/12 group-hover:border-[#8E7545] group-hover:shadow-[0_12px_28px_-6px_rgba(41,39,34,0.12)]">
-        {/* Primary Image */}
-        <img
-          src={primaryImage}
-          alt={product.arabicName}
-          className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
-            isHovered && product.images.length > 1
-              ? "opacity-0 scale-105"
-              : "opacity-100 scale-100 group-hover:scale-105"
-          }`}
-          loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80";
-          }}
-        />
-
-        {/* Secondary Model / Angle Image on Hover */}
-        {product.images.length > 1 && (
+      <Link
+        href={`/product/${product.id}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="flex flex-col h-full"
+      >
+        {/* Product Image Container: Beige #D8C8B3 with Charcoal 12% border */}
+        <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-[#D8C8B3] mb-3.5 transition-all duration-500 border border-[#292722]/12 group-hover:border-[#8E7545] group-hover:shadow-[0_18px_36px_-8px_rgba(41,39,34,0.16)]">
+          {/* Primary Image */}
           <img
-            src={secondaryImage}
-            alt={`${product.arabicName} على الموديل`}
+            src={primaryImage}
+            alt={product.arabicName}
             className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
-              isHovered ? "opacity-100 scale-105" : "opacity-0 scale-95 pointer-events-none"
+              isHovered && product.images.length > 1
+                ? "opacity-0 scale-105"
+                : "opacity-100 scale-100 group-hover:scale-105"
             }`}
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src =
-                "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=800&q=80";
+                "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80";
             }}
           />
-        )}
 
-        {/* Minimal Badges: Top Left */}
-        <div className="absolute top-3 left-3 z-10 pointer-events-none flex flex-col gap-1 items-start">
-          {product.customBadge ? (
-            <span className="bg-[#292722] text-[#F5F0E7] border border-[#292722]/30 text-[10px] font-medium px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">
-              {product.customBadge}
-            </span>
-          ) : product.isNew ? (
-            <span className="bg-[#292722] text-[#F5F0E7] text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-              NEW
-            </span>
-          ) : product.isBestSeller ? (
-            <span className="bg-[#F5F0E7] text-[#292722] border border-[#292722]/12 text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-              BEST SELLER
-            </span>
-          ) : null}
-        </div>
-
-        {/* Minimal Wishlist Heart: Top Right */}
-        <button
-          type="button"
-          onClick={handleHeartClick}
-          className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-md transition-all duration-300 ${
-            effectivelyWishlisted
-              ? "bg-rose-50 text-rose-500 scale-105 shadow-xs"
-              : "bg-[#F5F0E7]/80 text-[#292722] opacity-0 group-hover:opacity-100 hover:bg-[#F5F0E7] hover:text-rose-500 hover:scale-110"
-          }`}
-          aria-label="المفضلة"
-        >
-          <Heart
-            className={`w-3.5 h-3.5 ${effectivelyWishlisted ? "fill-current" : ""}`}
-          />
-        </button>
-
-        {/* Slide-Up Action Bar on Hover */}
-        <div className="absolute bottom-3 inset-x-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-10">
-          <button
-            type="button"
-            onClick={handleQuickViewClick}
-            className="flex-1 py-2 rounded-full bg-[#F5F0E7]/95 backdrop-blur-md text-[#292722] text-[11px] font-medium hover:bg-[#F5F0E7] shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1 border border-[#292722]/12"
-          >
-            <Eye className="w-3 h-3 text-[#292722]/70" />
-            <span>معاينة</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={isAdded}
-            className={`flex-1 py-2 rounded-full text-[11px] font-medium shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1 ${
-              isAdded
-                ? "bg-emerald-600 text-white"
-                : "bg-[#292722] text-[#F5F0E7] hover:bg-[#3d3a33]"
-            }`}
-          >
-            {isAdded ? (
-              <>
-                <Check className="w-3 h-3" />
-                <span>أُضيف!</span>
-              </>
-            ) : (
-              <>
-                <ShoppingBag className="w-3 h-3 text-[#B7A078]" />
-                <span>أضف للسلة</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Centered Minimal Product Details */}
-      <div className="flex flex-col items-center space-y-1 px-1">
-        {/* Product Title: Charcoal #292722 */}
-        <h3 className="text-xs sm:text-sm font-normal text-[#292722] group-hover:text-[#8E7545] transition-colors duration-300 line-clamp-1 max-w-[95%] leading-relaxed font-amiri">
-          {product.arabicName}
-        </h3>
-
-        {/* Centered Minimal Price: Gold #8E7545 */}
-        <div className="flex items-center justify-center gap-1.5 pt-0.5">
-          <span className="text-xs sm:text-sm font-semibold text-[#8E7545] font-cairo tracking-tight">
-            {product.price.toLocaleString("en-US")}
-          </span>
-          <span className="text-[10px] text-[#8E7545] font-light">ج.م</span>
-          {product.originalPrice && (
-            <span className="text-[10px] text-[#292722]/40 line-through font-light mr-1">
-              {product.originalPrice.toLocaleString("en-US")} ج.م
-            </span>
+          {/* Secondary Model / Angle Image on Hover */}
+          {product.images.length > 1 && (
+            <img
+              src={secondaryImage}
+              alt={`${product.arabicName} على الموديل`}
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
+                isHovered ? "opacity-100 scale-105" : "opacity-0 scale-95 pointer-events-none"
+              }`}
+              loading="lazy"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=800&q=80";
+              }}
+            />
           )}
+
+          {/* Subtle Luxury Sheen Sweep on Hover */}
+          <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+            <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-150%] group-hover:translate-x-[250%] transition-transform duration-1000 ease-in-out" />
+          </div>
+
+          {/* Minimal Badges: Top Left */}
+          <div className="absolute top-3 left-3 z-10 pointer-events-none flex flex-col gap-1 items-start">
+            {product.customBadge ? (
+              <span className="bg-[#292722] text-[#F5F0E7] border border-[#292722]/30 text-[10px] font-tajawal font-medium px-2.5 py-0.5 rounded-full tracking-wider shadow-sm">
+                {product.customBadge}
+              </span>
+            ) : product.isNew ? (
+              <span className="bg-[#292722] text-[#F5F0E7] text-[10px] font-tajawal font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                NEW
+              </span>
+            ) : product.isBestSeller ? (
+              <span className="bg-[#F5F0E7] text-[#292722] border border-[#292722]/12 text-[10px] font-tajawal font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5 text-[#8E7545]" />
+                الأكثر طلباً
+              </span>
+            ) : null}
+          </div>
+
+          {/* Minimal Wishlist Heart: Top Right with spring animation */}
+          <motion.button
+            type="button"
+            onClick={handleHeartClick}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.85 }}
+            className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-md transition-all duration-300 ${
+              effectivelyWishlisted
+                ? "bg-rose-50 text-rose-500 scale-105 shadow-sm"
+                : "bg-[#F5F0E7]/85 text-[#292722] opacity-0 group-hover:opacity-100 hover:bg-[#F5F0E7] hover:text-rose-500 hover:scale-110 shadow-xs"
+            }`}
+            aria-label="المفضلة"
+          >
+            <Heart
+              className={`w-3.5 h-3.5 ${effectivelyWishlisted ? "fill-current" : ""}`}
+            />
+          </motion.button>
+
+          {/* Slide-Up Action Bar on Hover */}
+          <div className="absolute bottom-3 inset-x-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-10">
+            <motion.button
+              type="button"
+              onClick={handleQuickViewClick}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-1 py-2 rounded-full bg-[#F5F0E7]/95 backdrop-blur-md text-[#292722] text-[11px] font-tajawal font-medium hover:bg-[#F5F0E7] shadow-sm transition-all flex items-center justify-center gap-1 border border-[#292722]/12"
+            >
+              <Eye className="w-3 h-3 text-[#292722]/70" />
+              <span>معاينة</span>
+            </motion.button>
+
+            <motion.button
+              type="button"
+              onClick={handleAdd}
+              disabled={isAdded}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex-1 py-2 rounded-full text-[11px] font-tajawal font-medium shadow-sm transition-all flex items-center justify-center gap-1 ${
+                isAdded
+                  ? "bg-emerald-600 text-white"
+                  : "bg-[#292722] text-[#F5F0E7] hover:bg-[#3d3a33]"
+              }`}
+            >
+              <AnimatePresence mode="wait">
+                {isAdded ? (
+                  <motion.div
+                    key="added"
+                    initial={{ scale: 0.7, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.7, opacity: 0 }}
+                    className="flex items-center gap-1"
+                  >
+                    <Check className="w-3 h-3" />
+                    <span>أُضيف!</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="add"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center gap-1"
+                  >
+                    <ShoppingBag className="w-3 h-3 text-[#B7A078]" />
+                    <span>أضف للسلة</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
         </div>
-      </div>
-    </Link>
+
+        {/* Centered Minimal Product Details */}
+        <div className="flex flex-col items-center space-y-1.5 px-1 mt-auto">
+          {/* Product Title: Charcoal #292722 */}
+          <h3 className="text-xs sm:text-sm font-tajawal font-medium text-[#292722] group-hover:text-[#8E7545] transition-colors duration-300 line-clamp-1 max-w-[95%] leading-relaxed">
+            {product.arabicName}
+          </h3>
+
+          {/* Centered Minimal Price: Gold #8E7545 */}
+          <div className="flex items-center justify-center gap-1.5 pt-0.5">
+            <span className="text-sm sm:text-base font-tajawal font-bold text-[#8E7545] tracking-tight">
+              {product.price.toLocaleString("en-US")}
+            </span>
+            <span className="text-[11px] text-[#8E7545] font-tajawal font-medium">ج.م</span>
+            {product.originalPrice && (
+              <span className="text-[11px] text-[#292722]/40 line-through font-tajawal font-normal mr-1">
+                {product.originalPrice.toLocaleString("en-US")} ج.م
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
   );
 };

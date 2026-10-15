@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
     const cleanPhone = (storeSettings.whatsappNumber || "01143837730").replace(/\D/g, "");
     const formattedPhone = cleanPhone.startsWith("20") ? cleanPhone : `20${cleanPhone.replace(/^0/, "")}`;
     const msg = encodeURIComponent(
-      `مرحباً براند أَثَر، أود طلب هذه القطعة الفاخرة:\n\n*القطعة:* ${product.arabicName}\n*الكود:* ${
+      `مرحباً دار ORMA، أود طلب هذه القطعة الفاخرة:\n\n*القطعة:* ${product.arabicName}\n*الكود:* ${
         product.id
       }\n${sizeText ? `*المقاس:* ${selectedSize}\n` : ""}*الكمية:* ${quantity}\n*الإجمالي:* ${
         product.price * quantity

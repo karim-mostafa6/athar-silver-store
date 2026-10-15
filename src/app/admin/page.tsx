@@ -759,7 +759,7 @@ export default function AdminPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `athar-orders-${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `orma-orders-${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -3374,7 +3374,7 @@ export default function AdminPage() {
                       onChange={(e) =>
                         setSettingsForm({ ...settingsForm, promoBannerSubtitle: e.target.value })
                       }
-                      placeholder="احصل على خصم 10% فوري عند استخدام كود ATHAR10 مع شحن مجاني للطلبات المؤكدة اليوم."
+                      placeholder="احصل على خصم 10% فوري عند استخدام كود ORMA10 مع شحن مجاني للطلبات المؤكدة اليوم."
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] focus:outline-none"
                     />
                   </div>
@@ -5547,7 +5547,7 @@ export default function AdminPage() {
                     <label className="block text-xs font-medium text-[#756555] mb-1">عبارة الشغف والإهداء</label>
                     <input
                       type="text"
-                      value={settingsForm.footerPassionTagline || "صُنع بشغف ليبقى أثراً خالداً"}
+                      value={settingsForm.footerPassionTagline || "Not Given, But Left • مش بتتهدي.. بتتساب"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, footerPassionTagline: e.target.value })}
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
                     />
@@ -5737,7 +5737,7 @@ export default function AdminPage() {
                       type="text"
                       value={settingsForm.instaPayAccountName || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, instaPayAccountName: e.target.value })}
-                      placeholder="Athar Silver Store"
+                      placeholder="ORMA Silver Store"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
                     />
                   </div>
@@ -6026,7 +6026,7 @@ export default function AdminPage() {
                       type="text"
                       value={settingsForm.promoCode || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, promoCode: e.target.value.toUpperCase() })}
-                      placeholder="ATHAR10"
+                      placeholder="ORMA10"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-mono font-bold focus:outline-none dir-ltr text-right"
                     />
                   </div>
@@ -6878,7 +6878,7 @@ export default function AdminPage() {
                     type="text"
                     value={productForm.name || ""}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                    placeholder="Royal Athar Signet Ring"
+                    placeholder="Royal Orma Signet Ring"
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
                   />
                 </div>

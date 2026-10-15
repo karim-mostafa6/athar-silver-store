@@ -98,8 +98,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        cairo: ["var(--font-cairo)", "sans-serif"],
-        alexandria: ["var(--font-alexandria)", "sans-serif"],
+        tajawal: ["var(--font-tajawal)", "var(--font-cairo)", "sans-serif"],
+        cairo: ["var(--font-cairo)", "var(--font-tajawal)", "sans-serif"],
+        alexandria: ["var(--font-cairo)", "sans-serif"],
         amiri: ["'Amiri'", "serif"],
         aref: ["'Aref Ruqaa'", "'Amiri'", "serif"],
         lora: ["'Lora'", "serif"],

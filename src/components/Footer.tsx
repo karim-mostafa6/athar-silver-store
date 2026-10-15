@@ -39,7 +39,7 @@ export const Footer: React.FC<FooterProps> = () => {
           </div>
 
           {/* Center: Essential Navigation Links */}
-          <nav className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium text-[#F5F0E7]/75 font-amiri">
+          <nav className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium text-[#F5F0E7]/75 font-tajawal">
             <Link href="/page/contact" className="hover:text-[#F5F0E7] transition-colors">
               تواصل معنا
             </Link>
@@ -155,7 +155,7 @@ export const Footer: React.FC<FooterProps> = () => {
 
         {/* Bottom Line: Copyright & 15% opacity divider */}
         <div className="mt-12 pt-6 border-t border-[#F5F0E7]/15 text-center">
-          <p className="font-amiri text-xs text-[#F5F0E7]/75">
+          <p className="font-tajawal text-xs text-[#F5F0E7]/75">
             © {currentYear} ORMA • جميع الحقوق محفوظة
           </p>
         </div>

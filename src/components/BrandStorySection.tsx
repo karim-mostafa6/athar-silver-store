@@ -69,9 +69,9 @@ export const BrandStorySection: React.FC = () => {
           <div className="w-14 h-[2px] bg-[#B7A078] mx-auto rounded-full" />
         </ScrollReveal>
 
-        {/* Body Text: Amiri, Ivory with 75% opacity */}
+        {/* Body Text: Tajawal, Ivory with 80% opacity */}
         <ScrollReveal direction="up" delay={300} duration={700} threshold={0.12}>
-          <p className="text-sm sm:text-base text-[#F5F0E7]/75 font-amiri font-light leading-loose max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-[#F5F0E7]/80 font-tajawal font-normal leading-relaxed max-w-2xl mx-auto">
             {storyText}
           </p>
         </ScrollReveal>
@@ -81,15 +81,15 @@ export const BrandStorySection: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 w-full text-center">
             {pillars.map((p, idx) => (
               <ScrollReveal key={idx} direction="up" delay={400 + idx * 100} duration={700} threshold={0.1}>
-                <div className="space-y-2">
+                <div className="space-y-2 p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#B7A078]/30 transition-colors">
                   <div className="w-8 h-[1px] bg-[#B7A078]/50 mx-auto mb-3" />
                   {p.title && (
-                    <div className="text-[12px] font-bold text-[#B7A078] font-aref tracking-wider uppercase">
+                    <div className="text-xs sm:text-sm font-bold text-[#B7A078] font-tajawal tracking-wide">
                       {p.title}
                     </div>
                   )}
                   {p.desc && (
-                    <div className="text-[12px] text-[#F5F0E7]/75 font-amiri font-light leading-relaxed">
+                    <div className="text-xs text-[#F5F0E7]/75 font-tajawal font-normal leading-relaxed">
                       {p.desc}
                     </div>
                   )}
