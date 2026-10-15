@@ -110,6 +110,9 @@ ${itemsText}
 https://wa.me/${cleanPhone}`;
 }
 
+// In-memory deduplication set to avoid double notifications across redundant fallback hooks
+const notifiedOrderIds = new Set<string>();
+
 /**
  * Sends order notification to Telegram Bot.
  * Awaits completion and handles errors with detailed console.error logs for Vercel.
@@ -119,6 +122,11 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
   message?: string;
   error?: string;
 }> {
+  if (order.id && notifiedOrderIds.has(order.id)) {
+    console.log(`[Telegram Notice] Notification for order #${order.id} was already dispatched. Skipping duplicate.`);
+    return { success: true, message: "Notification already sent" };
+  }
+
   const rawBotToken = process.env.TELEGRAM_BOT_TOKEN;
   const rawChatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -164,6 +172,10 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
         data
       );
       return { success: false, error: errMsg };
+    }
+
+    if (order.id) {
+      notifiedOrderIds.add(order.id);
     }
 
     console.log(

@@ -349,11 +349,24 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const currentData = await getServerStoreData();
+    const existingOrderIds = new Set(currentData.orders.map((o) => o.id));
+    const newOrders = orders.filter((o: Order) => o && o.id && !existingOrderIds.has(o.id));
+
     const saved = await saveServerStoreData({
       orders,
       lastOrderSeq: typeof lastOrderSeq === "number" ? lastOrderSeq : undefined,
       deletedOrderIds: Array.isArray(deletedOrderIds) ? deletedOrderIds : undefined,
     });
+
+    // Fallback: Dispatch Telegram notification for any new orders detected in PUT payload
+    for (const newOrder of newOrders) {
+      try {
+        await sendTelegramOrderNotification(newOrder);
+      } catch (tgErr) {
+        console.error("[Orders PUT Fallback] Telegram notification failed:", tgErr);
+      }
+    }
 
     return NextResponse.json(
       {

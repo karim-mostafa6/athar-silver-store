@@ -279,8 +279,7 @@ export default function CheckoutPage() {
 
     const fullAddress = apartment ? `${address} - ${apartment}` : address;
 
-    // Create Order with sequential 4-digit ID
-    const newOrderId = addOrder({
+    const orderPayload = {
       customerName: fullName,
       phone: phone.trim(),
       email: email.trim() || undefined,
@@ -310,10 +309,24 @@ export default function CheckoutPage() {
           ? {
               cardHolder: cardData.cardHolder || fullName,
               cardLast4: cardData.cardNumber.replace(/\s/g, "").slice(-4) || "4242",
-              paymentStatus: "mock_success",
+              paymentStatus: "mock_success" as const,
             }
           : undefined,
-    });
+    };
+
+    // Create Order with sequential 4-digit ID
+    const newOrderId = addOrder(orderPayload);
+
+    // Explicitly await POST /api/orders to ensure Telegram notification completes in Vercel Serverless
+    try {
+      await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: { ...orderPayload, id: newOrderId } }),
+      });
+    } catch (orderPostErr) {
+      console.error("[Checkout] Error awaiting POST /api/orders:", orderPostErr);
+    }
 
     setConfirmedOrderId(newOrderId);
     setConfirmedSnapshot({

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { getServerSettings, saveServerSettings } from "@/lib/serverSettings";
+import { sendTelegramOrderNotification } from "@/lib/telegram";
+import { Order } from "@/context/StoreContext";
 
 export const dynamic = "force-dynamic";
 
@@ -373,6 +375,46 @@ export async function POST(request: NextRequest) {
       }
     } else {
       console.log(`[Email Order Dispatch] Prepared "${subject}" to ${email} from ${officialSenderEmail} (Awaiting Gmail App Password)`);
+    }
+
+    // Fallback: Dispatch Telegram order notification if this is a new customer order
+    if (status === "new_order" && !isTest && orderId) {
+      try {
+        const fallbackOrder: Order = {
+          id: orderId,
+          customerName: customerName || "عميل المتجر",
+          phone: phone || "",
+          email: email || undefined,
+          governorate: governorate || "",
+          address: address || "",
+          items: items.map((i) => ({
+            productId: "",
+            arabicName: i.arabicName,
+            name: i.arabicName,
+            quantity: i.quantity,
+            price: i.price,
+            selectedSize: i.selectedSize,
+          })),
+          subtotal: subtotal ?? (total - (shippingFee || 0) + (discount || 0)),
+          shippingFee: shippingFee ?? 0,
+          discount: discount ?? 0,
+          total: total,
+          status: "pending",
+          paymentMethod: (paymentMethod as Order["paymentMethod"]) || "cod",
+          isGift: Boolean(isGift),
+          giftMessage: giftMessage || undefined,
+          createdAt: new Date().toISOString(),
+        };
+
+        const tgResult = await sendTelegramOrderNotification(fallbackOrder);
+        if (!tgResult.success) {
+          console.error("[Email Route Telegram Fallback] Failed:", tgResult.error);
+        } else {
+          console.log("[Email Route Telegram Fallback] Dispatched successfully for order:", orderId);
+        }
+      } catch (tgErr) {
+        console.error("[Email Route Telegram Fallback] Exception:", tgErr);
+      }
     }
 
     return NextResponse.json({

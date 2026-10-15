@@ -1483,7 +1483,25 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       status: "pending",
     };
 
-    applyOrdersMutation((prev) => [newOrder, ...prev], true);
+    applyOrdersMutation((prev) => [newOrder, ...prev], false);
+
+    // Automatically dispatch order via POST /api/orders to save in Supabase and trigger Telegram notification
+    fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: newOrder }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data?.order) {
+          applyOrdersMutation(
+            (prev) => [data.order, ...prev.filter((o) => o.id !== data.order.id)],
+            false
+          );
+        }
+      })
+      .catch((err) => console.error("Error dispatching order to /api/orders:", err));
+
     return newId;
   };
 
