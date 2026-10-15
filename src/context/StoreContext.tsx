@@ -1050,22 +1050,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       .catch((err) => console.warn("Could not sync orders to server:", err));
   };
 
-  // Background Central Server Sync (High-speed & non-blocking)
+  // Background Central Server Sync (Optimized & non-blocking)
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
-    // Allow checks every 3.5 seconds or immediately if forced
-    if (!force && now - lastSyncTimestampRef.current < 3500) return;
+    // Allow checks every 60 seconds or immediately if forced
+    if (!force && now - lastSyncTimestampRef.current < 60000) return;
     if (isSyncingRef.current) return;
 
     isSyncingRef.current = true;
     lastSyncTimestampRef.current = now;
 
-    // Cache-busting query parameter (?t=...) prevents Mobile Safari and Android browsers from serving stale cache
-    fetch(`/api/data?t=${now}`, {
-      cache: "no-store",
+    fetch(force ? `/api/data?t=${now}` : "/api/data", {
       headers: {
-        "Pragma": "no-cache",
-        "Cache-Control": "no-cache",
+        "Accept": "application/json",
       },
     })
       .then((res) => res.json())
@@ -1191,31 +1188,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       });
   }, []);
 
-  // Real-time synchronization heartbeat across all devices
+  // Synchronize with server on mount & when returning to the tab
   useEffect(() => {
     // 1. Initial sync immediately on mount
     syncWithServer(true);
 
-    // 2. High-speed heartbeat: checks for live changes every 5 seconds when tab is open
-    const interval = setInterval(() => {
-      if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        syncWithServer(false);
-      }
-    }, 5000);
-
-    // 3. Instant sync on focus / app switch
+    // 2. Sync on focus / app switch only when user returns to tab
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        syncWithServer(true);
+        syncWithServer(false);
       }
     };
-    const onWindowFocus = () => syncWithServer(true);
+    const onWindowFocus = () => syncWithServer(false);
 
     window.addEventListener("focus", onWindowFocus);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener("focus", onWindowFocus);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
