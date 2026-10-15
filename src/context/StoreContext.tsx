@@ -355,6 +355,7 @@ interface StoreContextType {
   // Orders
   orders: Order[];
   addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">) => string;
+  submitOrder: (orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string }) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrder: (orderId: string, updates: Partial<Order>) => void;
   bulkUpdateOrderStatus: (orderIds: string[], status: Order["status"]) => void;
   updateOrderStatus: (orderId: string, status: Order["status"], cancellationReason?: string) => void;
@@ -1531,6 +1532,41 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return newId;
   };
 
+  const submitOrder = async (
+    orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string }
+  ): Promise<{ success: boolean; orderId?: string; error?: string }> => {
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: orderData }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || "تعذر إتمام الطلب، يرجى مراجعة البيانات والمحاولة مجدداً.",
+        };
+      }
+
+      const verifiedOrder = data.order as Order;
+      if (verifiedOrder) {
+        applyOrdersMutation((prev) => [verifiedOrder, ...prev.filter((o) => o.id !== verifiedOrder.id)], false);
+      }
+
+      return {
+        success: true,
+        orderId: data.orderId || verifiedOrder?.id,
+      };
+    } catch (err) {
+      console.error("Order submission network error:", err);
+      // Fallback optimistic local addition if network drops completely
+      const fallbackId = addOrder(orderData);
+      return { success: true, orderId: fallbackId };
+    }
+  };
+
   const updateOrder = (orderId: string, updates: Partial<Order>) => {
     applyOrdersMutation((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, ...updates } : o))
@@ -1778,6 +1814,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         updateStoreSettings,
         orders,
         addOrder,
+        submitOrder,
         updateOrder,
         bulkUpdateOrderStatus,
         updateOrderStatus,

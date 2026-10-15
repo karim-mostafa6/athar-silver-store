@@ -42,7 +42,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   appliedPromo,
   onOrderSuccess,
 }) => {
-  const { addOrder, storeSettings, clearCart } = useStore();
+  const { submitOrder, storeSettings, clearCart } = useStore();
+  const [submitError, setSubmitError] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -211,7 +213,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     return v;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.phone || !formData.address) {
       alert("يرجى ملء الاسم ورقم الهاتف والعنوان بالتفصيل");
@@ -241,7 +243,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
 
     setIsSubmitting(true);
-    const newOrderId = addOrder({
+    setSubmitError("");
+
+    const orderPayload = {
       customerName: formData.fullName,
       phone: formData.phone,
       email: formData.email.trim() || undefined,
@@ -250,6 +254,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       notes: formData.notes,
       isGift: formData.isGift,
       giftMessage: formData.giftMessage,
+      promoCode: appliedPromo || undefined,
+      honeypot: honeypot || undefined,
       items: cartItems.map((i) => ({
         productId: i.product.id,
         name: i.product.name,
@@ -271,10 +277,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           ? {
               cardHolder: cardData.cardHolder || formData.fullName,
               cardLast4: cardData.cardNumber.replace(/\s/g, "").slice(-4) || "4242",
-              paymentStatus: "mock_success",
+              paymentStatus: "mock_success" as const,
             }
           : undefined,
-    });
+    };
+
+    const result = await submitOrder(orderPayload);
+    if (!result.success) {
+      setIsSubmitting(false);
+      setSubmitError(result.error || "حدث خطأ أثناء حفظ الطلب، يرجى المحاولة مجدداً.");
+      return;
+    }
+
+    const newOrderId = result.orderId || `ATH-${Date.now().toString().slice(-4)}`;
     setOrderId(newOrderId);
 
     // Save persistent snapshot of the order before cart is cleared
@@ -1124,6 +1139,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <span className="text-xl font-alexandria text-[#1c1815]">{grandTotal} ج.م</span>
                 </div>
               </div>
+
+              {/* Anti-Spam Honeypot field (Hidden from humans, traps automated spam bots) */}
+              <input
+                type="text"
+                name="website_url"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                style={{ display: "none" }}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+
+              {/* Submission Error Banner */}
+              {submitError && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold leading-relaxed text-right flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                  <span>{submitError}</span>
+                </div>
+              )}
 
               {/* Submit Button */}
               <button

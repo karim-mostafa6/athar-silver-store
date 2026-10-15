@@ -388,41 +388,7 @@ export default function AdminPage() {
         setAuthError(data.error || "اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.");
       }
     } catch {
-      // Fallback offline verification if API is temporarily unreachable
-      if (trimmedUser === "karim mostafa" && cleanPass === "Kk5019Kk@#$&") {
-        const u = { username: "karim mostafa", name: "كريم مصطفى", role: "super_admin" as AdminRole };
-        setIsAuthenticated(true);
-        setCurrentUser(u);
-        setIsSettingsUnlocked(true);
-        if (rememberMe) {
-          localStorage.setItem("athar_admin_auth", "true");
-          localStorage.setItem("athar_admin_user", JSON.stringify(u));
-        }
-        setActiveTab("orders");
-        addToast("مرحباً بك", "تم تسجيل الدخول بصلاحية المالك والمدير العام", "info");
-      } else {
-        const subUser = (storeSettings.adminUsers || []).find(
-          (u) => u.username.toLowerCase().trim() === trimmedUser && u.password === cleanPass && u.isActive !== false
-        );
-        if (subUser) {
-          const u = { username: subUser.username, name: subUser.name, role: subUser.role };
-          setIsAuthenticated(true);
-          setCurrentUser(u);
-          setIsSettingsUnlocked(true);
-          if (rememberMe) {
-            localStorage.setItem("athar_admin_auth", "true");
-            localStorage.setItem("athar_admin_user", JSON.stringify(u));
-          }
-          if (u.role === "store_editor") {
-            setActiveTab("products");
-          } else {
-            setActiveTab("orders");
-          }
-          addToast("مرحباً بك", `تم تسجيل الدخول بنجاح (${u.name})`, "info");
-        } else {
-          setAuthError("اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.");
-        }
-      }
+      setAuthError("حدث خطأ أثناء الاتصال بالسيرفر. يرجى التحقق من اتصال الإنترنت والمحاولة مجدداً.");
     } finally {
       setIsLoggingIn(false);
     }
@@ -470,23 +436,33 @@ export default function AdminPage() {
     }
   };
 
-  // Unlock Settings with Password (Master or authorized sub-user)
-  const handleUnlockSettings = (e: React.FormEvent) => {
+  // Unlock Settings with Password (Verified securely on Server)
+  const handleUnlockSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     const entered = settingsPasswordInput.trim();
-    const isMaster = entered === "Kk5019Kk@#$&";
-    const isSubUser = (storeSettings.adminUsers || []).some((u) => u.password === entered && u.isActive !== false);
+    if (!entered) return;
 
-    if (isMaster || isSubUser) {
-      setIsSettingsUnlocked(true);
-      sessionStorage.setItem("athar_settings_unlocked", "true");
-      setIsSettingsPasswordModalOpen(false);
-      setSettingsPasswordError("");
-      const targetTab = pendingTabAfterUnlock || (canViewSettings ? "products" : "orders");
-      setActiveTab(targetTab);
-      addToast("تم فتح الإعدادات", "تم تأكيد كلمة المرور بنجاح، يمكنك الآن تعديل كافة إعدادات المتجر", "info");
-    } else {
-      setSettingsPasswordError("كلمة المرور غير صحيحة، يرجى إدخال كلمة المرور الصحيحة للوصول للإعدادات.");
+    try {
+      const res = await fetch("/api/admin/verify-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: entered }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.valid) {
+        setIsSettingsUnlocked(true);
+        sessionStorage.setItem("athar_settings_unlocked", "true");
+        setIsSettingsPasswordModalOpen(false);
+        setSettingsPasswordError("");
+        const targetTab = pendingTabAfterUnlock || (canViewSettings ? "products" : "orders");
+        setActiveTab(targetTab);
+        addToast("تم فتح الإعدادات", "تم تأكيد كلمة المرور بنجاح، يمكنك الآن تعديل كافة إعدادات المتجر", "info");
+      } else {
+        setSettingsPasswordError("كلمة المرور غير صحيحة، يرجى إدخال كلمة المرور الصحيحة للوصول للإعدادات.");
+      }
+    } catch {
+      setSettingsPasswordError("حدث خطأ أثناء التحقق من كلمة المرور.");
     }
   };
 
@@ -7592,7 +7568,7 @@ export default function AdminPage() {
       )}
 
       {/* ========================================================
-          SETTINGS SECURITY PASSWORD MODAL (Password: Kk5019Kk@#$&)
+          SETTINGS SECURITY PASSWORD MODAL
           ======================================================== */}
       {isSettingsPasswordModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">

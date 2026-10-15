@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAdminToken, checkRateLimit, recordFailedAttempt, resetFailedAttempts } from "@/lib/adminAuth";
-
 import { getServerStoreData } from "@/lib/serverStore";
+import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1";
-    
-    // Check rate limit
+
+    // 1. Check brute-force rate limit
     const rateCheck = checkRateLimit(ip);
     if (!rateCheck.allowed) {
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const trimmedUser = (username || "").trim().toLowerCase();
     const cleanPass = (password || "").trim();
 
-    // Strictly block generic 'admin' usernames
+    // Block empty or generic 'admin' usernames
     if (!trimmedUser || !cleanPass || trimmedUser === "admin") {
       recordFailedAttempt(ip);
       return NextResponse.json(
@@ -42,15 +42,43 @@ export async function POST(request: NextRequest) {
       role: "super_admin" | "orders_customers" | "store_editor" | "all";
     } | null = null;
 
-    // 1. Check Primary Master Super Admin (Karim Mostafa)
-    if (trimmedUser === "karim mostafa" && cleanPass === "Kk5019Kk@#$&") {
-      authenticatedUser = {
-        username: "karim mostafa",
-        name: "كريم مصطفى",
-        role: "super_admin",
-      };
-    } else {
-      // 2. Check Custom Sub-Admins in Central Store Settings
+    // 2. Option A: Authenticate via Supabase Auth (if user passed email & Supabase is enabled)
+    if (isSupabaseConfigured() && trimmedUser.includes("@")) {
+      try {
+        const supabase = getSupabaseAdminClient();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: trimmedUser,
+          password: cleanPass,
+        });
+
+        if (!error && data?.user) {
+          authenticatedUser = {
+            username: data.user.email || trimmedUser,
+            name: data.user.user_metadata?.full_name || "مدير النظام",
+            role: "super_admin",
+          };
+        }
+      } catch (authErr) {
+        console.warn("Supabase auth check notice:", authErr);
+      }
+    }
+
+    // 3. Option B: Check Server-Side Master Admin Credentials (from Environment Variables)
+    if (!authenticatedUser) {
+      const expectedMasterUser = (process.env.ADMIN_USER || "karim mostafa").trim().toLowerCase();
+      const expectedMasterPass = (process.env.ADMIN_PASSWORD || "Kk5019Kk@#$&").trim();
+
+      if (trimmedUser === expectedMasterUser && cleanPass === expectedMasterPass) {
+        authenticatedUser = {
+          username: "karim mostafa",
+          name: "كريم مصطفى",
+          role: "super_admin",
+        };
+      }
+    }
+
+    // 4. Option C: Check Custom Sub-Admins stored in Supabase / Store Settings
+    if (!authenticatedUser) {
       try {
         const storeData = await getServerStoreData();
         const subUsers = storeData.settings?.adminUsers || [];
@@ -69,7 +97,7 @@ export async function POST(request: NextRequest) {
           };
         }
       } catch (err) {
-        console.error("Error reading store settings for user authentication:", err);
+        console.error("Error checking sub-users:", err);
       }
     }
 
@@ -94,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     // Set secure cookie
     response.cookies.set("athar_admin_token", token, {
-      httpOnly: false, // Accessible to client if needed
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60, // 7 days
@@ -103,10 +131,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("Login API error:", error);
-    return NextResponse.json(
-      { success: false, error: "حدث خطأ أثناء معالجة تسجيل الدخول" },
-      { status: 500 }
-    );
+    console.error("Login route error:", error);
+    return NextResponse.json({ success: false, error: "حدث خطأ غير متوقع أثناء تسجيل الدخول." }, { status: 500 });
   }
 }

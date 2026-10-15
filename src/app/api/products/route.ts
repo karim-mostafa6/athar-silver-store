@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-const NO_CACHE_HEADERS = {
-  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0",
-  "CDN-Cache-Control": "no-store",
-  "Vercel-CDN-Cache-Control": "no-store",
-  "Pragma": "no-cache",
-  "Expires": "0",
-};
 
 export async function GET() {
   try {
@@ -20,40 +13,61 @@ export async function GET() {
         success: true,
         products: data.products,
       },
-      { headers: NO_CACHE_HEADERS }
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      }
     );
   } catch (error: unknown) {
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Error reading products" },
-      { status: 500, headers: NO_CACHE_HEADERS }
+      { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // 1. Security Check: Only authenticated admin can update products
+    if (!isAuthorizedAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: "غير مصرح لك بتعديل أو إضافة منتجات" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { products } = body;
 
     if (!Array.isArray(products)) {
-      return NextResponse.json({ success: false, error: "Invalid products array" }, { status: 400, headers: NO_CACHE_HEADERS });
+      return NextResponse.json(
+        { success: false, error: "Invalid products array" },
+        { status: 400 }
+      );
     }
 
     const saved = await saveServerStoreData({ products });
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "تم حفظ وتحديث كتالوج المنتجات مركزياً في السيرفر!",
-        productsCount: saved.products.length,
-        updatedAt: saved.updatedAt,
-      },
-      { headers: NO_CACHE_HEADERS }
-    );
+    // 2. Next.js High-Performance Cache Invalidation
+    try {
+      revalidatePath("/");
+      revalidatePath("/collection/[slug]", "page");
+      revalidatePath("/product/[id]", "page");
+    } catch (e) {
+      console.warn("Revalidation notice:", e);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "تم حفظ وتحديث كتالوج المنتجات في قاعدة بيانات Supabase وتحديث الكاش فورياً!",
+      productsCount: saved.products.length,
+      updatedAt: saved.updatedAt,
+    });
   } catch (error: unknown) {
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Error saving products" },
-      { status: 500, headers: NO_CACHE_HEADERS }
+      { status: 500 }
     );
   }
 }

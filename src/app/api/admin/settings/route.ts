@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerSettings, saveServerSettings } from "@/lib/serverSettings";
 import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,8 +15,9 @@ const NO_CACHE_HEADERS = {
   "Expires": "0",
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const isAdmin = isAuthorizedAdmin(request);
     const emailSettings = getServerSettings();
     const storeData = await getServerStoreData();
 
@@ -24,7 +27,8 @@ export async function GET() {
         senderEmail: emailSettings.senderEmail,
         senderEmailName: emailSettings.senderEmailName,
         hasAppPassword: Boolean(emailSettings.gmailAppPassword && emailSettings.gmailAppPassword.length >= 10),
-        gmailAppPassword: emailSettings.gmailAppPassword,
+        // Only return real app password if authorized admin
+        gmailAppPassword: isAdmin ? emailSettings.gmailAppPassword : "",
         settings: storeData.settings,
       },
       { headers: NO_CACHE_HEADERS }
@@ -39,6 +43,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Security check: Only authorized admin can update settings
+    if (!isAuthorizedAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: "غير مصرح لك بتعديل إعدادات المتجر." },
+        { status: 401, headers: NO_CACHE_HEADERS }
+      );
+    }
+
     const body = await request.json();
     const { senderEmail, senderEmailName, gmailAppPassword, settings } = body;
 
@@ -53,10 +65,14 @@ export async function POST(request: NextRequest) {
       savedData = await saveServerStoreData({ settings });
     }
 
+    try {
+      revalidatePath("/");
+    } catch {}
+
     return NextResponse.json(
       {
         success: true,
-        message: "تم حفظ الإعدادات وتحديثها مركزياً بنجاح!",
+        message: "تم حفظ الإعدادات وتحديثها في Supabase بنجاح!",
         senderEmail: savedEmail.senderEmail,
         senderEmailName: savedEmail.senderEmailName,
         hasAppPassword: Boolean(savedEmail.gmailAppPassword && savedEmail.gmailAppPassword.length >= 10),

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Product, PRODUCTS, DEFAULT_CATEGORIES } from "@/data/products";
 import { StoreSettings, Order } from "@/context/StoreContext";
+import { getSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
 
 export interface ServerStoreData {
   products: Product[];
@@ -13,19 +14,7 @@ export interface ServerStoreData {
   isDefault?: boolean;
 }
 
-// ----------------------------------------------------
-// DEDICATED HIGH-SPEED CLOUD REDIS STORE (UPSTASH / VERCEL KV)
-// ----------------------------------------------------
-const FALLBACK_CLOUD_URL = "https://select-viper-229752.upstash.io";
-const FALLBACK_CLOUD_TOKEN = "gQAAAAAAA4F4AQIgcDE4YmYyZTdiZDRjMWQ0ZWVkODYyMTk2MDliYjQ1NGQxNw";
-
-function getCloudCredentials(): { url: string; token: string } {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || FALLBACK_CLOUD_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || FALLBACK_CLOUD_TOKEN;
-  return { url, token };
-}
-
-// File path detection for local development
+// File path detection for local fallback if Supabase is not yet configured
 function getStoreFilePath(): string {
   const rootPath = path.join(process.cwd(), "store-data.json");
   try {
@@ -37,64 +26,133 @@ function getStoreFilePath(): string {
   }
 }
 
-// ----------------------------------------------------
-// READ FROM CENTRAL CLOUD DATABASE
-// ----------------------------------------------------
-async function getCloudData(): Promise<ServerStoreData | null> {
-  const { url, token } = getCloudCredentials();
-  if (!url || !token) return null;
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(["GET", "athar_ecommerce_store_data"]),
-      cache: "no-store",
-    });
-
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (json && json.result) {
-      const parsed = typeof json.result === "string" ? JSON.parse(json.result) : json.result;
-      if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn("Failed to fetch from Cloud KV:", err);
-  }
-  return null;
+// Model Mappers: Product <-> Supabase
+export function mapDbProductToModel(row: Record<string, unknown>): Product {
+  return {
+    id: String(row.id || ""),
+    name: String(row.name || ""),
+    arabicName: String(row.arabic_name || row.arabicName || ""),
+    category: String(row.category || "rings"),
+    gender: (row.gender as "men" | "women" | "unisex") || "unisex",
+    purity: String(row.purity || "فضة إسترليني عيار 925 معتمدة"),
+    price: Number(row.price) || 0,
+    originalPrice: row.original_price ? Number(row.original_price) : undefined,
+    costPrice: row.cost_price ? Number(row.cost_price) : undefined,
+    sku: row.sku ? String(row.sku) : undefined,
+    stockQuantity: row.stock_quantity !== undefined && row.stock_quantity !== null ? Number(row.stock_quantity) : undefined,
+    stoneType: row.stone_type ? String(row.stone_type) : undefined,
+    rating: Number(row.rating) || 5.0,
+    reviewsCount: Number(row.reviews_count) || 1,
+    images: Array.isArray(row.images) ? (row.images as string[]) : [],
+    description: String(row.description || ""),
+    features: Array.isArray(row.features) ? (row.features as string[]) : [],
+    sizes: Array.isArray(row.sizes) ? (row.sizes as string[]) : [],
+    defaultSize: row.default_size ? String(row.default_size) : undefined,
+    weightGrams: Number(row.weight_grams) || 0,
+    isNew: Boolean(row.is_new),
+    isBestSeller: Boolean(row.is_best_seller),
+    inStock: row.in_stock !== false,
+    tags: Array.isArray(row.tags) ? (row.tags as string[]) : [],
+    collections: Array.isArray(row.collections) ? (row.collections as string[]) : [],
+  };
 }
 
-// ----------------------------------------------------
-// WRITE TO CENTRAL CLOUD DATABASE
-// ----------------------------------------------------
-async function saveCloudData(data: ServerStoreData): Promise<boolean> {
-  const { url, token } = getCloudCredentials();
-  if (!url || !token) return false;
+export function mapModelProductToDb(p: Product): Record<string, unknown> {
+  return {
+    id: p.id,
+    name: p.name || "",
+    arabic_name: p.arabicName,
+    category: p.category,
+    gender: p.gender,
+    purity: p.purity || "فضة إسترليني عيار 925 معتمدة",
+    price: p.price,
+    original_price: p.originalPrice || null,
+    cost_price: p.costPrice || null,
+    sku: p.sku || null,
+    stock_quantity: p.stockQuantity ?? null,
+    stone_type: p.stoneType || null,
+    rating: p.rating || 5.0,
+    reviews_count: p.reviewsCount || 1,
+    images: Array.isArray(p.images) ? p.images : [],
+    description: p.description || "",
+    features: Array.isArray(p.features) ? p.features : [],
+    sizes: Array.isArray(p.sizes) ? p.sizes : [],
+    default_size: p.defaultSize || null,
+    weight_grams: p.weightGrams || 0,
+    is_new: Boolean(p.isNew),
+    is_best_seller: Boolean(p.isBestSeller),
+    in_stock: p.inStock !== false,
+    tags: Array.isArray(p.tags) ? p.tags : [],
+    collections: Array.isArray(p.collections) ? p.collections : [],
+    updated_at: new Date().toISOString(),
+  };
+}
 
-  try {
-    const payload = JSON.stringify(data);
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(["SET", "athar_ecommerce_store_data", payload]),
-      cache: "no-store",
-    });
+// Model Mappers: Order <-> Supabase
+export function mapDbOrderToModel(row: Record<string, unknown>): Order {
+  return {
+    id: String(row.id || ""),
+    customerName: String(row.customer_name || ""),
+    phone: String(row.phone || ""),
+    email: row.email ? String(row.email) : undefined,
+    governorate: String(row.governorate || ""),
+    address: String(row.address || ""),
+    notes: row.notes ? String(row.notes) : undefined,
+    isGift: Boolean(row.is_gift),
+    giftMessage: row.gift_message ? String(row.gift_message) : undefined,
+    items: Array.isArray(row.items) ? (row.items as Order["items"]) : [],
+    subtotal: Number(row.subtotal) || 0,
+    shippingFee: Number(row.shipping_fee) || 0,
+    discount: Number(row.discount) || 0,
+    total: Number(row.total) || 0,
+    status: (row.status as Order["status"]) || "pending",
+    paymentMethod: (row.payment_method as Order["paymentMethod"]) || "cod",
+    senderWalletNumber: row.sender_wallet_number ? String(row.sender_wallet_number) : undefined,
+    paymentReceiptImage: row.payment_receipt_image ? String(row.payment_receipt_image) : undefined,
+    cardDetails: row.card_details ? (row.card_details as Order["cardDetails"]) : undefined,
+    adminNotes: row.admin_notes ? String(row.admin_notes) : undefined,
+    phoneConfirmed: Boolean(row.phone_confirmed),
+    phoneConfirmedAt: row.phone_confirmed_at ? String(row.phone_confirmed_at) : undefined,
+    phoneConfirmationNotes: row.phone_confirmation_notes ? String(row.phone_confirmation_notes) : undefined,
+    whatsappConfirmed: Boolean(row.whatsapp_confirmed),
+    whatsappConfirmedAt: row.whatsapp_confirmed_at ? String(row.whatsapp_confirmed_at) : undefined,
+    cancellationReason: row.cancellation_reason ? String(row.cancellation_reason) : undefined,
+    cancelledAt: row.cancelled_at ? String(row.cancelled_at) : undefined,
+    createdAt: row.created_at ? String(row.created_at) : new Date().toISOString(),
+  };
+}
 
-    if (res.ok) {
-      return true;
-    }
-  } catch (err) {
-    console.warn("Failed to save to Cloud KV:", err);
-  }
-  return false;
+export function mapModelOrderToDb(o: Order): Record<string, unknown> {
+  return {
+    id: o.id,
+    customer_name: o.customerName,
+    phone: o.phone,
+    email: o.email || null,
+    governorate: o.governorate,
+    address: o.address,
+    notes: o.notes || null,
+    is_gift: Boolean(o.isGift),
+    gift_message: o.giftMessage || null,
+    items: o.items || [],
+    subtotal: o.subtotal,
+    shipping_fee: o.shippingFee,
+    discount: o.discount || 0,
+    total: o.total,
+    status: o.status || "pending",
+    payment_method: o.paymentMethod || "cod",
+    sender_wallet_number: o.senderWalletNumber || null,
+    payment_receipt_image: o.paymentReceiptImage || null,
+    card_details: o.cardDetails || null,
+    admin_notes: o.adminNotes || null,
+    phone_confirmed: Boolean(o.phoneConfirmed),
+    phone_confirmed_at: o.phoneConfirmedAt || null,
+    phone_confirmation_notes: o.phoneConfirmationNotes || null,
+    whatsapp_confirmed: Boolean(o.whatsappConfirmed),
+    whatsapp_confirmed_at: o.whatsappConfirmedAt || null,
+    cancellation_reason: o.cancellationReason || null,
+    cancelled_at: o.cancelledAt || null,
+    created_at: o.createdAt || new Date().toISOString(),
+  };
 }
 
 const DEMO_ORDER_IDS = new Set(["ATH-819230", "ATH-928174", "ATH-583920", "ATH-741952"]);
@@ -103,7 +161,7 @@ export function cleanOrders(orders: unknown): Order[] {
   return (orders as Order[]).filter((o) => o && o.id && !DEMO_ORDER_IDS.has(o.id));
 }
 
-// Extract numeric sequence from an order ID (e.g. "ATH-1002" -> 1002)
+// Extract numeric sequence from order ID (e.g. "ATH-1002" -> 1002)
 export function extractOrderSequence(id: string): number | null {
   if (!id) return null;
   const m = id.match(/(?:#?ATH-?)(\d+)/i);
@@ -116,7 +174,6 @@ export function extractOrderSequence(id: string): number | null {
   return null;
 }
 
-// Calculate the absolute highest sequence number ever used across active orders, stored sequence, and deleted orders
 export function calculateHighestOrderSeq(
   ordersList: Order[] = [],
   storedLastSeq?: number,
@@ -148,8 +205,6 @@ export function calculateHighestOrderSeq(
   return highest;
 }
 
-// Helper to generate sequential 4-digit order numbers starting from ATH-1000 (#ATH-1000, #ATH-1001, etc.)
-// Strictly monotonic: even if orders are deleted, this sequence never goes backward
 export function getNextSequentialOrderId(
   ordersList: Order[] = [],
   storedLastSeq?: number,
@@ -160,23 +215,82 @@ export function getNextSequentialOrderId(
 }
 
 // ----------------------------------------------------
-// GET STORE DATA (Cloud -> Local File -> Defaults)
+// READ DATA (Supabase First -> Local File Fallback)
 // ----------------------------------------------------
 export async function getServerStoreData(): Promise<ServerStoreData> {
-  // 1. Try Central Cloud Redis first (Synchronized across all phones and regions)
-  const cloudData = await getCloudData();
-  if (cloudData && Array.isArray(cloudData.products) && cloudData.products.length > 0) {
-    cloudData.orders = cleanOrders(cloudData.orders);
-    cloudData.deletedOrderIds = Array.isArray(cloudData.deletedOrderIds) ? cloudData.deletedOrderIds : [];
-    cloudData.lastOrderSeq = calculateHighestOrderSeq(
-      cloudData.orders,
-      cloudData.lastOrderSeq,
-      cloudData.deletedOrderIds
-    );
-    return cloudData;
+  // 1. Supabase Cloud Database
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = getSupabaseAdminClient();
+
+      const [productsRes, settingsRes, ordersRes, metaRes] = await Promise.all([
+        supabase.from("products").select("*").order("created_at", { ascending: false }),
+        supabase.from("store_settings").select("settings").eq("id", "primary").maybeSingle(),
+        supabase.from("orders").select("*").order("created_at", { ascending: false }),
+        supabase.from("store_metadata").select("*"),
+      ]);
+
+      let products: Product[] = [];
+      if (productsRes.data && Array.isArray(productsRes.data) && productsRes.data.length > 0) {
+        products = productsRes.data.map(mapDbProductToModel);
+      } else {
+        // If Supabase products table is empty (fresh project), seed with default catalog
+        products = PRODUCTS;
+        const dbProducts = PRODUCTS.map(mapModelProductToDb);
+        try {
+          await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
+        } catch {}
+      }
+
+      let settings: Partial<StoreSettings> = {};
+      if (settingsRes.data && settingsRes.data.settings) {
+        settings = settingsRes.data.settings;
+      } else {
+        settings = {
+          categories: DEFAULT_CATEGORIES,
+          senderEmail: process.env.GMAIL_USER || "theathar.eg@gmail.com",
+          senderEmailName: process.env.GMAIL_SENDER_NAME || "أَثَـر للفضة 925",
+        };
+        try {
+          await supabase.from("store_settings").upsert({ id: "primary", settings });
+        } catch {}
+      }
+
+      let orders: Order[] = [];
+      if (ordersRes.data && Array.isArray(ordersRes.data)) {
+        orders = cleanOrders(ordersRes.data.map(mapDbOrderToModel));
+      }
+
+      let lastOrderSeq = 999;
+      let deletedOrderIds: string[] = [];
+
+      if (metaRes.data && Array.isArray(metaRes.data)) {
+        for (const row of metaRes.data) {
+          if (row.key === "last_order_seq") {
+            lastOrderSeq = Number(row.value) || 999;
+          } else if (row.key === "deleted_order_ids") {
+            deletedOrderIds = Array.isArray(row.value) ? row.value : [];
+          }
+        }
+      }
+
+      lastOrderSeq = calculateHighestOrderSeq(orders, lastOrderSeq, deletedOrderIds);
+
+      return {
+        products,
+        settings,
+        orders,
+        lastOrderSeq,
+        deletedOrderIds,
+        updatedAt: new Date().toISOString(),
+        isDefault: false,
+      };
+    } catch (err) {
+      console.warn("Error fetching from Supabase, falling back to local storage:", err);
+    }
   }
 
-  // 2. Try Local File Storage (For offline development)
+  // 2. Local File Storage Fallback (Offline / Dev mode before Supabase credentials)
   const filePath = getStoreFilePath();
   try {
     if (fs.existsSync(filePath)) {
@@ -191,10 +305,6 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
             parsed.lastOrderSeq,
             parsed.deletedOrderIds
           );
-          // Only seed cloud if parsed has actual orders or if cloud was truly never initialized
-          if (parsed.orders.length > 0) {
-            saveCloudData(parsed).catch(() => {});
-          }
           return parsed;
         }
       }
@@ -203,8 +313,8 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     console.warn("Error reading store-data.json:", err);
   }
 
-  // 3. Fallback to Initial Default State (Do NOT overwrite existing cloud data with empty orders!)
-  const defaultData: ServerStoreData = {
+  // 3. Absolute Fallback
+  return {
     products: PRODUCTS,
     settings: {
       categories: DEFAULT_CATEGORIES,
@@ -217,18 +327,10 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     updatedAt: new Date().toISOString(),
     isDefault: false,
   };
-
-  try {
-    fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2), "utf-8");
-  } catch {
-    // Ignore if read-only
-  }
-
-  return defaultData;
 }
 
 // ----------------------------------------------------
-// SAVE STORE DATA (Cloud Sync + Local File)
+// SAVE DATA (Supabase Primary + Local File Sync)
 // ----------------------------------------------------
 export async function saveServerStoreData(
   updates: Partial<ServerStoreData>
@@ -245,7 +347,6 @@ export async function saveServerStoreData(
   let cleanUpdatedOrders: Order[];
   if (updates.orders !== undefined) {
     const cleaned = cleanOrders(updates.orders);
-    // Anti-wipe protection: If incoming is empty but current has orders, only wipe if explicitly deleted
     if (cleaned.length === 0 && current.orders.length > 0) {
       const allDeleted = current.orders.every((o) => combinedDeletedIds.includes(o.id));
       cleanUpdatedOrders = allDeleted ? [] : current.orders;
@@ -256,16 +357,18 @@ export async function saveServerStoreData(
     cleanUpdatedOrders = current.orders;
   }
 
-  // Strict monotonicity: sequence counter can only increase, never decrease
   const newLastOrderSeq = calculateHighestOrderSeq(
     cleanUpdatedOrders,
     Math.max(current.lastOrderSeq || 999, updates.lastOrderSeq || 999),
     combinedDeletedIds
   );
 
+  const updatedProducts = updates.products !== undefined ? updates.products : current.products;
+  const updatedSettings = updates.settings !== undefined ? { ...current.settings, ...updates.settings } : current.settings;
+
   const updated: ServerStoreData = {
-    products: updates.products !== undefined ? updates.products : current.products,
-    settings: updates.settings !== undefined ? { ...current.settings, ...updates.settings } : current.settings,
+    products: updatedProducts,
+    settings: updatedSettings,
     orders: cleanUpdatedOrders,
     lastOrderSeq: newLastOrderSeq,
     deletedOrderIds: combinedDeletedIds,
@@ -273,10 +376,39 @@ export async function saveServerStoreData(
     isDefault: false,
   };
 
-  // 1. Await saving to Central Cloud Redis (Must await so serverless lambda does not terminate before network write finishes!)
-  await saveCloudData(updated);
+  // 1. Save to Supabase Cloud Database
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = getSupabaseAdminClient();
 
-  // 2. Also save to local file if writable
+      if (updates.products !== undefined) {
+        const dbProducts = updates.products.map(mapModelProductToDb);
+        await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
+      }
+
+      if (updates.settings !== undefined) {
+        await supabase
+          .from("store_settings")
+          .upsert({ id: "primary", settings: updatedSettings, updated_at: new Date().toISOString() }, { onConflict: "id" });
+      }
+
+      if (updates.orders !== undefined) {
+        const dbOrders = cleanUpdatedOrders.map(mapModelOrderToDb);
+        if (dbOrders.length > 0) {
+          await supabase.from("orders").upsert(dbOrders, { onConflict: "id" });
+        }
+      }
+
+      await supabase.from("store_metadata").upsert([
+        { key: "last_order_seq", value: newLastOrderSeq, updated_at: new Date().toISOString() },
+        { key: "deleted_order_ids", value: combinedDeletedIds, updated_at: new Date().toISOString() },
+      ], { onConflict: "key" });
+    } catch (err) {
+      console.error("Failed to save to Supabase:", err);
+    }
+  }
+
+  // 2. Also save to local file for offline resilience
   try {
     const filePath = getStoreFilePath();
     fs.writeFileSync(filePath, JSON.stringify(updated, null, 2), "utf-8");

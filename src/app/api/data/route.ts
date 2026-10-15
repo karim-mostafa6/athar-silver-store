@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,18 +13,23 @@ const NO_CACHE_HEADERS = {
   "Expires": "0",
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const isAdmin = isAuthorizedAdmin(request);
     const data = await getServerStoreData();
+
+    // Data Privacy: Only authenticated admin can view orders & customer data
+    const safeOrders = isAdmin ? data.orders : [];
+
     return NextResponse.json(
       {
         success: true,
         isDefault: Boolean(data.isDefault),
         products: data.products,
         settings: data.settings,
-        orders: data.orders,
+        orders: safeOrders,
         lastOrderSeq: data.lastOrderSeq || 999,
-        deletedOrderIds: data.deletedOrderIds || [],
+        deletedOrderIds: isAdmin ? (data.deletedOrderIds || []) : [],
         updatedAt: data.updatedAt,
       },
       {
@@ -40,6 +46,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Security Gate: Only authenticated admin can modify server data
+    if (!isAuthorizedAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: "غير مصرح لك بتعديل بيانات المتجر والسيرفر." },
+        { status: 401, headers: NO_CACHE_HEADERS }
+      );
+    }
+
     const body = await request.json();
     const { products, settings, orders, lastOrderSeq, deletedOrderIds } = body;
 
@@ -54,15 +68,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "تم حفظ البيانات وتحديثها مركزياً بنجاح!",
+        message: "تم حفظ البيانات وتحديثها في Supabase بنجاح!",
         productsCount: saved.products.length,
         ordersCount: saved.orders.length,
         lastOrderSeq: saved.lastOrderSeq,
         updatedAt: saved.updatedAt,
       },
-      {
-        headers: NO_CACHE_HEADERS,
-      }
+      { headers: NO_CACHE_HEADERS }
     );
   } catch (error: unknown) {
     return NextResponse.json(
