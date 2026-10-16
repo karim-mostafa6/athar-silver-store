@@ -1240,13 +1240,10 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full min-h-[52px] py-4 rounded-xl bg-[#161412] hover:bg-[#2e2925] active:scale-[0.99] text-[#f7f4ee] font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed select-none touch-manipulation"
+                className="w-full py-4 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>جاري تسجيل الطلب وتأكيده...</span>
-                  </span>
+                  <span>جاري تسجيل الطلب وتأكيده...</span>
                 ) : (
                   <>
                     <span>تأكيد الطلب الآن</span>

@@ -250,24 +250,11 @@ body {
   transform: translateY(0) scale(0.985);
 }
 
-/* Global Crisp Text, Mobile Touch Scrolling & Font Smoothing */
+/* Global Crisp Text & Font Smoothing */
 html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
-  overscroll-behavior-y: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Mobile-First Input Optimization:
-   Ensure all input/select/textarea elements are at least 16px font-size on mobile
-   to prevent iOS Safari from automatically zooming into the page on focus.
-*/
-@media screen and (max-width: 768px) {
-  input, select, textarea {
-    font-size: 16px !important;
-  }
 }
 
 @layer utilities {

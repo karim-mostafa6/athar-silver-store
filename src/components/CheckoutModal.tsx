@@ -678,7 +678,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <input
                     type="text"
                     required
-                    autoComplete="name"
                     placeholder="مثال: أحمد محمود"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -693,12 +692,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <input
                     type="tel"
                     required
-                    inputMode="tel"
-                    autoComplete="tel"
                     placeholder="مثال: 01012345678"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-white border border-[#ded1be] rounded-xl px-3.5 py-2.5 text-xs text-[#1c1815] placeholder-[#8f806f] focus:outline-none focus:border-[#7d6953] shadow-inner font-mono dir-ltr text-right"
+                    className="w-full bg-white border border-[#ded1be] rounded-xl px-3.5 py-2.5 text-xs text-[#1c1815] placeholder-[#8f806f] focus:outline-none focus:border-[#7d6953] shadow-inner"
                   />
                 </div>
               </div>
@@ -728,7 +725,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </label>
                   <input
                     type="email"
-                    autoComplete="email"
                     placeholder="لاستلام فاتورة وتحديثات الشحن فورياً"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -745,7 +741,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <input
                   type="text"
                   required
-                  autoComplete="street-address"
                   placeholder="المدينة / المنطقة، اسم الشارع، رقم العمارة والشقة"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -1168,7 +1163,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full min-h-[52px] py-4 px-6 rounded-xl bg-[#1c1815] text-[#faf8f5] font-black text-sm shadow-xl shadow-[#1c1815]/15 hover:bg-[#2e2620] active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed select-none touch-manipulation"
+                className="w-full py-4 px-6 rounded-xl bg-[#1c1815] text-[#faf8f5] font-black text-sm shadow-xl shadow-[#1c1815]/15 hover:bg-[#2e2620] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
