@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useStore, StoreSettings, Order, NavLinkItem, MarqueeExtraMessage, StoreCategory, CustomPage, DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES, HeroSlideItem, AdminUser, AdminRole } from "@/context/StoreContext";
 import { Product } from "@/data/products";
 import { playRoyalOrderChime } from "@/lib/sound";
 import { OrmaLogo } from "@/components/OrmaLogo";
 import { getAdminAuthHeaders } from "@/lib/clientAdmin";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
   MessageCircle, ExternalLink, Upload, Sparkles, Phone, Truck, Check, Tag, ShieldCheck,
@@ -363,20 +364,83 @@ export default function AdminPage() {
     prevOrdersCountRef.current = orders.length;
   }, [orders, addToast]);
 
-  // Periodic & Tab-Switch Central Orders Auto-Sync (Every 20 seconds while admin is viewing orders)
+  // Concurrency guard to prevent overlapping refresh requests
+  const isFetchingOrdersRef = useRef<boolean>(false);
+  const triggerRefresh = useCallback(async () => {
+    if (isFetchingOrdersRef.current) return;
+    isFetchingOrdersRef.current = true;
+    try {
+      await refreshOrders();
+    } finally {
+      isFetchingOrdersRef.current = false;
+    }
+  }, [refreshOrders]);
+
+  // Full Real-time Synchronization Engine (Supabase Realtime Channel + Adaptive Heartbeat)
   useEffect(() => {
     if (!isAuthenticated) return;
-    refreshOrders();
-  }, [isAuthenticated, refreshOrders]);
 
-  useEffect(() => {
-    if (!isAuthenticated || activeTab !== "orders") return;
-    refreshOrders();
+    // 1. Initial immediate sync on mount / login
+    triggerRefresh();
+
+    // 2. Supabase Realtime WebSocket Subscription (0ms latency for table 'orders')
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    if (isSupabaseConfigured()) {
+      try {
+        channel = supabase
+          .channel("admin-orders-realtime-channel")
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "orders",
+            },
+            (payload) => {
+              console.log("[Supabase Realtime] Order event received:", payload.eventType);
+              triggerRefresh();
+            }
+          )
+          .subscribe((status) => {
+            if (status === "SUBSCRIBED") {
+              triggerRefresh();
+            }
+          });
+      } catch (err) {
+        console.warn("[Supabase Realtime] Failed to subscribe to orders channel:", err);
+      }
+    }
+
+    // 3. Fast Adaptive Polling Heartbeat (Every 3 seconds when viewing orders, 10s on other tabs)
+    const intervalTime = activeTab === "orders" ? 3000 : 10000;
     const interval = setInterval(() => {
-      refreshOrders();
-    }, 20000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, activeTab, refreshOrders]);
+      if (document.visibilityState === "visible") {
+        triggerRefresh();
+      }
+    }, intervalTime);
+
+    // 4. Instant sync on window focus or returning to tab
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        triggerRefresh();
+      }
+    };
+    const onFocus = () => triggerRefresh();
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch {}
+      }
+    };
+  }, [isAuthenticated, activeTab, triggerRefresh]);
 
   const handleManualRefreshOrders = async () => {
     setIsRefreshingOrders(true);
@@ -2228,6 +2292,18 @@ export default function AdminPage() {
                       />
                     </div>
                   )}
+
+                  {/* Realtime Live Pulse Indicator */}
+                  <div
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium shadow-2xs select-none shrink-0"
+                    title="المزامنة الفورية نشطة (Real-time Streaming) - تتحدث الطلبات تلقائياً فور تعديلها من تيليجرام أو السيرفر"
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[11px] font-bold tracking-tight">مزامنة فورية ⚡</span>
+                  </div>
 
                   {/* Realtime Manual Refresh Orders Button */}
                   <button
