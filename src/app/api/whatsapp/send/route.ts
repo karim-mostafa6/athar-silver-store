@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -55,6 +56,10 @@ function normalizeEgyptianPhone(phone: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Sending WhatsApp messages (and accepting provider tokens in the body) is admin-only.
+    if (!isAuthorizedAdmin(request)) {
+      return NextResponse.json({ success: false, error: "غير مصرح." }, { status: 401 });
+    }
     const body: WhatsAppSendRequestBody = await request.json();
 
     const {

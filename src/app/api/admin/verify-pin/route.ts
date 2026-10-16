@@ -10,16 +10,13 @@ export async function POST(request: NextRequest) {
     const { password } = body;
 
     const entered = (password || "").trim();
-    const masterPassword = process.env.ADMIN_PASSWORD || "Kk5019Kk@#$&";
+    // Only the ADMIN_PASSWORD env var is accepted; no built-in fallback passwords exist.
+    const masterPassword = (process.env.ADMIN_PASSWORD || "").trim();
 
     let username = "karim mostafa";
 
     // 1. Check Master Super Admin Password
-    let isValid =
-      entered === masterPassword ||
-      entered === "athar2026" ||
-      entered === "orma2026" ||
-      entered === "admin";
+    let isValid = masterPassword.length > 0 && entered === masterPassword;
 
     // 2. Check Sub-users if not matched
     if (!isValid) {

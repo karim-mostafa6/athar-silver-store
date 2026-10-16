@@ -29,7 +29,14 @@ export async function GET(request: NextRequest) {
         hasAppPassword: Boolean(emailSettings.gmailAppPassword && emailSettings.gmailAppPassword.length >= 10),
         // Only return real app password if authorized admin
         gmailAppPassword: isAdmin ? emailSettings.gmailAppPassword : "",
-        settings: storeData.settings,
+        // Anonymous visitors must never receive secrets stored inside the settings document.
+        settings: isAdmin
+          ? storeData.settings
+          : Object.fromEntries(
+              Object.entries(storeData.settings || {}).filter(
+                ([k]) => !["gmailAppPassword", "paymobApiKey", "adminUsers"].includes(k)
+              )
+            ),
       },
       { headers: NO_CACHE_HEADERS }
     );

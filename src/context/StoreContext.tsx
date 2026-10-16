@@ -1402,6 +1402,22 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // A failed save used to be swallowed silently: the admin's own device kept the edit in local
+  // state/localStorage and looked fine, while the database (and therefore every customer) never
+  // received it. Make that impossible to miss.
+  const reportSaveFailure = (what: string, status: number, serverMessage?: string) => {
+    const reason =
+      status === 401
+        ? "انتهت جلسة تسجيل الدخول. سجّل الدخول مرة أخرى من صفحة الأدمن ثم أعد التعديل."
+        : status === 0
+        ? "تعذّر الاتصال بالسيرفر. تأكد من الإنترنت ثم أعد المحاولة."
+        : serverMessage || `خطأ من السيرفر (${status}).`;
+    console.error(`Save failed (${what}):`, status, serverMessage);
+    if (typeof window !== "undefined") {
+      window.alert(`⚠️ لم يتم حفظ تعديلات ${what} على الموقع!\n\nالتعديل ظاهر عندك فقط ولن يراه العملاء.\n${reason}`);
+    }
+  };
+
   // Helper to sync products to server
   const syncProductsToServer = (prods: Product[]) => {
     fetch("/api/products", {
@@ -1409,11 +1425,18 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       headers: getAdminAuthHeaders(),
       body: JSON.stringify({ products: prods }),
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          reportSaveFailure("المنتجات", res.status, data?.error);
+          return;
+        }
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
       })
-      .catch((err) => console.warn("Could not sync products to server:", err));
+      .catch((err) => {
+        console.warn("Could not sync products to server:", err);
+        reportSaveFailure("المنتجات", 0);
+      });
   };
 
   // High-performance concurrency engine for orders:
@@ -1553,11 +1576,18 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       headers: getAdminAuthHeaders(),
       body: JSON.stringify({ settings: stngs }),
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          reportSaveFailure("الإعدادات", res.status, data?.error);
+          return;
+        }
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
       })
-      .catch((err) => console.warn("Could not sync settings to server:", err));
+      .catch((err) => {
+        console.warn("Could not sync settings to server:", err);
+        reportSaveFailure("الإعدادات", 0);
+      });
   };
 
   // Products CRUD

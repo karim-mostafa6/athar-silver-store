@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendTelegramOrderNotification } from "@/lib/telegram";
 import { getServerStoreData } from "@/lib/serverStore";
+import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: NextRequest) {
   try {
+    if (!isAuthorizedAdmin(request)) {
+      return NextResponse.json({ success: false, error: "غير مصرح." }, { status: 401 });
+    }
     const body = await request.json().catch(() => ({}));
     const { order, orderId } = body;
 

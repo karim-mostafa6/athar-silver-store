@@ -1,11 +1,21 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 
-// Server-side secure secret
-const ADMIN_SECRET =
-  process.env.ADMIN_SESSION_SECRET ||
-  process.env.ADMIN_JWT_SECRET ||
-  "athar-silver-store-hyper-secure-key-2026";
+// Server-side secure secret. It must NEVER be a value that exists in the repository.
+// Preferred: ADMIN_SESSION_SECRET. Otherwise derive one from the Supabase service-role key,
+// which is a server-only secret that is already configured in production.
+function resolveAdminSecret(): string {
+  const explicit = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_JWT_SECRET;
+  if (explicit) return explicit;
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  if (serviceKey.length > 20) {
+    return crypto.createHash("sha256").update(`orma-admin-session:${serviceKey}`).digest("hex");
+  }
+  // Fail closed: no secret means no valid admin tokens (random per process, never matches).
+  return crypto.randomBytes(32).toString("hex");
+}
+
+const ADMIN_SECRET = resolveAdminSecret();
 
 // Rate limiting state for login attempts (in-memory per serverless instance)
 const failedAttempts = new Map<string, { count: number; lastAttempt: number }>();

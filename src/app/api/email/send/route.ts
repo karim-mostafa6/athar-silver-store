@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { getServerSettings, saveServerSettings } from "@/lib/serverSettings";
+import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +39,60 @@ interface EmailRequestBody {
   brandSubtitle?: string;
 }
 
+// ---- Abuse protection -------------------------------------------------------------------
+// This endpoint is called by customers at checkout (no login), so it cannot require admin auth.
+// Anonymous callers therefore get a locked-down version: no credential/sender/branding
+// overrides, no test mails, only the order-confirmation template, HTML stripped from every
+// field, and a small per-IP / per-recipient rate limit so it cannot be used as a spam relay.
+const ipHits = new Map<string, number[]>();
+const recipientHits = new Map<string, number[]>();
+
+function withinLimit(map: Map<string, number[]>, key: string, max: number, windowMs: number): boolean {
+  const now = Date.now();
+  const hits = (map.get(key) || []).filter((t) => now - t < windowMs);
+  if (hits.length >= max) {
+    map.set(key, hits);
+    return false;
+  }
+  hits.push(now);
+  map.set(key, hits);
+  return true;
+}
+
+function stripHtml<T>(value: T): T {
+  if (typeof value === "string") return value.replace(/</g, "&lt;").replace(/>/g, "&gt;") as unknown as T;
+  if (Array.isArray(value)) return value.map(stripHtml) as unknown as T;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = stripHtml(v);
+    return out as T;
+  }
+  return value;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body: EmailRequestBody = await request.json();
+    let body: EmailRequestBody = await request.json();
+
+    if (!isAuthorizedAdmin(request)) {
+      const ip = (request.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
+      const recipient = String(body.email || "").trim().toLowerCase();
+      if (!withinLimit(ipHits, ip, 6, 10 * 60 * 1000) || !withinLimit(recipientHits, recipient, 4, 60 * 60 * 1000)) {
+        return NextResponse.json({ success: false, error: "تم تجاوز الحد المسموح لإرسال الرسائل. حاول لاحقاً." }, { status: 429 });
+      }
+      body = stripHtml(body);
+      body.status = "new_order";
+      body.isTest = false;
+      delete body.senderEmail;
+      delete body.senderName;
+      delete body.gmailAppPassword;
+      delete body.logoImageUrl;
+      delete body.logoType;
+      delete body.logoHeight;
+      delete body.brandNameArabic;
+      delete body.brandNameEnglish;
+      delete body.brandSubtitle;
+    }
     const {
       orderId,
       customerName,

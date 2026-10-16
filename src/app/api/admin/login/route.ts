@@ -65,16 +65,15 @@ export async function POST(request: NextRequest) {
 
     // 3. Option B: Check Server-Side Master Admin Credentials (from Environment Variables)
     if (!authenticatedUser) {
+      // The master password only ever comes from the ADMIN_PASSWORD environment variable.
+      // There are no built-in fallback passwords: if it is not set, master login is disabled.
       const expectedMasterUser = (process.env.ADMIN_USER || "karim mostafa").trim().toLowerCase();
-      const expectedMasterPass = (process.env.ADMIN_PASSWORD || "Kk5019Kk@#$&").trim();
+      const expectedMasterPass = (process.env.ADMIN_PASSWORD || "").trim();
 
       if (
-        (trimmedUser === expectedMasterUser && cleanPass === expectedMasterPass) ||
-        (trimmedUser === "admin" &&
-          (cleanPass === expectedMasterPass ||
-            cleanPass === "athar2026" ||
-            cleanPass === "orma2026" ||
-            cleanPass === "admin"))
+        expectedMasterPass.length > 0 &&
+        ((trimmedUser === expectedMasterUser && cleanPass === expectedMasterPass) ||
+          (trimmedUser === "admin" && cleanPass === expectedMasterPass))
       ) {
         authenticatedUser = {
           username: trimmedUser === "admin" ? "admin" : "karim mostafa",
