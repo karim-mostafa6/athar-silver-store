@@ -7,6 +7,7 @@ import {
 } from "@/lib/serverStore";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 import { Order } from "@/context/StoreContext";
+import { cancelDelayedWhatsAppJob } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -168,6 +169,10 @@ async function findAndUpdateOrder(
           if (newStatus === "cancelled") {
             updatePayload.cancellation_reason = cancellationReason || "تم الإلغاء عبر بوت تليجرام";
             updatePayload.cancelled_at = new Date().toISOString();
+            // Automatically cancel any pending 3-minute WhatsApp confirmation
+            cancelDelayedWhatsAppJob(targetDbId);
+            cancelDelayedWhatsAppJob(rawId);
+            cancelDelayedWhatsAppJob(cleanId);
           }
 
           const { data: updatedRows } = await supabase
@@ -245,6 +250,12 @@ async function findAndUpdateOrder(
             : foundInStore.cancelledAt,
         adminNotes: `${foundInStore.adminNotes || ""} [tg_status:${newStatus}]`.trim(),
       };
+
+      if (newStatus === "cancelled") {
+        cancelDelayedWhatsAppJob(foundInStore.id);
+        cancelDelayedWhatsAppJob(rawId);
+        cancelDelayedWhatsAppJob(cleanId);
+      }
 
       const saved = await saveServerStoreData({
         orders: [updatedStoreOrder],

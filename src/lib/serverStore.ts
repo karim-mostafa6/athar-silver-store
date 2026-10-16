@@ -366,13 +366,37 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
   };
 }
 
+// In-memory atomic async mutex to serialize concurrent database/store writes
+class AsyncMutex {
+  private promise: Promise<void> = Promise.resolve();
+
+  async acquire<T>(fn: () => Promise<T>): Promise<T> {
+    let release: () => void;
+    const next = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const current = this.promise;
+    this.promise = next;
+
+    try {
+      await current;
+      return await fn();
+    } finally {
+      release!();
+    }
+  }
+}
+
+const serverStoreSaveLock = new AsyncMutex();
+
 // ----------------------------------------------------
 // SAVE DATA (Supabase Primary + Local File Sync)
 // ----------------------------------------------------
 export async function saveServerStoreData(
   updates: Partial<ServerStoreData>
 ): Promise<ServerStoreData> {
-  const current = await getServerStoreData();
+  return serverStoreSaveLock.acquire(async () => {
+    const current = await getServerStoreData();
 
   const combinedDeletedIds = Array.from(
     new Set([
@@ -485,7 +509,8 @@ export async function saveServerStoreData(
     console.warn("Failed to write store-data.json:", err);
   }
 
-  return updated;
+    return updated;
+  });
 }
 
 // ----------------------------------------------------

@@ -8,9 +8,33 @@ import {
 import { Order, OrderItem } from "@/context/StoreContext";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { sendTelegramOrderNotification } from "@/lib/telegram";
+import { scheduleDelayedWhatsAppConfirmation } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+// In-memory atomic async lock to serialize single order checkouts under high concurrency
+class OrderCreationLock {
+  private promise: Promise<void> = Promise.resolve();
+
+  async acquire<T>(fn: () => Promise<T>): Promise<T> {
+    let release: () => void;
+    const next = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const current = this.promise;
+    this.promise = next;
+
+    try {
+      await current;
+      return await fn();
+    } finally {
+      release!();
+    }
+  }
+}
+
+const singleOrderCreationLock = new OrderCreationLock();
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0",
@@ -249,93 +273,121 @@ export async function POST(request: NextRequest) {
 
     const verifiedTotal = Math.max(0, serverSubtotal + verifiedShippingFee - verifiedDiscount);
 
-    // 7. Sequential Order Number Assignment (#ORM-XXXX)
-    let newId = rawOrder.id;
-    if (!newId || newId.startsWith("ath-temp") || (!newId.startsWith("ATH-") && !newId.startsWith("ORM-"))) {
-      newId = getNextSequentialOrderId(
-        currentData.orders,
-        currentData.lastOrderSeq,
-        currentData.deletedOrderIds
-      );
-    }
+    // 7. Atomic Sequential Order Number Assignment, Inventory Deduction & Persistence
+    // Wrapped in singleOrderCreationLock to guarantee absolute thread-safety under high concurrency
+    const creationResult = await singleOrderCreationLock.acquire(async () => {
+      // Re-fetch latest store snapshot inside lock to guarantee up-to-the-millisecond freshness
+      const freshData = await getServerStoreData();
 
-    let newSeq = Math.max(currentData.lastOrderSeq || 999, Number(lastOrderSeq) || 999);
-    const seq = extractOrderSequence(newId);
-    if (seq !== null) {
-      newSeq = Math.max(newSeq, seq);
-    }
+      let newId = rawOrder.id;
+      if (!newId || newId.startsWith("ath-temp") || (!newId.startsWith("ATH-") && !newId.startsWith("ORM-"))) {
+        newId = getNextSequentialOrderId(
+          freshData.orders,
+          freshData.lastOrderSeq,
+          freshData.deletedOrderIds
+        );
+      }
 
-    const existingOrderInDb = currentData.orders.find((o) => o.id === newId);
+      let newSeq = Math.max(freshData.lastOrderSeq || 999, Number(lastOrderSeq) || 999);
+      const seq = extractOrderSequence(newId);
+      if (seq !== null) {
+        newSeq = Math.max(newSeq, seq);
+      }
 
-    const finalOrder: Order = {
-      id: newId,
-      customerName,
-      phone: rawPhone,
-      email: rawOrder.email ? String(rawOrder.email).trim() : undefined,
-      governorate,
-      address,
-      notes: rawOrder.notes ? String(rawOrder.notes).trim() : undefined,
-      isGift: Boolean(rawOrder.isGift),
-      giftMessage: rawOrder.giftMessage ? String(rawOrder.giftMessage).trim() : undefined,
-      items: verifiedItems,
-      subtotal: serverSubtotal,
-      shippingFee: verifiedShippingFee,
-      discount: verifiedDiscount,
-      total: verifiedTotal,
-      status: "pending",
-      paymentMethod: ["cod", "wallet", "card"].includes(rawOrder.paymentMethod) ? rawOrder.paymentMethod : "cod",
-      senderWalletNumber: rawOrder.senderWalletNumber || undefined,
-      paymentReceiptImage: rawOrder.paymentReceiptImage || undefined,
-      cardDetails: rawOrder.cardDetails || undefined,
-      adminNotes: existingOrderInDb?.adminNotes || rawOrder.adminNotes || undefined,
-      createdAt: existingOrderInDb?.createdAt || new Date().toISOString(),
-    };
+      const existingOrderInDb = freshData.orders.find((o) => o.id === newId);
 
-    // Automated Inventory Management: Deduct purchased quantity and auto-mark SOLD OUT if stock reaches 0
-    const updatedProducts = currentData.products.map((p) => {
-      const purchasedItem = verifiedItems.find((it) => it.productId === p.id);
-      if (!purchasedItem) return p;
+      const finalOrder: Order = {
+        id: newId,
+        customerName,
+        phone: rawPhone,
+        email: rawOrder.email ? String(rawOrder.email).trim() : undefined,
+        whatsapp: rawOrder.whatsapp ? String(rawOrder.whatsapp).trim() : undefined,
+        governorate,
+        address,
+        notes: rawOrder.notes ? String(rawOrder.notes).trim() : undefined,
+        isGift: Boolean(rawOrder.isGift),
+        giftMessage: rawOrder.giftMessage ? String(rawOrder.giftMessage).trim() : undefined,
+        items: verifiedItems,
+        subtotal: serverSubtotal,
+        shippingFee: verifiedShippingFee,
+        discount: verifiedDiscount,
+        total: verifiedTotal,
+        status: "pending",
+        paymentMethod: ["cod", "wallet", "card"].includes(rawOrder.paymentMethod) ? rawOrder.paymentMethod : "cod",
+        senderWalletNumber: rawOrder.senderWalletNumber || undefined,
+        paymentReceiptImage: rawOrder.paymentReceiptImage || undefined,
+        cardDetails: rawOrder.cardDetails || undefined,
+        adminNotes: existingOrderInDb?.adminNotes || rawOrder.adminNotes || undefined,
+        createdAt: existingOrderInDb?.createdAt || new Date().toISOString(),
+      };
 
-      const purchasedQty = Math.max(1, Math.min(50, Number(purchasedItem.quantity) || 1));
-      const currentStock = p.stockQuantity !== undefined ? p.stockQuantity : (p.inStock ? 10 : 0);
-      const newStock = Math.max(0, currentStock - purchasedQty);
+      // Automated Inventory Management: Deduct purchased quantity and auto-mark SOLD OUT if stock reaches 0
+      const updatedProducts = freshData.products.map((p) => {
+        const purchasedItem = verifiedItems.find((it) => it.productId === p.id);
+        if (!purchasedItem) return p;
+
+        const purchasedQty = Math.max(1, Math.min(50, Number(purchasedItem.quantity) || 1));
+        const currentStock = p.stockQuantity !== undefined ? p.stockQuantity : (p.inStock ? 10 : 0);
+        const newStock = Math.max(0, currentStock - purchasedQty);
+
+        return {
+          ...p,
+          stockQuantity: newStock,
+          inStock: newStock > 0,
+        };
+      });
+
+      const updatedOrders = [finalOrder, ...freshData.orders.filter((o) => o.id !== finalOrder.id)];
+
+      const saved = await saveServerStoreData({
+        orders: updatedOrders,
+        products: updatedProducts,
+        lastOrderSeq: newSeq,
+      });
 
       return {
-        ...p,
-        stockQuantity: newStock,
-        inStock: newStock > 0,
+        finalOrder,
+        saved,
+        isExisting: Boolean(existingOrderInDb),
       };
     });
 
-    // CRITICAL: Send Telegram notification ONLY for the current just-created order.
-    // Strictly NO loops over historical orders and NO duplicate dispatches
-    const isAlreadyNotified = Boolean(
-      existingOrderInDb || finalOrder.adminNotes?.includes("[telegram_sent]")
-    );
+    const { finalOrder, saved, isExisting } = creationResult;
 
-    if (!isAlreadyNotified) {
-      try {
-        const tgResult = await sendTelegramOrderNotification(finalOrder);
-        if (tgResult.success) {
-          finalOrder.adminNotes = `${finalOrder.adminNotes || ""} [telegram_sent]`.trim();
-          console.log("[Orders Route] Telegram notification sent successfully for current order:", finalOrder.id);
-        } else {
-          console.error("[Orders Route] Telegram notification failed:", tgResult.error);
+    // --------------------------------------------------------------------------
+    // 8. Isolated Background Notifications (Non-blocking: instant customer response)
+    // --------------------------------------------------------------------------
+    const orderSnapshot: Order = JSON.parse(JSON.stringify(finalOrder));
+
+    // A) Asynchronous Isolated Telegram Notification Dispatch
+    if (!isExisting && !orderSnapshot.adminNotes?.includes("[telegram_sent]")) {
+      (async () => {
+        try {
+          const tgResult = await sendTelegramOrderNotification(orderSnapshot);
+          if (tgResult.success) {
+            console.log(`[Orders Route] Telegram notification dispatched for single order #${orderSnapshot.id}`);
+          }
+        } catch (telegramErr) {
+          console.error(`[Orders Route] Isolated Telegram notification error for #${orderSnapshot.id}:`, telegramErr);
         }
-      } catch (telegramErr) {
-        console.error("[Orders Route] Failed to dispatch Telegram notification:", telegramErr);
-      }
-    } else {
-      console.log(`[Orders Route] Order ${finalOrder.id} was already notified via Telegram. Skipping duplicate.`);
+      })();
     }
 
-    const updatedOrders = [finalOrder, ...currentData.orders.filter((o) => o.id !== finalOrder.id)];
+    // B) Automated WhatsApp Confirmation with 3-Minute Intentional Delay
+    if (!isExisting && !orderSnapshot.adminNotes?.includes("[whatsapp_sent]")) {
+      try {
+        const origin =
+          request.headers.get("origin") ||
+          (request.headers.get("host")?.startsWith("localhost")
+            ? "http://localhost:3000"
+            : `https://${request.headers.get("host") || "atharsilver.com"}`);
 
-    const saved = await saveServerStoreData({
-      orders: updatedOrders,
-      products: updatedProducts,
-      lastOrderSeq: newSeq,
-    });
+        // Schedule delayed WhatsApp confirmation (3 minutes = 180,000ms)
+        scheduleDelayedWhatsAppConfirmation(orderSnapshot, 3 * 60 * 1000, origin);
+      } catch (waErr) {
+        console.error(`[Orders Route] Error scheduling delayed WhatsApp confirmation for #${orderSnapshot.id}:`, waErr);
+      }
+    }
 
     return NextResponse.json(
       {
