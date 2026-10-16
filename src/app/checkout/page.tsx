@@ -314,8 +314,8 @@ export default function CheckoutPage() {
           : undefined,
     };
 
-    // Create Order with sequential 4-digit ID
-    const newOrderId = addOrder(orderPayload);
+    // Create Order with sequential 4-digit ID (skip duplicate internal fetch, since checkout awaits below)
+    const newOrderId = addOrder(orderPayload, true);
 
     // Explicitly await POST /api/orders to ensure Telegram notification completes in Vercel Serverless
     try {

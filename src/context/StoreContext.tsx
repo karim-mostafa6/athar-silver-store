@@ -355,7 +355,7 @@ interface StoreContextType {
 
   // Orders
   orders: Order[];
-  addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">) => string;
+  addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">, skipApiPost?: boolean) => string;
   submitOrder: (orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string }) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrder: (orderId: string, updates: Partial<Order>) => void;
   bulkUpdateOrderStatus: (orderIds: string[], status: Order["status"]) => void;
@@ -1464,7 +1464,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   // Orders Management (High-Performance Zero-Lag Concurrency)
-  const addOrder = (orderData: Omit<Order, "id" | "createdAt" | "status">) => {
+  const addOrder = (orderData: Omit<Order, "id" | "createdAt" | "status">, skipApiPost: boolean = false) => {
     // Generate sequential 4-digit order number starting at ATH-1000 (#ATH-1000, #ATH-1001, ...)
     const deletedArr = Array.from(getDeletedOrderIds());
     const storedLastSeq = getLastOrderSeq();
@@ -1500,22 +1500,24 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       })
     );
 
-    // Automatically dispatch order via POST /api/orders to save in Supabase and trigger Telegram notification
-    fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order: newOrder }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.success && data?.order) {
-          applyOrdersMutation(
-            (prev) => [data.order, ...prev.filter((o) => o.id !== data.order.id)],
-            false
-          );
-        }
+    // Dispatch order via POST /api/orders ONLY if not explicitly handled by caller
+    if (!skipApiPost) {
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: newOrder }),
       })
-      .catch((err) => console.error("Error dispatching order to /api/orders:", err));
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && data?.order) {
+            applyOrdersMutation(
+              (prev) => [data.order, ...prev.filter((o) => o.id !== data.order.id)],
+              false
+            );
+          }
+        })
+        .catch((err) => console.error("Error dispatching order to /api/orders:", err));
+    }
 
     return newId;
   };

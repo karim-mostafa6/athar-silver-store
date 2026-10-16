@@ -85,6 +85,8 @@ ${itemsText}
 
 // In-memory deduplication set to avoid double notifications within warm runtime
 const notifiedOrderIds = new Set<string>();
+// In-memory mutex lock for active dispatches to guarantee strict single execution under high concurrency
+const inFlightDispatches = new Set<string>();
 
 function getSentOrdersCacheFilePath(): string {
   try {
@@ -150,11 +152,20 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
     return { success: false, error: "بيانات الطلب غير صالحة لإرسال إشعار تليجرام" };
   }
 
-  // Prevent duplicate notifications across multiple invocations or cold starts
-  if (hasOrderBeenNotified(order.id) || order.adminNotes?.includes("[telegram_sent]")) {
-    console.log(`[Telegram Notice] Notification for order #${order.id} was already dispatched. Skipping duplicate.`);
-    return { success: true, message: "Notification already sent" };
+  // Prevent duplicate notifications across multiple invocations, cold starts, or concurrent in-flight calls
+  if (
+    hasOrderBeenNotified(order.id) ||
+    order.adminNotes?.includes("[telegram_sent]") ||
+    inFlightDispatches.has(order.id)
+  ) {
+    console.log(`[Telegram Notice] Notification for order #${order.id} was already dispatched or is currently in flight. Skipping duplicate.`);
+    return { success: true, message: "Notification already sent or in flight" };
   }
+
+  // Acquire concurrency lock immediately
+  inFlightDispatches.add(order.id);
+  // Mark in disk cache immediately so parallel processes detect reservation
+  markOrderAsNotified(order.id);
 
   const rawBotToken = process.env.TELEGRAM_BOT_TOKEN;
   const rawChatId = process.env.TELEGRAM_CHAT_ID;
@@ -236,5 +247,12 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
       err instanceof Error ? err.message : "Unknown error sending Telegram notification";
     console.error("[Telegram Network/Fetch Exception]:", err);
     return { success: false, error: errMsg };
+  } finally {
+    // Release in-flight mutex after 1500ms to absorb any concurrent duplicate bursts
+    setTimeout(() => {
+      if (order.id) {
+        inFlightDispatches.delete(order.id);
+      }
+    }, 1500);
   }
 }

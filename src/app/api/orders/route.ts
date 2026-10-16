@@ -308,10 +308,9 @@ export async function POST(request: NextRequest) {
     });
 
     // CRITICAL: Send Telegram notification ONLY for the current just-created order.
-    // Strictly NO loops over historical orders.
+    // Strictly NO loops over historical orders and NO duplicate dispatches
     const isAlreadyNotified = Boolean(
-      (existingOrderInDb && existingOrderInDb.adminNotes?.includes("[telegram_sent]")) ||
-      finalOrder.adminNotes?.includes("[telegram_sent]")
+      existingOrderInDb || finalOrder.adminNotes?.includes("[telegram_sent]")
     );
 
     if (!isAlreadyNotified) {
