@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Search, ShoppingBag, Heart, X, Menu, User, ChevronDown } from "lucide-react";
 import { MarqueeAnnouncement } from "@/components/MarqueeAnnouncement";
@@ -136,6 +136,37 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [internalQuery, setInternalQuery] = useState("");
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const lastScrollYRef = useRef(0);
+
+  // Smoothly collapse announcement bar when scrolling down, reopen when scrolling up or at top
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY <= 20) {
+        setShowAnnouncement(true);
+      } else if (currentScrollY > lastScrollYRef.current + 8) {
+        setShowAnnouncement(false);
+      } else if (currentScrollY < lastScrollYRef.current - 8) {
+        setShowAnnouncement(true);
+      }
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close search with Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && searchOpen) {
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [searchOpen]);
 
   const effectiveCartCount = cartCount !== undefined ? cartCount : store.cartCount;
   const effectiveWishlistCount = wishlistCount !== undefined ? wishlistCount : store.wishlistCount;
@@ -169,8 +200,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#F5F0E7] border-b border-[#292722]/12 transition-colors shadow-xs">
-      {/* Live Marquee Ticker */}
-      <MarqueeAnnouncement onNotify={handleNotify} />
+      {/* Live Marquee Ticker - smooth collapse on scroll */}
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          showAnnouncement
+            ? "max-h-12 opacity-100 translate-y-0"
+            : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
+        }`}
+      >
+        <MarqueeAnnouncement onNotify={handleNotify} />
+      </div>
 
       {/* Main Navbar */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -193,34 +232,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             <OrmaLogo variant="light" size="md" href="/" />
           </div>
 
-          {/* Center: Navigation Links with Animated Underline and Solid Opaque Dropdowns */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0 px-2 xl:px-6 gap-4 xl:gap-6 2xl:gap-7 text-xs sm:text-sm font-medium text-[#292722]">
+          {/* Center: Navigation Links with Animated Underline and Solid Opaque Dropdowns (No badges to prevent horizontal clutter) */}
+          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0 px-2 xl:px-6 gap-3 xl:gap-5 2xl:gap-7 text-xs sm:text-sm font-medium text-[#292722]">
             {activeNavLinks.map((item) => {
               const subItems = getSubNavItems(item);
-              const badgeNode = item.badge ? (
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border leading-none mr-1 ${
-                    item.badgeColor === "rose"
-                      ? "bg-rose-100 text-rose-800 border-rose-300"
-                      : item.badgeColor === "purple"
-                      ? "bg-purple-100 text-purple-800 border-purple-300"
-                      : item.badgeColor === "emerald"
-                      ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                      : item.badgeColor === "blue"
-                      ? "bg-blue-100 text-blue-800 border-blue-300"
-                      : "bg-amber-100 text-amber-900 border-amber-300"
-                  }`}
-                >
-                  {item.badge}
-                </span>
-              ) : null;
 
               if (item.href === "#sizeguide") {
                 return (
                   <button
                     key={item.id}
                     onClick={handleOpenSizeGuide}
-                    className="hover:text-[#161412] transition-colors whitespace-nowrap font-tajawal font-medium"
+                    className="hover:text-[#8E7545] transition-colors whitespace-nowrap font-tajawal font-medium py-1"
                   >
                     {item.label}
                   </button>
@@ -236,7 +258,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="relative flex items-center gap-1 text-[#292722] hover:text-[#8E7545] transition-colors whitespace-nowrap py-1 font-tajawal font-medium"
                   >
                     <span>{item.label}</span>
-                    {badgeNode}
                     {subItems && (
                       <ChevronDown className="w-3.5 h-3.5 text-[#8E7545] group-hover:rotate-180 transition-transform duration-200" />
                     )}
@@ -244,7 +265,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span className="absolute bottom-0 right-0 left-0 h-[2px] bg-[#8E7545] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
                   </Link>
 
-                  {/* 100% Solid Opaque Dropdown Popup matching reference image */}
+                  {/* 100% Solid Opaque Dropdown Popup */}
                   {subItems && (
                     <div className="absolute top-full right-0 pt-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-1 group-hover:translate-y-0 transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
                       <div className="bg-white border border-[#ded2c0] rounded-xl shadow-2xl py-2 px-1 min-w-[200px] text-right">
@@ -265,39 +286,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Left: User Admin, Wishlist, Search, Cart */}
+          {/* Left: Search Toggle, Customer Account, Wishlist, Cart */}
           <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 md:gap-3 shrink-0">
-            {/* Desktop Search Input */}
-            <div className="relative flex items-center">
-              <div className="hidden xl:flex relative items-center">
-                <input
-                  type="text"
-                  placeholder={storeSettings.searchPlaceholder || "ابحث عن خاتم، سلسلة..."}
-                  value={currentQuery}
-                  onChange={(e) => handleQueryChange(e.target.value)}
-                  className="w-36 2xl:w-44 bg-[#D8C8B3]/40 hover:bg-[#D8C8B3]/60 focus:w-56 focus:bg-white text-xs text-[#292722] placeholder-[#292722]/50 rounded-full py-2 pr-9 pl-7 border border-[#292722]/15 focus:outline-none focus:border-[#8E7545] transition-all duration-300 shadow-inner font-tajawal"
-                />
-                <Search className="w-3.5 h-3.5 text-[#292722]/60 absolute right-3 pointer-events-none" />
-                {currentQuery && (
-                  <button
-                    onClick={() => handleQueryChange("")}
-                    className="absolute left-2.5 p-0.5 text-[#292722]/60 hover:text-[#292722]"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-
-              {/* Mobile Search Toggle */}
-              <button
-                onClick={() => setSearchOpen(!searchOpen)}
-                className="xl:hidden p-2 rounded-full text-[#292722]/80 hover:bg-[#D8C8B3]/40 hover:text-[#292722] transition-colors"
-                aria-label="البحث"
-                title="البحث"
-              >
-                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-            </div>
+            {/* Search Icon Button (Desktop & Mobile) */}
+            <button
+              type="button"
+              onClick={() => setSearchOpen(!searchOpen)}
+              className={`p-2 rounded-full transition-colors ${
+                searchOpen
+                  ? "bg-[#292722] text-[#F5F0E7]"
+                  : "text-[#292722]/80 hover:bg-[#D8C8B3]/40 hover:text-[#292722]"
+              }`}
+              title="البحث في المصوغات"
+              aria-label="البحث"
+            >
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
 
             {/* Customer Account & Order Tracking */}
             <button
@@ -343,32 +347,41 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Link>
           </div>
         </div>
-
-        {/* Expandable Search Input */}
-        {searchOpen && (
-          <div className="xl:hidden pb-3 pt-1 border-t border-[#292722]/10 mt-1 animate-fadeIn">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={storeSettings.searchPlaceholder || "ابحث عن خاتم، سلسلة، أسورة..."}
-                value={currentQuery}
-                onChange={(e) => handleQueryChange(e.target.value)}
-                autoFocus
-                className="w-full bg-white text-xs text-[#292722] placeholder-[#292722]/50 rounded-full py-2.5 pr-9 pl-9 border border-[#292722]/20 focus:outline-none focus:border-[#8E7545] shadow-xs font-tajawal"
-              />
-              <Search className="w-4 h-4 text-[#8E7545] absolute right-3 top-1/2 -translate-y-1/2" />
-              {currentQuery && (
-                <button
-                  onClick={() => handleQueryChange("")}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-[#292722]/60 hover:text-[#292722]"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Expandable Search Input (Full Width for all screens when toggled) */}
+      {searchOpen && (
+        <div className="w-full bg-[#F5F0E7] border-t border-[#292722]/10 px-4 sm:px-6 lg:px-10 py-3 shadow-md transition-all animate-fadeIn">
+          <div className="max-w-2xl mx-auto relative flex items-center">
+            <input
+              type="text"
+              placeholder={storeSettings.searchPlaceholder || "ابحث عن خاتم، سلسلة، أسورة، عيار 925..."}
+              value={currentQuery}
+              onChange={(e) => handleQueryChange(e.target.value)}
+              autoFocus
+              className="w-full bg-white text-xs sm:text-sm text-[#292722] placeholder-[#292722]/50 rounded-full py-2.5 pr-10 pl-10 border border-[#292722]/20 focus:outline-none focus:border-[#8E7545] shadow-inner font-tajawal"
+            />
+            <Search className="w-4 h-4 text-[#8E7545] absolute right-3.5 pointer-events-none" />
+            {currentQuery ? (
+              <button
+                onClick={() => handleQueryChange("")}
+                className="absolute left-3.5 p-1 text-[#292722]/60 hover:text-[#292722] transition-colors"
+                title="مسح البحث"
+              >
+                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(false)}
+                className="absolute left-3.5 p-1 text-[#292722]/60 hover:text-[#292722] transition-colors"
+                title="إغلاق البحث"
+              >
+                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Mobile Drawer Navigation Menu */}
       {mobileMenuOpen && (

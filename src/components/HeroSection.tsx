@@ -74,8 +74,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </span>
           </div>
 
-          {/* Signature Headline in Cairo Font (Crystal-clear, luxury geometric Arabic) */}
-          <h1 className="font-cairo text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-[1.25] sm:leading-[1.18] tracking-tight drop-shadow-md">
+          {/* Signature Headline in Cairo Font (Crystal-clear, luxury geometric Arabic, refined medium weight) */}
+          <h1 className="font-cairo text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-normal sm:font-medium text-white/95 leading-[1.3] sm:leading-[1.25] tracking-normal drop-shadow-md">
             {headlineLines.map((line, idx) => (
               <span key={idx} className="block">
                 {line}

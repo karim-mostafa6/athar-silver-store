@@ -114,12 +114,7 @@ export default function Home() {
       {/* Position 2: After Hero */}
       <CustomPromoBanner settings={storeSettings} position="after_hero" />
 
-      {/* Gender Split Showcase */}
-      <ScrollReveal direction="up" threshold={0.08}>
-        <GenderSplitShowcase />
-      </ScrollReveal>
-
-      {/* Products Section */}
+      {/* Products Section (المجموعات والمصوغات) */}
       <section
         ref={productsSectionRef}
         id="products"
@@ -234,6 +229,11 @@ export default function Home() {
           </ScrollReveal>
         )}
       </section>
+
+      {/* Gender Split Showcase (التشكيلة الرجالية والنسائية) */}
+      <ScrollReveal direction="up" threshold={0.08}>
+        <GenderSplitShowcase />
+      </ScrollReveal>
 
       {/* Position 3: Between Products and Story */}
       <CustomPromoBanner settings={storeSettings} position="between_products" />

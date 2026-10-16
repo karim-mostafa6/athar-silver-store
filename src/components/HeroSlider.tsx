@@ -185,7 +185,7 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
             )}
 
             {/* Main Title */}
-            <h1 className="font-cairo text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.25] sm:leading-[1.18] tracking-tight drop-shadow-md mb-4">
+            <h1 className="font-cairo text-3xl sm:text-5xl lg:text-6xl font-normal sm:font-medium text-white/95 leading-[1.3] sm:leading-[1.25] tracking-normal drop-shadow-md mb-4">
               <span className="block">{slide.title}</span>
               {slide.titleLine2 && (
                 <span className="block text-[#B7A078]">{slide.titleLine2}</span>
