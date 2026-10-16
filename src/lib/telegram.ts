@@ -183,8 +183,6 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
 
   try {
     const text = formatOrderInvoiceTelegramMessage(order);
-    const orderNum = order.id ? (order.id.startsWith("#") ? order.id : `#${order.id}`) : "#ORM";
-    const cleanPhone = cleanPhoneForWhatsApp(order.phone);
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
     const response = await fetch(telegramApiUrl, {
@@ -198,12 +196,6 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
         disable_web_page_preview: true,
         reply_markup: {
           inline_keyboard: [
-            [
-              {
-                text: `💬 مراسلة العميل واتساب (${orderNum})`,
-                url: `https://wa.me/${cleanPhone}`,
-              },
-            ],
             [
               {
                 text: "📦 جاري التجهيز",

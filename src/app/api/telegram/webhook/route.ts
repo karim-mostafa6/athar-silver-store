@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateOrderStatusOnServer } from "@/lib/serverStore";
-import { cleanPhoneForWhatsApp } from "@/lib/telegram";
+import {
+  getServerStoreData,
+  saveServerStoreData,
+  extractOrderSequence,
+  mapDbOrderToModel,
+} from "@/lib/serverStore";
+import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 import { Order } from "@/context/StoreContext";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +26,246 @@ async function answerCallbackQuery(botToken: string, callbackQueryId: string, te
     });
   } catch (err) {
     console.error("[Telegram Webhook] Error answering callback query:", err);
+  }
+}
+
+/**
+ * Flexible Order Lookup & Update for Telegram Webhook
+ * Searches directly in Supabase (id, order_number, order_id, admin_notes, sequence)
+ * with graceful fallback to serverStore / local file.
+ */
+async function findAndUpdateOrder(
+  orderIdInput: string,
+  newStatus: Order["status"],
+  cancellationReason?: string
+): Promise<{ success: boolean; order?: Order; error?: string }> {
+  try {
+    const rawId = String(orderIdInput || "").trim();
+    if (!rawId) {
+      return { success: false, error: "رقم الطلب غير محدد" };
+    }
+
+    const cleanId = rawId.replace(/^#/, "").trim();
+    const hashId = cleanId ? `#${cleanId}` : "";
+
+    // Extract digits or sequence number if present (e.g. ORM-1017 -> 1017)
+    const numMatch = cleanId.match(/(\d{3,6})/);
+    const seqNum = numMatch ? parseInt(numMatch[1], 10) : null;
+
+    // Build comprehensive candidate IDs
+    const candidateIds = Array.from(
+      new Set(
+        [
+          rawId,
+          cleanId,
+          hashId,
+          cleanId.toLowerCase(),
+          cleanId.toUpperCase(),
+          rawId.toLowerCase(),
+          rawId.toUpperCase(),
+          ...(seqNum
+            ? [
+                `ORM-${seqNum}`,
+                `#ORM-${seqNum}`,
+                `ATH-${seqNum}`,
+                `#ATH-${seqNum}`,
+                `${seqNum}`,
+                `#${seqNum}`,
+                `orm-${seqNum}`,
+                `ath-${seqNum}`,
+              ]
+            : []),
+        ].filter(Boolean)
+      )
+    );
+
+    // 1. SUPABASE DIRECT MULTI-STRATEGY LOOKUP & UPDATE
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = getSupabaseAdminClient();
+        let dbRow: Record<string, unknown> | null = null;
+
+        // Strategy 1A: Search by 'id' matching any candidate
+        const { data: byIdRows } = await supabase
+          .from("orders")
+          .select("*")
+          .in("id", candidateIds)
+          .limit(1);
+
+        if (byIdRows && byIdRows.length > 0) {
+          dbRow = byIdRows[0] as Record<string, unknown>;
+        }
+
+        // Strategy 1B: Search by 'order_number' column if present
+        if (!dbRow) {
+          try {
+            const { data: byOrderNum } = await supabase
+              .from("orders")
+              .select("*")
+              .in("order_number", candidateIds)
+              .limit(1);
+            if (byOrderNum && byOrderNum.length > 0) {
+              dbRow = byOrderNum[0] as Record<string, unknown>;
+            }
+          } catch {}
+        }
+
+        // Strategy 1C: Search by 'order_id' column if present
+        if (!dbRow) {
+          try {
+            const { data: byOrderId } = await supabase
+              .from("orders")
+              .select("*")
+              .in("order_id", candidateIds)
+              .limit(1);
+            if (byOrderId && byOrderId.length > 0) {
+              dbRow = byOrderId[0] as Record<string, unknown>;
+            }
+          } catch {}
+        }
+
+        // Strategy 1D: Search by ilike on 'id' with sequence digits
+        if (!dbRow && seqNum) {
+          try {
+            const { data: byIdLike } = await supabase
+              .from("orders")
+              .select("*")
+              .ilike("id", `%${seqNum}%`)
+              .order("created_at", { ascending: false })
+              .limit(1);
+            if (byIdLike && byIdLike.length > 0) {
+              dbRow = byIdLike[0] as Record<string, unknown>;
+            }
+          } catch {}
+        }
+
+        // Strategy 1E: Search by ilike in 'admin_notes'
+        if (!dbRow && cleanId) {
+          try {
+            const { data: byNotes } = await supabase
+              .from("orders")
+              .select("*")
+              .ilike("admin_notes", `%${cleanId}%`)
+              .order("created_at", { ascending: false })
+              .limit(1);
+            if (byNotes && byNotes.length > 0) {
+              dbRow = byNotes[0] as Record<string, unknown>;
+            }
+          } catch {}
+        }
+
+        // If found in Supabase, update immediately in Supabase and sync with serverStore
+        if (dbRow && dbRow.id) {
+          const targetDbId = String(dbRow.id);
+          const existingNotes = String(dbRow.admin_notes || "");
+          const updatedNotes = `${existingNotes} [tg_status:${newStatus}]`.trim();
+
+          const updatePayload: Record<string, unknown> = {
+            status: newStatus,
+            admin_notes: updatedNotes,
+          };
+
+          if (newStatus === "cancelled") {
+            updatePayload.cancellation_reason = cancellationReason || "تم الإلغاء عبر بوت تليجرام";
+            updatePayload.cancelled_at = new Date().toISOString();
+          }
+
+          const { data: updatedRows } = await supabase
+            .from("orders")
+            .update(updatePayload)
+            .eq("id", targetDbId)
+            .select();
+
+          const mergedRow = {
+            ...dbRow,
+            ...updatePayload,
+            ...(updatedRows && updatedRows[0] ? updatedRows[0] : {}),
+          };
+
+          const modelOrder = mapDbOrderToModel(mergedRow);
+
+          // Sync with serverStore memory and local disk
+          try {
+            await saveServerStoreData({
+              orders: [modelOrder],
+            });
+          } catch (syncErr) {
+            console.warn("[Telegram Webhook] Warning syncing to serverStore:", syncErr);
+          }
+
+          return { success: true, order: modelOrder };
+        }
+      } catch (sbErr) {
+        console.warn("[Telegram Webhook] Error during Supabase order lookup:", sbErr);
+      }
+    }
+
+    // 2. SERVER STORE / LOCAL CACHE FALLBACK LOOKUP & UPDATE
+    const currentStore = await getServerStoreData();
+    const candidateLower = candidateIds.map((c) => c.toLowerCase());
+
+    const foundInStore = currentStore.orders.find((o) => {
+      if (!o || !o.id) return false;
+      const oId = String(o.id).trim();
+      const oClean = oId.replace(/^#/, "").trim();
+
+      // Direct exact match
+      if (candidateIds.includes(oId) || candidateIds.includes(oClean)) return true;
+      // Case-insensitive match
+      if (candidateLower.includes(oId.toLowerCase()) || candidateLower.includes(oClean.toLowerCase())) {
+        return true;
+      }
+
+      // Numeric sequence match
+      if (seqNum !== null) {
+        const oSeq = extractOrderSequence(oId);
+        if (oSeq === seqNum) return true;
+        if (oId.includes(String(seqNum))) return true;
+      }
+
+      // Admin notes match
+      if (cleanId && o.adminNotes && o.adminNotes.toLowerCase().includes(cleanId.toLowerCase())) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (foundInStore) {
+      const updatedStoreOrder: Order = {
+        ...foundInStore,
+        status: newStatus,
+        cancellationReason:
+          newStatus === "cancelled"
+            ? cancellationReason || "تم الإلغاء عبر بوت تليجرام"
+            : foundInStore.cancellationReason,
+        cancelledAt:
+          newStatus === "cancelled"
+            ? new Date().toISOString()
+            : foundInStore.cancelledAt,
+        adminNotes: `${foundInStore.adminNotes || ""} [tg_status:${newStatus}]`.trim(),
+      };
+
+      const saved = await saveServerStoreData({
+        orders: [updatedStoreOrder],
+      });
+
+      const finalOrder =
+        saved.orders.find(
+          (o) => o.id === updatedStoreOrder.id || o.id === foundInStore.id
+        ) || updatedStoreOrder;
+
+      return { success: true, order: finalOrder };
+    }
+
+    return {
+      success: false,
+      error: `الطلب رقم ${orderIdInput} غير موجود في قاعدة البيانات`,
+    };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Error updating order status";
+    console.error("[Telegram Webhook] Exception in findAndUpdateOrder:", err);
+    return { success: false, error: errorMsg };
   }
 }
 
@@ -71,8 +316,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: true });
       }
 
-      // Update the order directly in the database (Supabase + local store fallback)
-      const updateResult = await updateOrderStatusOnServer(orderId, newStatus);
+      // Update the order using flexible multi-strategy lookup (Supabase + local store fallback)
+      const updateResult = await findAndUpdateOrder(orderId, newStatus);
 
       if (!updateResult.success || !updateResult.order) {
         await answerCallbackQuery(
@@ -107,33 +352,23 @@ export async function POST(request: NextRequest) {
         const baseText = currentText.split("\n\n📌 الحالة الحالية:")[0].trim();
         const updatedText = `${baseText}${statusBanner}`;
 
-        // Build updated inline keyboard with active state indicators
-        const cleanPhone = updatedOrder.phone ? cleanPhoneForWhatsApp(updatedOrder.phone) : "";
-        const keyboard = [];
-
-        if (cleanPhone) {
-          keyboard.push([
+        // Build updated inline keyboard with active state indicators (Only 3 status buttons)
+        const keyboard = [
+          [
             {
-              text: `💬 مراسلة العميل واتساب (${orderNum})`,
-              url: `https://wa.me/${cleanPhone}`,
+              text: newStatus === "processing" ? "✅ 📦 جاري التجهيز" : "📦 جاري التجهيز",
+              callback_data: `status:processing:${updatedOrder.id}`,
             },
-          ]);
-        }
-
-        keyboard.push([
-          {
-            text: newStatus === "processing" ? "✅ 📦 جاري التجهيز" : "📦 جاري التجهيز",
-            callback_data: `status:processing:${updatedOrder.id}`,
-          },
-          {
-            text: newStatus === "shipped" ? "✅ 🚚 تم الشحن" : "🚚 تم الشحن",
-            callback_data: `status:shipped:${updatedOrder.id}`,
-          },
-          {
-            text: newStatus === "cancelled" ? "✅ ❌ ملغي" : "❌ إلغاء الطلب",
-            callback_data: `status:cancelled:${updatedOrder.id}`,
-          },
-        ]);
+            {
+              text: newStatus === "shipped" ? "✅ 🚚 تم الشحن" : "🚚 تم الشحن",
+              callback_data: `status:shipped:${updatedOrder.id}`,
+            },
+            {
+              text: newStatus === "cancelled" ? "✅ ❌ ملغي" : "❌ إلغاء الطلب",
+              callback_data: `status:cancelled:${updatedOrder.id}`,
+            },
+          ],
+        ];
 
         try {
           await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
