@@ -43,7 +43,7 @@ export default function CheckoutPage() {
     setAppliedPromo,
     discountAmount,
     storeSettings,
-    addOrder,
+    submitOrder,
     addToast,
   } = useStore();
 
@@ -314,19 +314,15 @@ export default function CheckoutPage() {
           : undefined,
     };
 
-    // Create Order with sequential 4-digit ID (skip duplicate internal fetch, since checkout awaits below)
-    const newOrderId = addOrder(orderPayload, true);
-
-    // Explicitly await POST /api/orders to ensure Telegram notification completes in Vercel Serverless
-    try {
-      await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: { ...orderPayload, id: newOrderId } }),
-      });
-    } catch (orderPostErr) {
-      console.error("[Checkout] Error awaiting POST /api/orders:", orderPostErr);
+    // Submit Order to Server: ID is generated atomically & sequentially on the server
+    const submitResult = await submitOrder(orderPayload);
+    if (!submitResult.success) {
+      setIsSubmitting(false);
+      alert(submitResult.error || "تعذر إتمام الطلب، يرجى المحاولة مرة أخرى.");
+      return;
     }
+
+    const newOrderId = submitResult.orderId || "ORM-1000";
 
     setConfirmedOrderId(newOrderId);
     setConfirmedSnapshot({
@@ -777,6 +773,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    autoComplete="given-name"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="مثال: كريم"
@@ -790,6 +787,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    autoComplete="family-name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="مثال: مصطفى"
@@ -806,6 +804,7 @@ export default function CheckoutPage() {
                 <input
                   type="text"
                   required
+                  autoComplete="street-address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="مثال: شارع النزهة، مصر الجديدة، عمارة 15"
@@ -820,6 +819,7 @@ export default function CheckoutPage() {
                 </label>
                 <input
                   type="text"
+                  autoComplete="address-line2"
                   value={apartment}
                   onChange={(e) => setApartment(e.target.value)}
                   placeholder="مثال: شقة 4، الطابق الثالث، بجوار مسجد..."
@@ -836,6 +836,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    autoComplete="address-level2"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="المدينة"
@@ -866,6 +867,8 @@ export default function CheckoutPage() {
                   </label>
                   <input
                     type="text"
+                    inputMode="numeric"
+                    autoComplete="postal-code"
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
                     placeholder="11511"
@@ -883,6 +886,8 @@ export default function CheckoutPage() {
                   <input
                     type="tel"
                     required
+                    inputMode="tel"
+                    autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="01012345678"
@@ -1235,10 +1240,13 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full min-h-[52px] py-4 rounded-xl bg-[#161412] hover:bg-[#2e2925] active:scale-[0.99] text-[#f7f4ee] font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed select-none touch-manipulation"
               >
                 {isSubmitting ? (
-                  <span>جاري تسجيل الطلب وتأكيده...</span>
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>جاري تسجيل الطلب وتأكيده...</span>
+                  </span>
                 ) : (
                   <>
                     <span>تأكيد الطلب الآن</span>

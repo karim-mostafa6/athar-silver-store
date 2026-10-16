@@ -297,8 +297,15 @@ export async function POST(request: NextRequest) {
       // Re-fetch latest store snapshot inside lock to guarantee up-to-the-millisecond freshness
       const freshData = await getServerStoreData();
 
-      let newId = rawOrder.id;
-      if (!newId || newId.startsWith("ath-temp") || (!newId.startsWith("ATH-") && !newId.startsWith("ORM-"))) {
+      // Server-Side Atomic Order ID Generation:
+      // Customer checkout MUST ALWAYS have its order ID generated server-side monotonically.
+      // We check if this is an explicit update of an existing order already in database, otherwise we ALWAYS generate the next sequential ID.
+      const existingOrderInDb = rawOrder.id ? freshData.orders.find((o) => o.id === rawOrder.id) : undefined;
+      
+      let newId: string;
+      if (existingOrderInDb) {
+        newId = existingOrderInDb.id;
+      } else {
         newId = getNextSequentialOrderId(
           freshData.orders,
           freshData.lastOrderSeq,
@@ -311,8 +318,6 @@ export async function POST(request: NextRequest) {
       if (seq !== null) {
         newSeq = Math.max(newSeq, seq);
       }
-
-      const existingOrderInDb = freshData.orders.find((o) => o.id === newId);
 
       const finalOrder: Order = {
         id: newId,
