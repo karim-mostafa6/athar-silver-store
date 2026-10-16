@@ -357,6 +357,7 @@ interface StoreContextType {
 
   // Orders
   orders: Order[];
+  refreshOrders: () => Promise<void>;
   addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">, skipApiPost?: boolean) => string;
   submitOrder: (orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string }) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrder: (orderId: string, updates: Partial<Order>) => void;
@@ -1043,9 +1044,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     isSyncingRef.current = true;
     lastSyncTimestampRef.current = now;
 
+    const authHeaders = getAdminAuthHeaders();
+
     fetch(force ? `/api/data?t=${now}` : "/api/data", {
       headers: {
         "Accept": "application/json",
+        ...authHeaders,
       },
     })
       .then((res) => res.json())
@@ -1114,14 +1118,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         // Only update orders if server returned them (i.e. logged-in admin)
         if (Array.isArray(data.orders) && data.orders.length > 0) {
-          if (Date.now() - lastLocalOrderMutationRef.current > 4000) {
-            const serverOrders = sanitizeOrders(data.orders);
-            ordersRef.current = serverOrders;
-            setOrders(serverOrders);
+          const serverOrders = sanitizeOrders(data.orders);
+          setOrders((prev) => {
+            const orderMap = new Map<string, Order>();
+            // Server orders are the single source of truth
+            for (const o of serverOrders) {
+              if (o && o.id) orderMap.set(o.id, o);
+            }
+            // Retain any pending local orders not yet reflected on server
+            for (const o of prev) {
+              if (o && o.id && !orderMap.has(o.id)) {
+                orderMap.set(o.id, o);
+              }
+            }
+            const merged = Array.from(orderMap.values()).sort(
+              (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+            );
+            ordersRef.current = merged;
             try {
-              localStorage.setItem("athar_orders", JSON.stringify(serverOrders));
+              localStorage.setItem("athar_orders", JSON.stringify(merged));
             } catch {}
-          }
+            return merged;
+          });
         }
       })
       .catch((err) => {
@@ -1130,6 +1148,55 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       .finally(() => {
         isSyncingRef.current = false;
       });
+  }, []);
+
+  // Explicitly fetch and sync orders directly from /api/orders (Strictly for authenticated admin)
+  const refreshOrders = useCallback(async () => {
+    const authHeaders = getAdminAuthHeaders();
+    if (!authHeaders["Authorization"] && !authHeaders["x-orma-admin-token"] && !authHeaders["x-athar-admin-token"]) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/orders?t=${Date.now()}`, {
+        headers: {
+          "Accept": "application/json",
+          ...authHeaders,
+        },
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.orders)) {
+        const serverOrders = sanitizeOrders(data.orders);
+        setOrders((prev) => {
+          const orderMap = new Map<string, Order>();
+          for (const o of serverOrders) {
+            if (o && o.id) orderMap.set(o.id, o);
+          }
+          for (const o of prev) {
+            if (o && o.id && !orderMap.has(o.id)) {
+              orderMap.set(o.id, o);
+            }
+          }
+          const merged = Array.from(orderMap.values()).sort(
+            (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+          );
+          ordersRef.current = merged;
+          try {
+            localStorage.setItem("athar_orders", JSON.stringify(merged));
+          } catch {}
+          return merged;
+        });
+
+        if (typeof data.lastOrderSeq === "number") {
+          recordLastOrderSeq(data.lastOrderSeq);
+        }
+        if (Array.isArray(data.deletedOrderIds)) {
+          data.deletedOrderIds.forEach((id: string) => recordDeletedOrderId(id));
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch orders from /api/orders:", err);
+    }
   }, []);
 
   // Synchronize with server on mount & when returning to the tab
@@ -1369,7 +1436,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Optimistic order updater: updates React state & localStorage instantaneously (0ms),
   // broadcasts across all tabs, and schedules atomic server sync
   const applyOrdersMutation = useCallback(
-    (mutationFn: (prev: Order[]) => Order[], immediateSync = false) => {
+    (
+      mutationFn: (prev: Order[]) => Order[],
+      immediateSync = false,
+      skipPutSync = false
+    ) => {
       lastLocalOrderMutationRef.current = Date.now();
       setOrders((prev) => {
         const next = mutationFn(prev);
@@ -1389,7 +1460,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return next;
       });
 
-      scheduleOrdersSync(immediateSync);
+      if (!skipPutSync) {
+        scheduleOrdersSync(immediateSync);
+      }
     },
     [scheduleOrdersSync]
   );
@@ -1487,7 +1560,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       status: "pending",
     };
 
-    applyOrdersMutation((prev) => [newOrder, ...prev], false);
+    applyOrdersMutation((prev) => [newOrder, ...prev], false, true);
 
     // Optimistically update stock in products state
     setProducts((prev) =>
@@ -1516,7 +1589,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           if (data?.success && data?.order) {
             applyOrdersMutation(
               (prev) => [data.order, ...prev.filter((o) => o.id !== data.order.id)],
-              false
+              false,
+              true
             );
           }
         })
@@ -1546,7 +1620,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
       const verifiedOrder = data.order as Order;
       if (verifiedOrder) {
-        applyOrdersMutation((prev) => [verifiedOrder, ...prev.filter((o) => o.id !== verifiedOrder.id)], false);
+        applyOrdersMutation((prev) => [verifiedOrder, ...prev.filter((o) => o.id !== verifiedOrder.id)], false, true);
       }
 
       return {
@@ -1807,6 +1881,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         storeSettings,
         updateStoreSettings,
         orders,
+        refreshOrders,
         addOrder,
         submitOrder,
         updateOrder,

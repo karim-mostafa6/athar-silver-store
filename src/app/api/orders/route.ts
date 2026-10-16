@@ -370,17 +370,24 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { orders, lastOrderSeq, deletedOrderIds } = body;
+    const { orders, order, lastOrderSeq, deletedOrderIds } = body;
 
-    if (!Array.isArray(orders)) {
+    let ordersToUpdate: Order[] | undefined = undefined;
+    if (order && typeof order === "object" && order.id) {
+      ordersToUpdate = [order];
+    } else if (Array.isArray(orders)) {
+      ordersToUpdate = orders;
+    }
+
+    if (!ordersToUpdate && !deletedOrderIds) {
       return NextResponse.json(
-        { success: false, error: "Invalid orders array" },
+        { success: false, error: "بيانات الطلبات غير صالحة" },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
     const saved = await saveServerStoreData({
-      orders,
+      orders: ordersToUpdate,
       lastOrderSeq: typeof lastOrderSeq === "number" ? lastOrderSeq : undefined,
       deletedOrderIds: Array.isArray(deletedOrderIds) ? deletedOrderIds : undefined,
     });

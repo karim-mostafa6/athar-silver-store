@@ -262,6 +262,36 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       let orders: Order[] = [];
       if (ordersRes.data && Array.isArray(ordersRes.data)) {
         orders = cleanOrders(ordersRes.data.map(mapDbOrderToModel));
+      } else if (ordersRes.error) {
+        console.warn("Supabase orders query warning/error:", ordersRes.error);
+      }
+
+      // Offline/Local Resilience: Always merge with local store-data.json orders in case of transient Supabase latency
+      try {
+        const filePath = getStoreFilePath();
+        if (fs.existsSync(filePath)) {
+          const raw = fs.readFileSync(filePath, "utf-8");
+          if (raw.trim()) {
+            const parsed = JSON.parse(raw) as ServerStoreData;
+            if (Array.isArray(parsed.orders) && parsed.orders.length > 0) {
+              const localOrders = cleanOrders(parsed.orders);
+              const orderMap = new Map<string, Order>();
+              for (const o of orders) {
+                if (o && o.id) orderMap.set(o.id, o);
+              }
+              for (const o of localOrders) {
+                if (o && o.id && !orderMap.has(o.id)) {
+                  orderMap.set(o.id, o);
+                }
+              }
+              orders = Array.from(orderMap.values()).sort(
+                (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Error merging local orders backup:", err);
       }
 
       let lastOrderSeq = 999;
@@ -354,14 +384,30 @@ export async function saveServerStoreData(
   let cleanUpdatedOrders: Order[];
   if (updates.orders !== undefined) {
     const cleaned = cleanOrders(updates.orders);
-    if (cleaned.length === 0 && current.orders.length > 0) {
-      const allDeleted = current.orders.every((o) => combinedDeletedIds.includes(o.id));
-      cleanUpdatedOrders = allDeleted ? [] : current.orders;
-    } else {
-      cleanUpdatedOrders = cleaned;
+    // CRITICAL: Merge existing orders with incoming orders by ID so historical orders are NEVER deleted/replaced
+    const ordersMap = new Map<string, Order>();
+    // 1. Keep all current existing orders
+    for (const o of current.orders) {
+      if (o && o.id && !combinedDeletedIds.includes(o.id)) {
+        ordersMap.set(o.id, o);
+      }
     }
+    // 2. Add or update incoming orders
+    for (const o of cleaned) {
+      if (o && o.id && !combinedDeletedIds.includes(o.id)) {
+        const existing = ordersMap.get(o.id);
+        ordersMap.set(o.id, existing ? { ...existing, ...o } : o);
+      }
+    }
+    // 3. Remove any explicitly deleted orders
+    for (const delId of combinedDeletedIds) {
+      ordersMap.delete(delId);
+    }
+    cleanUpdatedOrders = Array.from(ordersMap.values()).sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
   } else {
-    cleanUpdatedOrders = current.orders;
+    cleanUpdatedOrders = current.orders.filter((o) => !combinedDeletedIds.includes(o.id));
   }
 
   const newLastOrderSeq = calculateHighestOrderSeq(

@@ -77,6 +77,7 @@ export default function AdminPage() {
     storeSettings,
     updateStoreSettings,
     orders,
+    refreshOrders,
     addOrder,
     updateOrder,
     bulkUpdateOrderStatus,
@@ -93,6 +94,7 @@ export default function AdminPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string>("");
   const [rememberMe, setRememberMe] = useState<boolean>(true);
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState<boolean>(false);
 
   // Current Authenticated User with Role-Based Access Control
   const [currentUser, setCurrentUser] = useState<{
@@ -361,6 +363,33 @@ export default function AdminPage() {
     prevOrdersCountRef.current = orders.length;
   }, [orders, addToast]);
 
+  // Periodic & Tab-Switch Central Orders Auto-Sync (Every 20 seconds while admin is viewing orders)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    refreshOrders();
+  }, [isAuthenticated, refreshOrders]);
+
+  useEffect(() => {
+    if (!isAuthenticated || activeTab !== "orders") return;
+    refreshOrders();
+    const interval = setInterval(() => {
+      refreshOrders();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, activeTab, refreshOrders]);
+
+  const handleManualRefreshOrders = async () => {
+    setIsRefreshingOrders(true);
+    try {
+      await refreshOrders();
+      addToast("تم التحديث ⚡", "تمت مزامنة كافة الطلبات من السحابة بنجاح", "info");
+    } catch {
+      addToast("خطأ", "تعذر تحديث الطلبات من السيرفر", "info");
+    } finally {
+      setTimeout(() => setIsRefreshingOrders(false), 500);
+    }
+  };
+
   // Secure Login Handler with Server-Side Cryptographic Token & Brute-Force Rate Limiting
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -403,6 +432,7 @@ export default function AdminPage() {
         } else {
           setActiveTab("orders");
         }
+        refreshOrders();
         addToast("مرحباً بك", `تم تسجيل الدخول بنجاح (${data.user.name})`, "info");
       } else {
         setAuthError(data.error || "اسم المستخدم أو كلمة المرور غير صحيحة، يرجى المحاولة مجدداً.");
@@ -2198,6 +2228,18 @@ export default function AdminPage() {
                       />
                     </div>
                   )}
+
+                  {/* Realtime Manual Refresh Orders Button */}
+                  <button
+                    type="button"
+                    onClick={handleManualRefreshOrders}
+                    disabled={isRefreshingOrders}
+                    className="px-3 py-2 rounded-lg bg-[#f7f4ee] hover:bg-[#ede5d8] text-[#161412] border border-[#ded2c0] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all shrink-0 disabled:opacity-50"
+                    title="تحديث ومزامنة كافة الطلبات من السحابة والسيرفر فورياً"
+                  >
+                    <RotateCw className={`w-3.5 h-3.5 text-[#8c7865] ${isRefreshingOrders ? "animate-spin text-[#c5a880]" : ""}`} />
+                    <span>{isRefreshingOrders ? "جاري التحديث..." : "تحديث الطلبات"}</span>
+                  </button>
 
                   {/* Shopify-style Create Manual Order Button */}
                   <button

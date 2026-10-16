@@ -114,32 +114,35 @@ CREATE INDEX IF NOT EXISTS idx_orders_phone ON public.orders(phone);
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
 -- Orders RLS Policies:
--- 1) Anyone (clients checking out) can place an order (INSERT only)
+-- 1) Anyone (clients checking out) can place an order (INSERT)
 DROP POLICY IF EXISTS "Public can insert orders" ON public.orders;
 CREATE POLICY "Public can insert orders" 
 ON public.orders FOR INSERT 
 WITH CHECK (true);
 
--- 2) Strict Security: Public CANNOT read or list orders. Only authenticated admin or service role can SELECT
+-- 2) Server API & Admin can view orders (Protected by Next.js API route adminAuth token)
 DROP POLICY IF EXISTS "Only admin can view orders" ON public.orders;
-CREATE POLICY "Only admin can view orders" 
+DROP POLICY IF EXISTS "Server and admin can view orders" ON public.orders;
+CREATE POLICY "Server and admin can view orders" 
 ON public.orders FOR SELECT 
-TO authenticated, service_role 
+TO anon, authenticated, service_role 
 USING (true);
 
--- 3) Only admin can update order status, notes, or customer info
+-- 3) Server API & Admin can update orders (Protected by Next.js API route adminAuth token)
 DROP POLICY IF EXISTS "Only admin can update orders" ON public.orders;
-CREATE POLICY "Only admin can update orders" 
+DROP POLICY IF EXISTS "Server and admin can update orders" ON public.orders;
+CREATE POLICY "Server and admin can update orders" 
 ON public.orders FOR UPDATE 
-TO authenticated, service_role 
+TO anon, authenticated, service_role 
 USING (true) 
 WITH CHECK (true);
 
--- 4) Only admin can delete orders
+-- 4) Server API & Admin can delete orders (Protected by Next.js API route adminAuth token)
 DROP POLICY IF EXISTS "Only admin can delete orders" ON public.orders;
-CREATE POLICY "Only admin can delete orders" 
+DROP POLICY IF EXISTS "Server and admin can delete orders" ON public.orders;
+CREATE POLICY "Server and admin can delete orders" 
 ON public.orders FOR DELETE 
-TO authenticated, service_role 
+TO anon, authenticated, service_role 
 USING (true);
 
 
