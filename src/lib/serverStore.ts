@@ -463,41 +463,49 @@ export async function saveServerStoreData(
       if (updates.products !== undefined) {
         const dbProducts = updates.products.map(mapModelProductToDb);
         if (dbProducts.length > 0) {
-          await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
+          const { error: upsertErr } = await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
+          if (upsertErr) throw new Error(`خطأ Supabase في جدول المنتجات: ${upsertErr.message}`);
           const activeIds = updates.products.map((p) => p.id);
           // Delete any products in Supabase that are no longer in the active catalog
-          await supabase
+          const { error: delErr } = await supabase
             .from("products")
             .delete()
             .not("id", "in", `(${activeIds.map((id) => `"${id}"`).join(",")})`);
+          if (delErr) console.warn("Supabase products delete warning:", delErr.message);
         } else {
-          await supabase.from("products").delete().neq("id", "");
+          const { error: delAllErr } = await supabase.from("products").delete().neq("id", "");
+          if (delAllErr) throw new Error(`خطأ Supabase في حذف المنتجات: ${delAllErr.message}`);
         }
       }
 
       if (updates.settings !== undefined) {
-        await supabase
+        const { error: setErr } = await supabase
           .from("store_settings")
           .upsert({ id: "primary", settings: updatedSettings, updated_at: new Date().toISOString() }, { onConflict: "id" });
+        if (setErr) throw new Error(`خطأ Supabase في جدول الإعدادات: ${setErr.message}`);
       }
 
       if (updates.orders !== undefined) {
         const dbOrders = cleanUpdatedOrders.map(mapModelOrderToDb);
         if (dbOrders.length > 0) {
-          await supabase.from("orders").upsert(dbOrders, { onConflict: "id" });
+          const { error: ordErr } = await supabase.from("orders").upsert(dbOrders, { onConflict: "id" });
+          if (ordErr) throw new Error(`خطأ Supabase في جدول الطلبات: ${ordErr.message}`);
         }
       }
 
       if (combinedDeletedIds.length > 0) {
-        await supabase.from("orders").delete().in("id", combinedDeletedIds);
+        const { error: delOrdErr } = await supabase.from("orders").delete().in("id", combinedDeletedIds);
+        if (delOrdErr) console.warn("Supabase orders delete warning:", delOrdErr.message);
       }
 
-      await supabase.from("store_metadata").upsert([
+      const { error: metaErr } = await supabase.from("store_metadata").upsert([
         { key: "last_order_seq", value: newLastOrderSeq, updated_at: new Date().toISOString() },
         { key: "deleted_order_ids", value: combinedDeletedIds, updated_at: new Date().toISOString() },
       ], { onConflict: "key" });
+      if (metaErr) console.warn("Supabase metadata warning:", metaErr.message);
     } catch (err) {
       console.error("Failed to save to Supabase:", err);
+      throw err;
     }
   }
 
