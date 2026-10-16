@@ -541,13 +541,18 @@ export async function saveServerStoreData(
         if (dbProducts.length > 0) {
           const { error: upsertErr } = await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
           if (upsertErr) throw new Error(`خطأ Supabase في جدول المنتجات: ${upsertErr.message}`);
-          const activeIds = updates.products.map((p) => p.id);
-          // Delete any products in Supabase that are no longer in the active catalog
-          const { error: delErr } = await supabase
-            .from("products")
-            .delete()
-            .not("id", "in", `(${activeIds.map((id) => `"${id}"`).join(",")})`);
-          if (delErr) console.warn("Supabase products delete warning:", delErr.message);
+          const activeIds = new Set(updates.products.map((p) => p.id));
+          // Delete any products in Supabase that are no longer in the active catalog.
+          // Explicit id list (instead of a negated IN filter) and a hard failure: if the delete
+          // does not happen the admin must be told, otherwise removed products keep showing to
+          // customers while looking deleted on the admin's own screen.
+          const { data: existingRows, error: listErr } = await supabase.from("products").select("id");
+          if (listErr) throw new Error(`خطأ Supabase في قراءة المنتجات: ${listErr.message}`);
+          const toDelete = (existingRows || []).map((r: { id: string }) => r.id).filter((id: string) => !activeIds.has(id));
+          if (toDelete.length > 0) {
+            const { error: delErr } = await supabase.from("products").delete().in("id", toDelete);
+            if (delErr) throw new Error(`خطأ Supabase في حذف المنتجات: ${delErr.message}`);
+          }
         } else {
           const { error: delAllErr } = await supabase.from("products").delete().neq("id", "");
           if (delAllErr) throw new Error(`خطأ Supabase في حذف المنتجات: ${delAllErr.message}`);

@@ -1057,6 +1057,8 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
   }, [orders]);
 
   // Background Central Server Sync (Optimized & non-blocking)
+  const productSaveInFlightRef = useRef(0);
+
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
     // Allow checks every 15 seconds or immediately if forced
@@ -1122,13 +1124,19 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
 
         // Cloud-Truth Only: Server product catalog is the single source of truth
         if (Array.isArray(data.products)) {
-          const deletedProdIds = getDeletedProductIds();
-          const serverProds = data.products.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
-          setProducts(serverProds);
-          setIsProductsLoaded(true);
+          // While one of our own product saves is still in flight, the server list is about to
+          // change; applying it now would flicker deleted items back. Skip until it finishes.
+          if (productSaveInFlightRef.current === 0) {
+            const serverProds = data.products.filter((p: Product) => p && p.id);
+            setProducts(serverProds);
+            setIsProductsLoaded(true);
+          }
           try {
-            // Evict stale custom products keys to prevent phone caching old products
+            // Evict stale device-only product state. The server is the only source of truth;
+            // a per-device "deleted products" list used to hide items on the admin's device only
+            // while customers kept seeing them.
             localStorage.removeItem("athar_custom_products");
+            localStorage.removeItem("athar_deleted_product_ids");
           } catch {}
         }
 
@@ -1420,6 +1428,8 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
 
   // Helper to sync products to server
   const syncProductsToServer = (prods: Product[]) => {
+    productSaveInFlightRef.current += 1;
+    let failed = false;
     fetch("/api/products", {
       method: "POST",
       headers: getAdminAuthHeaders(),
@@ -1428,14 +1438,22 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
         if (!res.ok || data.success === false) {
+          failed = true;
           reportSaveFailure("المنتجات", res.status, data?.error);
           return;
         }
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
       })
       .catch((err) => {
+        failed = true;
         console.warn("Could not sync products to server:", err);
         reportSaveFailure("المنتجات", 0);
+      })
+      .finally(() => {
+        productSaveInFlightRef.current = Math.max(0, productSaveInFlightRef.current - 1);
+        // After ANY save, re-read what the server really holds so the admin screen shows the
+        // truth. On failure this reverts the optimistic edit instead of leaving a phantom state.
+        if (failed || productSaveInFlightRef.current === 0) syncWithServer(true);
       });
   };
 
@@ -1580,6 +1598,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         const data = await res.json().catch(() => ({}));
         if (!res.ok || data.success === false) {
           reportSaveFailure("الإعدادات", res.status, data?.error);
+          syncWithServer(true); // revert the unsaved edit to what the server really has
           return;
         }
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
@@ -1587,6 +1606,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       .catch((err) => {
         console.warn("Could not sync settings to server:", err);
         reportSaveFailure("الإعدادات", 0);
+        syncWithServer(true);
       });
   };
 
@@ -1616,7 +1636,6 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
   };
 
   const deleteProduct = (id: string) => {
-    recordDeletedProductId(id);
     setProducts((prev) => {
       const updated = prev.filter((p) => p.id !== id);
       try {
