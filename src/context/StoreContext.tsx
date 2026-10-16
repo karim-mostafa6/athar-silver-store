@@ -193,9 +193,11 @@ export interface StoreSettings {
   splitWomenTag?: string;
   splitWomenEnglishTitle?: string;
   splitWomenButtonText?: string;
+  splitWomenLink?: string;
   splitMenTag?: string;
   splitMenEnglishTitle?: string;
   splitMenButtonText?: string;
+  splitMenLink?: string;
 
   // Brand Story Section Copy
   storySectionShow?: boolean;
@@ -718,9 +720,11 @@ const DEFAULT_SETTINGS: StoreSettings = {
   splitWomenTag: "COLLECTION FOR HER",
   splitWomenEnglishTitle: "Women's",
   splitWomenButtonText: "EXPLORE NOW",
+  splitWomenLink: "/collection/women",
   splitMenTag: "COLLECTION FOR HIM",
   splitMenEnglishTitle: "Men's",
   splitMenButtonText: "EXPLORE NOW",
+  splitMenLink: "/collection/men",
 
   // Brand Story Section Copy
   storySectionShow: true,

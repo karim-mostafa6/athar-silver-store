@@ -4957,8 +4957,15 @@ export default function AdminPage() {
                       type="text"
                       value={settingsForm.splitWomenButtonText || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenButtonText: e.target.value })}
-                      placeholder="نص الزر: اكتشفي التشكيلة"
+                      placeholder="نص الزر: EXPLORE NOW"
                       className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={settingsForm.splitWomenLink || ""}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenLink: e.target.value })}
+                      placeholder="رابط التوجيه (افتراضي: /collection/women)"
+                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs dir-ltr font-mono"
                     />
                     {/* Women Image Upload & Preview */}
                     <div className="space-y-1.5 pt-1">
@@ -5045,8 +5052,15 @@ export default function AdminPage() {
                       type="text"
                       value={settingsForm.splitMenButtonText || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, splitMenButtonText: e.target.value })}
-                      placeholder="نص الزر: استكشف التشكيلة"
+                      placeholder="نص الزر: EXPLORE NOW"
                       className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={settingsForm.splitMenLink || ""}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, splitMenLink: e.target.value })}
+                      placeholder="رابط التوجيه (افتراضي: /collection/men)"
+                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs dir-ltr font-mono"
                     />
                     
                     {/* Men Image Upload & Preview */}
