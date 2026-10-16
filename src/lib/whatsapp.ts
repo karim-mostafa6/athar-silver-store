@@ -379,6 +379,64 @@ export function cancelDelayedWhatsAppJob(orderId: string): boolean {
 /**
  * Get count of currently scheduled pending WhatsApp jobs
  */
-export function getPendingWhatsAppJobsCount(): number {
-  return delayedWhatsAppJobs.size;
+/**
+ * Vercel Serverless Auto-Reconciliation:
+ * Periodically or on request, scans orders created >= 3 minutes ago that have NOT yet received
+ * WhatsApp confirmation ([whatsapp_sent] missing) and are NOT cancelled, and dispatches them.
+ * Guarantees zero missed customer notifications even across Vercel cold starts.
+ */
+export async function reconcilePendingWhatsAppConfirmations(origin?: string): Promise<{
+  processed: number;
+  successes: number;
+  errors: number;
+}> {
+  try {
+    const store = await getServerStoreData();
+    const now = Date.now();
+    const THREE_MINUTES = 3 * 60 * 1000;
+    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+    let processed = 0;
+    let successes = 0;
+    let errors = 0;
+
+    const ordersToNotify = store.orders.filter((o) => {
+      if (!o || !o.id) return false;
+      if (o.status === "cancelled") return false;
+      if (o.adminNotes?.includes("[whatsapp_sent]")) return false;
+
+      const createdTime = new Date(o.createdAt || 0).getTime();
+      const ageMs = now - createdTime;
+
+      // Order must be older than 3 minutes, but within the last 24 hours
+      return ageMs >= THREE_MINUTES && ageMs <= TWENTY_FOUR_HOURS;
+    });
+
+    for (const order of ordersToNotify) {
+      processed++;
+      try {
+        const sendRes = await sendWhatsAppOrderConfirmation(order, { origin });
+        if (sendRes.success) {
+          successes++;
+          const curNotes = order.adminNotes || "";
+          const newNotes = curNotes.includes("[whatsapp_sent]")
+            ? curNotes
+            : `${curNotes} [whatsapp_sent]`.trim();
+
+          await saveServerStoreData({
+            orders: [{ ...order, adminNotes: newNotes }],
+          });
+        } else {
+          errors++;
+        }
+      } catch {
+        errors++;
+      }
+    }
+
+    return { processed, successes, errors };
+  } catch (err) {
+    console.error("[WhatsApp Reconcile Error]:", err);
+    return { processed: 0, successes: 0, errors: 0 };
+  }
 }

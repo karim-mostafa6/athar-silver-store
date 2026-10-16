@@ -8,7 +8,10 @@ import {
 import { Order, OrderItem } from "@/context/StoreContext";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { sendTelegramOrderNotification } from "@/lib/telegram";
-import { scheduleDelayedWhatsAppConfirmation } from "@/lib/whatsapp";
+import {
+  scheduleDelayedWhatsAppConfirmation,
+  reconcilePendingWhatsAppConfirmations,
+} from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -83,6 +86,20 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await getServerStoreData();
+
+    // Vercel Resilience: Trigger background reconciliation for any pending delayed WhatsApp confirmations
+    const origin =
+      request.headers.get("origin") ||
+      (request.headers.get("host")?.startsWith("localhost")
+        ? "http://localhost:3000"
+        : `https://${request.headers.get("host") || "atharsilver.com"}`);
+
+    (async () => {
+      try {
+        await reconcilePendingWhatsAppConfirmations(origin);
+      } catch {}
+    })();
+
     return NextResponse.json(
       {
         success: true,
