@@ -322,7 +322,12 @@ export default function CheckoutPage() {
       return;
     }
 
-    const newOrderId = submitResult.orderId || "ORM-1000";
+    const newOrderId = submitResult.orderId;
+    if (!newOrderId) {
+      setIsSubmitting(false);
+      alert("تعذر الحصول على رقم الطلب المعتمد من الخادم. يرجى المحاولة مرة أخرى.");
+      return;
+    }
 
     setConfirmedOrderId(newOrderId);
     setConfirmedSnapshot({

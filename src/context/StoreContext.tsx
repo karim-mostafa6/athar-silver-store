@@ -347,6 +347,7 @@ export interface Order {
 interface StoreContextType {
   // Products
   products: Product[];
+  isProductsLoaded: boolean;
   addProduct: (product: Product) => void;
   updateProduct: (id: string, updated: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
@@ -936,10 +937,9 @@ function sanitizeOrders(rawOrders: unknown): Order[] {
 }
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Cloud-Truth: Products initialized cleanly, updated immediately and strictly from server
-  const [products, setProducts] = useState<Product[]>(() => {
-    return PRODUCTS;
-  });
+  // Cloud-Truth: Products initialized as empty [] so mobile/clients NEVER show old static/hardcoded products
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isProductsLoaded, setIsProductsLoaded] = useState<boolean>(false);
 
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
@@ -1087,17 +1087,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         lastServerUpdatedRef.current = data.updatedAt || "";
 
         // Cloud-Truth Only: Server product catalog is the single source of truth
-        if (Array.isArray(data.products) && data.products.length > 0) {
+        if (Array.isArray(data.products)) {
           const deletedProdIds = getDeletedProductIds();
           const serverProds = data.products.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
-          if (serverProds.length > 0) {
-            // Full Overwrite with server truth
-            setProducts(serverProds);
-            try {
-              // Evict stale custom products keys to prevent phone caching old products
-              localStorage.removeItem("athar_custom_products");
-            } catch {}
-          }
+          setProducts(serverProds);
+          setIsProductsLoaded(true);
+          try {
+            // Evict stale custom products keys to prevent phone caching old products
+            localStorage.removeItem("athar_custom_products");
+          } catch {}
         }
 
         // Cloud-Truth Only: Server settings is the single source of truth
@@ -1902,6 +1900,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     <StoreContext.Provider
       value={{
         products,
+        isProductsLoaded,
         addProduct,
         updateProduct,
         deleteProduct,

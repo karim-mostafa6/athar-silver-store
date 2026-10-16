@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Tajawal, Cairo } from "next/font/google";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
   weight: ["300", "400", "500", "700", "800", "900"],

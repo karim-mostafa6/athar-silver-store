@@ -289,7 +289,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       return;
     }
 
-    const newOrderId = result.orderId || `ATH-${Date.now().toString().slice(-4)}`;
+    const newOrderId = result.orderId;
+    if (!newOrderId) {
+      setIsSubmitting(false);
+      setSubmitError("تعذر الحصول على رقم الطلب المعتمد من الخادم. يرجى المحاولة مجدداً.");
+      return;
+    }
     setOrderId(newOrderId);
 
     // Save persistent snapshot of the order before cart is cleared
