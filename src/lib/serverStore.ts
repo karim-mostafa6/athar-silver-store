@@ -487,3 +487,52 @@ export async function saveServerStoreData(
 
   return updated;
 }
+
+// ----------------------------------------------------
+// UPDATE ORDER STATUS (Used by Telegram Webhook & APIs)
+// ----------------------------------------------------
+export async function updateOrderStatusOnServer(
+  orderId: string,
+  newStatus: Order["status"],
+  cancellationReason?: string
+): Promise<{ success: boolean; order?: Order; error?: string }> {
+  try {
+    const cleanId = orderId.replace(/^#/, "");
+    const current = await getServerStoreData();
+    const existing = current.orders.find(
+      (o) => o.id === orderId || o.id === cleanId || o.id === `#${cleanId}`
+    );
+
+    if (!existing) {
+      return { success: false, error: `الطلب رقم ${orderId} غير موجود في قاعدة البيانات` };
+    }
+
+    const updatedOrder: Order = {
+      ...existing,
+      status: newStatus,
+      cancellationReason:
+        newStatus === "cancelled"
+          ? cancellationReason || "تم الإلغاء عبر بوت تليجرام"
+          : existing.cancellationReason,
+      cancelledAt:
+        newStatus === "cancelled"
+          ? new Date().toISOString()
+          : existing.cancelledAt,
+      adminNotes: `${existing.adminNotes || ""} [tg_status:${newStatus}]`.trim(),
+    };
+
+    const saved = await saveServerStoreData({
+      orders: [updatedOrder],
+    });
+
+    const finalOrder =
+      saved.orders.find(
+        (o) => o.id === orderId || o.id === cleanId || o.id === `#${cleanId}`
+      ) || updatedOrder;
+
+    return { success: true, order: finalOrder };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Error updating order status";
+    return { success: false, error: errorMsg };
+  }
+}

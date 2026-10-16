@@ -6,7 +6,7 @@ import fs from "fs";
 /**
  * Format Egyptian phone number for WhatsApp link (e.g. 201012345678)
  */
-function cleanPhoneForWhatsApp(phone: string): string {
+export function cleanPhoneForWhatsApp(phone: string): string {
   const digits = (phone || "").replace(/\D/g, "");
   if (digits.startsWith("20")) return digits;
   if (digits.startsWith("0")) return "2" + digits;
@@ -202,6 +202,20 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
               {
                 text: `💬 مراسلة العميل واتساب (${orderNum})`,
                 url: `https://wa.me/${cleanPhone}`,
+              },
+            ],
+            [
+              {
+                text: "📦 جاري التجهيز",
+                callback_data: `status:processing:${order.id}`,
+              },
+              {
+                text: "🚚 تم الشحن",
+                callback_data: `status:shipped:${order.id}`,
+              },
+              {
+                text: "❌ إلغاء الطلب",
+                callback_data: `status:cancelled:${order.id}`,
               },
             ],
           ],
