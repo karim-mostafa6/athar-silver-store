@@ -1,7 +1,7 @@
 import { Order } from "@/context/StoreContext";
 
 /**
- * Format Egyptian phone number for WhatsApp link
+ * Format Egyptian phone number for WhatsApp link (e.g. 201012345678)
  */
 function cleanPhoneForWhatsApp(phone: string): string {
   const digits = (phone || "").replace(/\D/g, "");
@@ -11,26 +11,12 @@ function cleanPhoneForWhatsApp(phone: string): string {
 }
 
 /**
- * Get readable payment method in Arabic
- */
-function getPaymentMethodLabel(method?: string): string {
-  switch (method) {
-    case "cod":
-      return "الدفع عند الاستلام (COD)";
-    case "wallet":
-      return "محفظة إلكترونية (InstaPay / فودافون كاش)";
-    case "card":
-      return "بطاقة بنكية / فيزا (Paymob)";
-    default:
-      return "الدفع عند الاستلام (COD)";
-  }
-}
-
-/**
- * Formats order as a clean Plain Text invoice for Telegram.
- * Sent WITHOUT parse_mode to guarantee 100% delivery without parsing errors from symbols (#, _, -, etc.).
+ * Formats order as a clean, compact Plain Text invoice for Telegram.
+ * Sent WITHOUT parse_mode to guarantee 100% delivery without parsing errors.
  */
 export function formatOrderInvoiceTelegramMessage(order: Order): string {
+  const orderNum = order.id ? (order.id.startsWith("#") ? order.id : `#${order.id}`) : "#ORM";
+
   const dateStr = order.createdAt
     ? new Date(order.createdAt).toLocaleString("ar-EG", {
         timeZone: "Africa/Cairo",
@@ -42,79 +28,63 @@ export function formatOrderInvoiceTelegramMessage(order: Order): string {
       })
     : new Date().toLocaleString("ar-EG", { timeZone: "Africa/Cairo" });
 
-  const cleanPhone = cleanPhoneForWhatsApp(order.phone);
-  const paymentLabel = getPaymentMethodLabel(order.paymentMethod);
+  const addressLine = order.governorate
+    ? `${order.governorate} - ${order.address}`
+    : order.address;
 
-  // Build items section
+  // Build items section:
+  // ▫️ [اسم المنتج]
+  //    (الكمية: [الكمية] | المقاس: [المقاس إن وجد] | السعر: [السعر] ج.م)
   const itemsText = (order.items || [])
-    .map((item, index) => {
-      const num = index + 1;
+    .map((item) => {
       const itemName = item.arabicName || item.name || "قطعة فضة";
-      const sizeText = item.selectedSize ? `\n   📏 المقاس: ${item.selectedSize}` : "";
+      const sizeText = item.selectedSize ? ` | المقاس: ${item.selectedSize}` : "";
       const priceText = Number(item.price || 0).toLocaleString("en-US");
-      const totalItemPrice = (Number(item.price || 0) * Number(item.quantity || 1)).toLocaleString("en-US");
 
-      return `▫️ ${num}. ${itemName}
-   🔢 الكمية: ${item.quantity}${sizeText}
-   💰 السعر: ${priceText} ج.م (الإجمالي: ${totalItemPrice} ج.م)`;
+      return `▫️ ${itemName}\n   (الكمية: ${item.quantity}${sizeText} | السعر: ${priceText} ج.م)`;
     })
-    .join("\n\n");
+    .join("\n");
 
-  const subtotalFormatted = Number(order.subtotal || 0).toLocaleString("en-US");
+  const totalFormatted = Number(order.total || 0).toLocaleString("en-US");
   const shippingFormatted =
-    order.shippingFee === 0 ? "مجاني 🎁" : `${Number(order.shippingFee || 0).toLocaleString("en-US")} ج.م`;
+    order.shippingFee === 0
+      ? "شحن مجاني 🎁"
+      : `${Number(order.shippingFee || 0).toLocaleString("en-US")} ج.م شحن`;
   const discountLine =
     order.discount && order.discount > 0
-      ? `\n🔖 الخصم المطبق: -${Number(order.discount).toLocaleString("en-US")} ج.م`
+      ? ` | خصم: -${Number(order.discount).toLocaleString("en-US")} ج.م`
       : "";
-  const totalFormatted = Number(order.total || 0).toLocaleString("en-US");
 
-  // Optional notes / gift message
-  const notesLine = order.notes ? `\n📝 ملاحظات العميل: ${order.notes}` : "";
+  const notesLine = order.notes ? `\n📝 ملاحظات: ${order.notes}` : "";
   const giftLine = order.isGift
-    ? `\n🎁 طلب كهدية: نعم${order.giftMessage ? `\n💌 رسالة الإهداء: ${order.giftMessage}` : ""}`
+    ? `\n🎁 طلب كهدية${order.giftMessage ? `: "${order.giftMessage}"` : ""}`
     : "";
-  const walletNumberLine = order.senderWalletNumber
-    ? `\n📱 رقم المحفظة المحول منها: ${order.senderWalletNumber}`
-    : "";
-  const receiptLine = order.paymentReceiptImage
-    ? `\n🧾 صورة إيصال التحويل: ${order.paymentReceiptImage}`
-    : "";
+  let paymentLine = "";
+  if (order.paymentMethod === "wallet") {
+    paymentLine = `\n💳 طريقة الدفع: محفظة إلكترونية${order.senderWalletNumber ? ` (${order.senderWalletNumber})` : ""}`;
+  } else if (order.paymentMethod === "card") {
+    paymentLine = `\n💳 طريقة الدفع: بطاقة بنكية`;
+  }
 
-  return `👑 فاتورة طلب جديد • ORMA SILVER 👑
-Not Given, But Left • صياغة فضة إسترليني 925
-━━━━━━━━━━━━━━━━━━━━━━
-🏷️ رقم الطلب: #${order.id}
-📅 تاريخ الطلب: ${dateStr}
-💳 طريقة الدفع: ${paymentLabel}${walletNumberLine}${receiptLine}
-📊 حالة الطلب: ⏳ قيد الانتظار (جديد)
-━━━━━━━━━━━━━━━━━━━━━━
-👤 بيانات العميل والشحن:
-• الاسم: ${order.customerName}
-• رقم الهاتف: ${order.phone}
-• المحافظة: ${order.governorate}
-• العنوان التفصيلي: ${order.address}${notesLine}${giftLine}
-━━━━━━━━━━━━━━━━━━━━━━
-📦 تفاصيل المنتجات المطلوبة (${order.items?.length || 0} قطعة):
+  return `🟢🟢 طلب جديد | ${orderNum} 🟢🟢
+📅 ${dateStr}
 
+👤 العميل: ${order.customerName}
+📞 الهاتف: ${order.phone}
+📍 العنوان: ${addressLine}${notesLine}${giftLine}${paymentLine}
+
+📦 القطع المطلوبة:
 ${itemsText}
-━━━━━━━━━━━━━━━━━━━━━━
-💵 الملخص المالي للفاتورة:
-• قيمة المنتجات: ${subtotalFormatted} ج.م
-• مصاريف الشحن: ${shippingFormatted}${discountLine}
-━━━━━━━━━━━━━━━━━━━━━━
-💎 إجمالي المبلغ المطلوب تحصيله: ${totalFormatted} ج.م
-━━━━━━━━━━━━━━━━━━━━━━
-⚡ تم حفظ الطلب بنجاح وهو بانتظار التجهيز والشحن من الورشة.
-💬 رابط واتساب العميل المباشر:
-https://wa.me/${cleanPhone}`;
+
+💰 الإجمالي للتحصيل: ${totalFormatted} ج.م (شامل ${shippingFormatted}${discountLine})
+🏁━━━━━━━━━━━━━━━━━━🏁`;
 }
 
 // In-memory deduplication set to avoid double notifications across redundant fallback hooks
 const notifiedOrderIds = new Set<string>();
 
 /**
- * Sends order notification to Telegram Bot.
+ * Sends order notification to Telegram Bot with an interactive WhatsApp inline button.
  * Awaits completion and handles errors with detailed console.error logs for Vercel.
  */
 export async function sendTelegramOrderNotification(order: Order): Promise<{
@@ -143,6 +113,8 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
 
   try {
     const text = formatOrderInvoiceTelegramMessage(order);
+    const orderNum = order.id ? (order.id.startsWith("#") ? order.id : `#${order.id}`) : "#ORM";
+    const cleanPhone = cleanPhoneForWhatsApp(order.phone);
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
     const response = await fetch(telegramApiUrl, {
@@ -153,8 +125,17 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
       body: JSON.stringify({
         chat_id: chatId,
         text,
-        // No parse_mode specified: Plain Text mode prevents any Markdown/HTML parsing rejection
         disable_web_page_preview: true,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: `💬 مراسلة العميل واتساب (${orderNum})`,
+                url: `https://wa.me/${cleanPhone}`,
+              },
+            ],
+          ],
+        },
       }),
     });
 
