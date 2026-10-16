@@ -265,6 +265,8 @@ export async function POST(request: NextRequest) {
       newSeq = Math.max(newSeq, seq);
     }
 
+    const existingOrderInDb = currentData.orders.find((o) => o.id === newId);
+
     const finalOrder: Order = {
       id: newId,
       customerName,
@@ -285,10 +287,9 @@ export async function POST(request: NextRequest) {
       senderWalletNumber: rawOrder.senderWalletNumber || undefined,
       paymentReceiptImage: rawOrder.paymentReceiptImage || undefined,
       cardDetails: rawOrder.cardDetails || undefined,
-      createdAt: new Date().toISOString(),
+      adminNotes: existingOrderInDb?.adminNotes || rawOrder.adminNotes || undefined,
+      createdAt: existingOrderInDb?.createdAt || new Date().toISOString(),
     };
-
-    const updatedOrders = [finalOrder, ...currentData.orders.filter((o) => o.id !== finalOrder.id)];
 
     // Automated Inventory Management: Deduct purchased quantity and auto-mark SOLD OUT if stock reaches 0
     const updatedProducts = currentData.products.map((p) => {
@@ -306,23 +307,36 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    // CRITICAL: Send Telegram notification ONLY for the current just-created order.
+    // Strictly NO loops over historical orders.
+    const isAlreadyNotified = Boolean(
+      (existingOrderInDb && existingOrderInDb.adminNotes?.includes("[telegram_sent]")) ||
+      finalOrder.adminNotes?.includes("[telegram_sent]")
+    );
+
+    if (!isAlreadyNotified) {
+      try {
+        const tgResult = await sendTelegramOrderNotification(finalOrder);
+        if (tgResult.success) {
+          finalOrder.adminNotes = `${finalOrder.adminNotes || ""} [telegram_sent]`.trim();
+          console.log("[Orders Route] Telegram notification sent successfully for current order:", finalOrder.id);
+        } else {
+          console.error("[Orders Route] Telegram notification failed:", tgResult.error);
+        }
+      } catch (telegramErr) {
+        console.error("[Orders Route] Failed to dispatch Telegram notification:", telegramErr);
+      }
+    } else {
+      console.log(`[Orders Route] Order ${finalOrder.id} was already notified via Telegram. Skipping duplicate.`);
+    }
+
+    const updatedOrders = [finalOrder, ...currentData.orders.filter((o) => o.id !== finalOrder.id)];
+
     const saved = await saveServerStoreData({
       orders: updatedOrders,
       products: updatedProducts,
       lastOrderSeq: newSeq,
     });
-
-    // Send Real-time Telegram Order Invoice Notification to Store Owner
-    try {
-      const tgResult = await sendTelegramOrderNotification(finalOrder);
-      if (!tgResult.success) {
-        console.error("[Orders Route] Telegram notification failed:", tgResult.error);
-      } else {
-        console.log("[Orders Route] Telegram notification sent successfully for order:", finalOrder.id);
-      }
-    } catch (telegramErr) {
-      console.error("[Orders Route] Failed to dispatch Telegram notification:", telegramErr);
-    }
 
     return NextResponse.json(
       {
@@ -366,24 +380,11 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const currentData = await getServerStoreData();
-    const existingOrderIds = new Set(currentData.orders.map((o) => o.id));
-    const newOrders = orders.filter((o: Order) => o && o.id && !existingOrderIds.has(o.id));
-
     const saved = await saveServerStoreData({
       orders,
       lastOrderSeq: typeof lastOrderSeq === "number" ? lastOrderSeq : undefined,
       deletedOrderIds: Array.isArray(deletedOrderIds) ? deletedOrderIds : undefined,
     });
-
-    // Fallback: Dispatch Telegram notification for any new orders detected in PUT payload
-    for (const newOrder of newOrders) {
-      try {
-        await sendTelegramOrderNotification(newOrder);
-      } catch (tgErr) {
-        console.error("[Orders PUT Fallback] Telegram notification failed:", tgErr);
-      }
-    }
 
     return NextResponse.json(
       {

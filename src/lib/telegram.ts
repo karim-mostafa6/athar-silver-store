@@ -1,4 +1,7 @@
 import { Order } from "@/context/StoreContext";
+import os from "os";
+import path from "path";
+import fs from "fs";
 
 /**
  * Format Egyptian phone number for WhatsApp link (e.g. 201012345678)
@@ -80,11 +83,62 @@ ${itemsText}
 🏁━━━━━━━━━━━━━━━━━━🏁`;
 }
 
-// In-memory deduplication set to avoid double notifications across redundant fallback hooks
+// In-memory deduplication set to avoid double notifications within warm runtime
 const notifiedOrderIds = new Set<string>();
+
+function getSentOrdersCacheFilePath(): string {
+  try {
+    return path.join(os.tmpdir(), "orma_telegram_notified_orders.json");
+  } catch {
+    return "";
+  }
+}
+
+function hasOrderBeenNotified(orderId: string): boolean {
+  if (!orderId) return false;
+  if (notifiedOrderIds.has(orderId)) return true;
+
+  try {
+    const filePath = getSentOrdersCacheFilePath();
+    if (filePath && fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, "utf-8");
+      const list = JSON.parse(content);
+      if (Array.isArray(list) && list.includes(orderId)) {
+        notifiedOrderIds.add(orderId);
+        return true;
+      }
+    }
+  } catch {}
+
+  return false;
+}
+
+function markOrderAsNotified(orderId: string): void {
+  if (!orderId) return;
+  notifiedOrderIds.add(orderId);
+
+  try {
+    const filePath = getSentOrdersCacheFilePath();
+    if (filePath) {
+      let list: string[] = [];
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, "utf-8");
+        list = JSON.parse(content);
+        if (!Array.isArray(list)) list = [];
+      }
+      if (!list.includes(orderId)) {
+        list.push(orderId);
+        // Retain last 500 order notifications to keep file light
+        if (list.length > 500) list = list.slice(-500);
+        fs.writeFileSync(filePath, JSON.stringify(list), "utf-8");
+      }
+    }
+  } catch {}
+}
 
 /**
  * Sends order notification to Telegram Bot with an interactive WhatsApp inline button.
+ * STRICTLY for the single target order provided.
  * Awaits completion and handles errors with detailed console.error logs for Vercel.
  */
 export async function sendTelegramOrderNotification(order: Order): Promise<{
@@ -92,7 +146,12 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
   message?: string;
   error?: string;
 }> {
-  if (order.id && notifiedOrderIds.has(order.id)) {
+  if (!order || !order.id) {
+    return { success: false, error: "بيانات الطلب غير صالحة لإرسال إشعار تليجرام" };
+  }
+
+  // Prevent duplicate notifications across multiple invocations or cold starts
+  if (hasOrderBeenNotified(order.id) || order.adminNotes?.includes("[telegram_sent]")) {
     console.log(`[Telegram Notice] Notification for order #${order.id} was already dispatched. Skipping duplicate.`);
     return { success: true, message: "Notification already sent" };
   }
@@ -155,12 +214,20 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
       return { success: false, error: errMsg };
     }
 
-    if (order.id) {
-      notifiedOrderIds.add(order.id);
+    // Mark as notified in both memory cache and disk cache
+    markOrderAsNotified(order.id);
+
+    // Also stamp the order object in-memory
+    if (order.adminNotes) {
+      if (!order.adminNotes.includes("[telegram_sent]")) {
+        order.adminNotes = `${order.adminNotes} [telegram_sent]`.trim();
+      }
+    } else {
+      order.adminNotes = "[telegram_sent]";
     }
 
     console.log(
-      "[Telegram Success] Order notification sent successfully! Telegram Message ID:",
+      `[Telegram Success] Order notification sent successfully for single order #${order.id}! Telegram Message ID:`,
       data.result?.message_id
     );
     return { success: true, message: "تم إرسال إشعار التليجرام بنجاح" };
