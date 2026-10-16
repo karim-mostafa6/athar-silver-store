@@ -13,6 +13,7 @@ import { CustomerAccountModal } from "@/components/CustomerAccountModal";
 import { Toast } from "@/components/Toast";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { Footer } from "@/components/Footer";
+import { MobileSafariCacheBuster } from "@/components/MobileSafariCacheBuster";
 
 const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const store = useStore();
@@ -55,6 +56,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (isAdmin || isCheckout) {
     return (
       <div className="min-h-screen bg-white text-[#161412] flex flex-col selection:bg-[#dfd2bf] selection:text-[#161412]">
+        <MobileSafariCacheBuster />
         {/* Toast Notifications */}
         <Toast toasts={store.toasts} onDismiss={store.removeToast} />
         {/* Standalone Content */}
@@ -65,6 +67,7 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-[#F5F0E7] text-[#292722] flex flex-col selection:bg-[#D8C8B3] selection:text-[#292722]">
+      <MobileSafariCacheBuster />
       {/* Toast Notifications */}
       <Toast toasts={store.toasts} onDismiss={store.removeToast} />
 

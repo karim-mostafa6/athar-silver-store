@@ -17,6 +17,7 @@ const cairo = Cairo({
 });
 
 import { SiteShell } from "@/components/SiteShell";
+import { BUILD_ID, STORE_VERSION } from "@/lib/version";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -80,6 +81,9 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
       <head>
+        {/* Dynamic Build Version / Hash tags: auto-generated at build time */}
+        <meta name="build-id" content={BUILD_ID} />
+        <meta name="store-version" content={STORE_VERSION} />
         {/* Anti-stale browser caching meta tags: ensures latest products & styles load instantly without wiping auth/tokens */}
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />

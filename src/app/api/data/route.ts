@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
+import { BUILD_ID, BUILD_TIMESTAMP, STORE_VERSION } from "@/lib/version";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -32,6 +33,9 @@ export async function GET(request: NextRequest) {
         lastOrderSeq: data.lastOrderSeq || 999,
         deletedOrderIds: isAdmin ? (data.deletedOrderIds || []) : [],
         updatedAt: data.updatedAt,
+        buildId: BUILD_ID,
+        buildTimestamp: BUILD_TIMESTAMP,
+        version: STORE_VERSION,
       },
       {
         headers,

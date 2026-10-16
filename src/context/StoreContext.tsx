@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useRef,
 import { Product, CartItem, PRODUCTS, StoreCategory, DEFAULT_CATEGORIES, CustomPage, DEFAULT_CUSTOM_PAGES } from "@/data/products";
 import { ToastMessage } from "@/components/Toast";
 import { getAdminAuthHeaders } from "@/lib/clientAdmin";
+import { BUILD_ID } from "@/lib/version";
 
 export type { StoreCategory, CustomPage };
 export { DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES };
@@ -1046,15 +1047,50 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const authHeaders = getAdminAuthHeaders();
 
-    fetch(force ? `/api/data?t=${now}` : "/api/data", {
+    fetch(force ? `/api/data?t=${now}&v=${BUILD_ID}` : `/api/data?v=${BUILD_ID}`, {
       headers: {
         "Accept": "application/json",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
         ...authHeaders,
       },
     })
       .then((res) => res.json())
       .then((data) => {
         if (!data.success) return;
+
+        // Auto Version Detection & Cache Buster:
+        // Detect if the running server has a newer build than the client browser cache
+        if (typeof window !== "undefined" && data.buildId) {
+          try {
+            const storedBuildId = localStorage.getItem("athar_client_build_id");
+            if (!storedBuildId) {
+              localStorage.setItem("athar_client_build_id", data.buildId);
+            } else if (storedBuildId !== data.buildId) {
+              console.log(`[Cache Buster] New deployment detected: Server (${data.buildId}) != Client (${storedBuildId}). Refreshing cached assets...`);
+              localStorage.setItem("athar_client_build_id", data.buildId);
+              
+              // Clear stale product & settings cache in localStorage without wiping session tokens or user cart
+              localStorage.removeItem("athar_custom_products");
+              localStorage.removeItem("athar_store_settings");
+
+              // If browser supports caches API, evict stale responses
+              if ("caches" in window) {
+                caches.keys().then((names) => {
+                  names.forEach((name) => {
+                    caches.delete(name);
+                  });
+                }).catch(() => {});
+              }
+
+              // Trigger an immediate non-destructive cache bypass reload
+              setTimeout(() => {
+                window.location.reload();
+              }, 400);
+              return;
+            }
+          } catch {}
+        }
 
         // If the server data hasn't changed since our last check, avoid unnecessary re-rendering
         if (data.updatedAt && data.updatedAt === lastServerUpdatedRef.current && !force) {
@@ -1157,9 +1193,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       return;
     }
     try {
-      const res = await fetch(`/api/orders?t=${Date.now()}`, {
+      const res = await fetch(`/api/orders?t=${Date.now()}&v=${BUILD_ID}`, {
         headers: {
           "Accept": "application/json",
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
           ...authHeaders,
         },
         cache: "no-store",
