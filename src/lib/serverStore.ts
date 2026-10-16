@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { revalidatePath } from "next/cache";
 import { Product, PRODUCTS, DEFAULT_CATEGORIES } from "@/data/products";
 import { StoreSettings, Order } from "@/context/StoreContext";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
@@ -517,9 +518,21 @@ export async function saveServerStoreData(
     console.warn("Failed to write store-data.json:", err);
   }
 
-    return updated;
+  // 3. Instant On-Demand Revalidation on Vercel
+  try {
+    revalidatePath("/");
+    revalidatePath("/(store)", "layout");
+    revalidatePath("/collection/[slug]", "page");
+    revalidatePath("/product/[id]", "page");
+    revalidatePath("/admin");
+  } catch {
+    // In background or build contexts revalidatePath might be a no-op
+  }
+
+  return updated;
   });
 }
+
 
 // ----------------------------------------------------
 // UPDATE ORDER STATUS (Used by Telegram Webhook & APIs)

@@ -1036,9 +1036,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const authHeaders = getAdminAuthHeaders();
 
     fetch(force ? `/api/data?t=${now}&v=${BUILD_ID}` : `/api/data?v=${BUILD_ID}`, {
+      cache: "no-store",
       headers: {
         "Accept": "application/json",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
         "Pragma": "no-cache",
         ...authHeaders,
       },

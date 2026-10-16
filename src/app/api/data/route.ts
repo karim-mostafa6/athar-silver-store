@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
     // Instant Cache Invalidation across all Next.js rendered pages
     try {
       revalidatePath("/");
+      revalidatePath("/(store)", "layout");
       revalidatePath("/admin");
       revalidatePath("/collection/[slug]", "page");
       revalidatePath("/product/[id]", "page");

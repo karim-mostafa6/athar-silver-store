@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
     // 2. Next.js High-Performance Cache Invalidation
     try {
       revalidatePath("/");
+      revalidatePath("/(store)", "layout");
+      revalidatePath("/admin");
       revalidatePath("/collection/[slug]", "page");
       revalidatePath("/product/[id]", "page");
     } catch (e) {

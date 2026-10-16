@@ -73,6 +73,10 @@ export async function POST(request: NextRequest) {
 
     try {
       revalidatePath("/");
+      revalidatePath("/(store)", "layout");
+      revalidatePath("/admin");
+      revalidatePath("/collection/[slug]", "page");
+      revalidatePath("/product/[id]", "page");
     } catch {}
 
     return NextResponse.json(
