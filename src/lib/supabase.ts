@@ -1,5 +1,9 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
+// Next.js patches global fetch and may cache GET responses in its Data Cache. Supabase reads are
+// plain GET requests, so force every request to bypass that cache: DB reads must always be live.
+const noStoreFetch: typeof fetch = (input, init) => fetch(input, { ...(init || {}), cache: "no-store" });
+
 function getCleanSupabaseConfig() {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   const anonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
@@ -51,6 +55,7 @@ export function getSupabaseClient(): SupabaseClient {
     auth: {
       persistSession: typeof window !== "undefined",
     },
+    global: { fetch: noStoreFetch },
   });
 
   return publicClientInstance;
@@ -96,6 +101,7 @@ export function getSupabaseAdminClient(): SupabaseClient {
       persistSession: false,
       autoRefreshToken: false,
     },
+    global: { fetch: noStoreFetch },
   });
 
   return adminClientInstance;

@@ -513,7 +513,7 @@ const DEFAULT_SETTINGS: StoreSettings = {
   contactEmail: "theorma.eg@gmail.com",
   senderEmail: "theorma.eg@gmail.com",
   senderEmailName: "ORMA للفضة 925",
-  gmailAppPassword: "ycdnslfhhbuvghnf",
+  gmailAppPassword: "",
   contactPhone: "+20 114 383 7730",
   contactAddress: "القاهرة، جمهورية مصر العربية (شحن لجميع المحافظات)",
   instagramUrl: "https://instagram.com/ormasilver",
@@ -936,12 +936,45 @@ function sanitizeOrders(rawOrders: unknown): Order[] {
   );
 }
 
-export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Cloud-Truth: Products initialized as empty [] so mobile/clients NEVER show old static/hardcoded products
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isProductsLoaded, setIsProductsLoaded] = useState<boolean>(false);
+/** Live snapshot rendered on the server for every request (see app/layout.tsx). */
+export interface InitialStoreSnapshot {
+  products: Product[];
+  settings: Partial<StoreSettings>;
+  version: string;
+}
+
+/** Merge raw server settings on top of clean defaults (single place used by SSR + client sync). */
+function buildSettingsFromServer(raw: Partial<StoreSettings>): StoreSettings {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...raw,
+    categories: Array.isArray(raw.categories) ? raw.categories : DEFAULT_CATEGORIES,
+    collectionPages: {
+      ...DEFAULT_COLLECTION_PAGES,
+      ...(raw.collectionPages || {}),
+    },
+    governorateShippingRates: {
+      ...DEFAULT_SETTINGS.governorateShippingRates,
+      ...(raw.governorateShippingRates || {}),
+    },
+    customPages: Array.isArray(raw.customPages) ? raw.customPages : DEFAULT_CUSTOM_PAGES,
+    heroSlides: Array.isArray(raw.heroSlides) ? raw.heroSlides : (raw.heroSlides || []),
+  };
+}
+
+export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: InitialStoreSnapshot | null }> = ({ children, initialStore }) => {
+  // Cloud-Truth: when the server rendered a live snapshot we start from it (no flash of old data).
+  // Otherwise products start empty so clients NEVER show old static/hardcoded products.
+  const [products, setProducts] = useState<Product[]>(() =>
+    initialStore && Array.isArray(initialStore.products) ? initialStore.products.filter((p) => p && p.id) : []
+  );
+  const [isProductsLoaded, setIsProductsLoaded] = useState<boolean>(Boolean(initialStore));
 
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+    // Live server snapshot wins over any browser-stored copy (browser copies can be stale).
+    if (initialStore && initialStore.settings && typeof initialStore.settings === "object") {
+      return buildSettingsFromServer(initialStore.settings);
+    }
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
     try {
       const saved = localStorage.getItem("athar_store_settings");
@@ -1013,7 +1046,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Sync state tracking to prevent duplicate re-renders and unnecessary network traffic
-  const lastServerUpdatedRef = useRef<string>("");
+  const lastServerUpdatedRef = useRef<string>(initialStore?.version || "");
   const isSyncingRef = useRef<boolean>(false);
   const lastSyncTimestampRef = useRef<number>(0);
   const lastLocalOrderMutationRef = useRef<number>(0);
@@ -1102,30 +1135,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         // Cloud-Truth Only: Server settings is the single source of truth
         if (data.settings && typeof data.settings === "object") {
           // Full replace on top of clean defaults, without blending stale local state
-          const serverSettings: StoreSettings = {
-            ...DEFAULT_SETTINGS,
-            ...data.settings,
-            categories:
-              Array.isArray(data.settings.categories)
-                ? data.settings.categories
-                : DEFAULT_CATEGORIES,
-            collectionPages: {
-              ...DEFAULT_COLLECTION_PAGES,
-              ...(data.settings.collectionPages || {}),
-            },
-            governorateShippingRates: {
-              ...DEFAULT_SETTINGS.governorateShippingRates,
-              ...(data.settings.governorateShippingRates || {}),
-            },
-            customPages:
-              Array.isArray(data.settings.customPages)
-                ? data.settings.customPages
-                : DEFAULT_CUSTOM_PAGES,
-            heroSlides:
-              Array.isArray(data.settings.heroSlides)
-                ? data.settings.heroSlides
-                : (data.settings.heroSlides || []),
-          };
+          const serverSettings: StoreSettings = buildSettingsFromServer(data.settings);
           setStoreSettings(serverSettings);
           try {
             localStorage.setItem("athar_store_settings", JSON.stringify(serverSettings));
@@ -1225,27 +1235,69 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, []);
 
-  // Synchronize with server on mount & when returning to the tab
+  // Synchronize with server: on mount, when returning to the tab / app, when a page is restored
+  // from the back-forward cache (iOS Safari, in-app browsers), when the network comes back, and
+  // via a tiny version probe every 60s for long-lived tabs.
   useEffect(() => {
-    // 1. Initial sync immediately on mount
-    syncWithServer(true);
+    const hasAdminSession = () => {
+      const h = getAdminAuthHeaders();
+      return Boolean(h["Authorization"] || h["x-orma-admin-token"] || h["x-athar-admin-token"]);
+    };
 
-    // 2. Sync on focus / app switch only when user returns to tab
+    // Cheap probe: only download the full catalog when the server says something changed.
+    const checkCatalogVersion = () => {
+      fetch(`/api/version?t=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
+        .then((res) => res.json())
+        .then((v) => {
+          if (v && v.catalogVersion && v.catalogVersion !== lastServerUpdatedRef.current) {
+            syncWithServer(true);
+          }
+        })
+        .catch(() => {});
+    };
+
+    // 1. Initial sync. With a live server snapshot the page is already fresh, so for visitors we
+    //    only probe the version; admins (orders, private settings) always do the full fetch.
+    if (initialStore && !hasAdminSession()) {
+      checkCatalogVersion();
+    } else {
+      syncWithServer(true);
+    }
+
+    // 2. Re-check whenever the visitor comes back to the page
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        syncWithServer(false);
+        if (hasAdminSession()) syncWithServer(false);
+        else checkCatalogVersion();
       }
     };
-    const onWindowFocus = () => syncWithServer(false);
+    const onWindowFocus = () => {
+      if (hasAdminSession()) syncWithServer(false);
+      else checkCatalogVersion();
+    };
+    const onPageShow = (e: PageTransitionEvent) => {
+      // persisted === true: restored from bfcache with whatever data it had when it was frozen
+      if (e.persisted) syncWithServer(true);
+    };
+    const onOnline = () => syncWithServer(true);
 
     window.addEventListener("focus", onWindowFocus);
+    window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onVisibilityChange);
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible" && !hasAdminSession()) checkCatalogVersion();
+    }, 60000);
 
     return () => {
       window.removeEventListener("focus", onWindowFocus);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("online", onOnline);
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.clearInterval(interval);
     };
-  }, [syncWithServer]);
+  }, [syncWithServer, initialStore]);
 
   // Instant cross-tab sync on same device (0ms latency between admin tab & storefront tab)
   useEffect(() => {

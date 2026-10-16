@@ -21,6 +21,26 @@ const cairo = Cairo({
 
 import { SiteShell } from "@/components/SiteShell";
 import { BUILD_ID, STORE_VERSION } from "@/lib/version";
+import { getPublicStoreSnapshot } from "@/lib/serverStore";
+
+// Settings document also holds private values (mail password, payment keys, sub-admin accounts).
+// Never put them into the HTML that every visitor receives.
+const PRIVATE_SETTING_KEYS = ["gmailAppPassword", "paymobApiKey", "adminUsers"];
+
+async function loadInitialStore() {
+  try {
+    const data = await getPublicStoreSnapshot();
+    const settings: Record<string, unknown> = { ...(data.settings || {}) };
+    for (const key of PRIVATE_SETTING_KEYS) delete settings[key];
+    return {
+      products: data.products,
+      settings,
+      version: data.updatedAt || "",
+    };
+  } catch {
+    return null; // client falls back to fetching /api/data
+  }
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -76,11 +96,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialStore = await loadInitialStore();
+
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
       <head>
@@ -95,7 +117,7 @@ export default function RootLayout({
       <body
         className={`${tajawal.variable} ${cairo.variable} font-tajawal bg-[#F5F0E7] text-[#292722] antialiased selection:bg-[#B7A078] selection:text-[#292722] min-h-screen`}
       >
-        <SiteShell>{children}</SiteShell>
+        <SiteShell initialStore={initialStore}>{children}</SiteShell>
       </body>
     </html>
   );

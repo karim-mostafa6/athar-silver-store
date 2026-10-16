@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { BUILD_ID, BUILD_TIMESTAMP, STORE_VERSION } from "@/lib/version";
+import { getCatalogVersion } from "@/lib/serverStore";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
+  const catalogVersion = await getCatalogVersion();
   return NextResponse.json(
     {
       buildId: BUILD_ID,
+      catalogVersion,
       buildTimestamp: BUILD_TIMESTAMP,
       version: STORE_VERSION,
       serverTime: new Date().toISOString(),

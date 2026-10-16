@@ -218,6 +218,76 @@ export function getNextSequentialOrderId(
   return `ORM-${highest + 1}`;
 }
 
+
+function maxIsoDate(values: Array<string | null | undefined>): string {
+  let best = 0;
+  for (const v of values) {
+    if (!v) continue;
+    const t = new Date(v).getTime();
+    if (!Number.isNaN(t) && t > best) best = t;
+  }
+  return best ? new Date(best).toISOString() : "";
+}
+
+/**
+ * Cheap freshness probe (two tiny queries, no payloads). Clients poll this instead of
+ * downloading the whole catalog + settings just to find out nothing changed.
+ */
+export async function getCatalogVersion(): Promise<string> {
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = getSupabaseAdminClient();
+      const [prod, sett] = await Promise.all([
+        supabase.from("products").select("updated_at").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("store_settings").select("updated_at").eq("id", "primary").maybeSingle(),
+      ]);
+      const v = maxIsoDate([
+        (prod.data as { updated_at?: string } | null)?.updated_at,
+        (sett.data as { updated_at?: string } | null)?.updated_at,
+      ]);
+      if (v) return v;
+    } catch {
+      // fall through
+    }
+  }
+  return (await getServerStoreData()).updatedAt || cachedLastUpdated;
+}
+
+
+/**
+ * Storefront snapshot: products + settings only (no orders / customers), straight from the
+ * database on every call. Used by the server-rendered layout on each request.
+ */
+export async function getPublicStoreSnapshot(): Promise<{ products: Product[]; settings: Partial<StoreSettings>; updatedAt: string }> {
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = getSupabaseAdminClient();
+      const [productsRes, settingsRes] = await Promise.all([
+        supabase.from("products").select("*").order("created_at", { ascending: false }),
+        supabase.from("store_settings").select("settings, updated_at").eq("id", "primary").maybeSingle(),
+      ]);
+      if (productsRes.error) throw new Error(productsRes.error.message);
+      if (settingsRes.error) throw new Error(settingsRes.error.message);
+      const rows = (productsRes.data || []) as Array<Record<string, unknown>>;
+      if (rows.length > 0 && settingsRes.data && settingsRes.data.settings) {
+        return {
+          products: rows.map(mapDbProductToModel),
+          settings: settingsRes.data.settings as Partial<StoreSettings>,
+          updatedAt:
+            maxIsoDate([
+              (settingsRes.data as { updated_at?: string }).updated_at,
+              ...rows.map((r) => r.updated_at as string | undefined),
+            ]) || cachedLastUpdated,
+        };
+      }
+    } catch (err) {
+      console.warn("getPublicStoreSnapshot: falling back to full read:", err);
+    }
+  }
+  const full = await getServerStoreData();
+  return { products: full.products, settings: full.settings, updatedAt: full.updatedAt };
+}
+
 // ----------------------------------------------------
 // READ DATA (Supabase First -> Local File Fallback)
 // ----------------------------------------------------
@@ -310,9 +380,14 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
 
       lastOrderSeq = calculateHighestOrderSeq(orders, lastOrderSeq, deletedOrderIds);
 
-      const updatedAt =
-        (settingsRes.data as { updated_at?: string })?.updated_at ||
-        cachedLastUpdated;
+      // Freshness token = the newest change across catalog AND settings.
+      // (It used to be settings.updated_at only, so editing just products never changed the
+      // token and already-open storefronts / in-app browsers kept showing the old catalog.)
+      const productRows = (productsRes.data || []) as Array<{ updated_at?: string }>;
+      const updatedAt = maxIsoDate([
+        (settingsRes.data as { updated_at?: string } | null)?.updated_at,
+        ...productRows.map((r) => r.updated_at),
+      ]) || cachedLastUpdated;
 
       return {
         products,

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { StoreProvider, useStore } from "@/context/StoreContext";
+import { StoreProvider, useStore, InitialStoreSnapshot } from "@/context/StoreContext";
 import { Navbar } from "@/components/Navbar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { WishlistDrawer } from "@/components/WishlistDrawer";
@@ -153,9 +153,9 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SiteShell: React.FC<{ children: React.ReactNode; initialStore?: InitialStoreSnapshot | null }> = ({ children, initialStore }) => {
   return (
-    <StoreProvider>
+    <StoreProvider initialStore={initialStore}>
       <ShellInner>{children}</ShellInner>
     </StoreProvider>
   );
