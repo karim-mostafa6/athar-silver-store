@@ -936,20 +936,8 @@ function sanitizeOrders(rawOrders: unknown): Order[] {
 }
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Ultra-fast synchronous lazy initialization from localStorage cache (Zero-lag first paint)
+  // Cloud-Truth: Products initialized cleanly, updated immediately and strictly from server
   const [products, setProducts] = useState<Product[]>(() => {
-    if (typeof window === "undefined") return PRODUCTS;
-    try {
-      const deletedProdIds = getDeletedProductIds();
-      const saved = localStorage.getItem("athar_custom_products");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
-        }
-      }
-      return PRODUCTS.filter((p) => p && p.id && !deletedProdIds.has(p.id));
-    } catch {}
     return PRODUCTS;
   });
 
@@ -1098,50 +1086,51 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
         lastServerUpdatedRef.current = data.updatedAt || "";
 
-        // Server product catalog is the single source of truth across all devices
+        // Cloud-Truth Only: Server product catalog is the single source of truth
         if (Array.isArray(data.products) && data.products.length > 0) {
           const deletedProdIds = getDeletedProductIds();
           const serverProds = data.products.filter((p: Product) => p && p.id && !deletedProdIds.has(p.id));
           if (serverProds.length > 0) {
+            // Full Overwrite with server truth
             setProducts(serverProds);
             try {
-              localStorage.setItem("athar_custom_products", JSON.stringify(serverProds));
+              // Evict stale custom products keys to prevent phone caching old products
+              localStorage.removeItem("athar_custom_products");
             } catch {}
           }
         }
 
+        // Cloud-Truth Only: Server settings is the single source of truth
         if (data.settings && typeof data.settings === "object") {
-          setStoreSettings((prev) => {
-            const merged = {
-              ...prev,
-              ...data.settings,
-              categories:
-                Array.isArray(data.settings.categories)
-                  ? data.settings.categories
-                  : prev.categories,
-              collectionPages: {
-                ...prev.collectionPages,
-                ...DEFAULT_COLLECTION_PAGES,
-                ...(data.settings.collectionPages || {}),
-              },
-              governorateShippingRates: {
-                ...prev.governorateShippingRates,
-                ...(data.settings.governorateShippingRates || {}),
-              },
-              customPages:
-                Array.isArray(data.settings.customPages)
-                  ? data.settings.customPages
-                  : (prev.customPages || DEFAULT_CUSTOM_PAGES),
-              heroSlides:
-                Array.isArray(data.settings.heroSlides)
-                  ? data.settings.heroSlides
-                  : (prev.heroSlides || []),
-            };
-            try {
-              localStorage.setItem("athar_store_settings", JSON.stringify(merged));
-            } catch {}
-            return merged;
-          });
+          // Full replace on top of clean defaults, without blending stale local state
+          const serverSettings: StoreSettings = {
+            ...DEFAULT_SETTINGS,
+            ...data.settings,
+            categories:
+              Array.isArray(data.settings.categories)
+                ? data.settings.categories
+                : DEFAULT_CATEGORIES,
+            collectionPages: {
+              ...DEFAULT_COLLECTION_PAGES,
+              ...(data.settings.collectionPages || {}),
+            },
+            governorateShippingRates: {
+              ...DEFAULT_SETTINGS.governorateShippingRates,
+              ...(data.settings.governorateShippingRates || {}),
+            },
+            customPages:
+              Array.isArray(data.settings.customPages)
+                ? data.settings.customPages
+                : DEFAULT_CUSTOM_PAGES,
+            heroSlides:
+              Array.isArray(data.settings.heroSlides)
+                ? data.settings.heroSlides
+                : (data.settings.heroSlides || []),
+          };
+          setStoreSettings(serverSettings);
+          try {
+            localStorage.setItem("athar_store_settings", JSON.stringify(serverSettings));
+          } catch {}
         }
 
         if (typeof data.lastOrderSeq === "number") {
@@ -1300,14 +1289,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Save to localStorage
+  // Do not store products in localStorage to avoid stale phone cache; server is sole source of truth
   useEffect(() => {
     try {
-      localStorage.setItem("athar_custom_products", JSON.stringify(products));
+      localStorage.removeItem("athar_custom_products");
     } catch {
       // Ignore
     }
-  }, [products]);
+  }, []);
 
   useEffect(() => {
     try {
@@ -1667,9 +1656,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       };
     } catch (err) {
       console.error("Order submission network error:", err);
-      // Fallback optimistic local addition if network drops completely
-      const fallbackId = addOrder(orderData);
-      return { success: true, orderId: fallbackId };
+      return {
+        success: false,
+        error: "تعذر الاتصال بالخادم لتسجيل الطلب. يرجى التأكد من اتصال الإنترنت والمحاولة مجدداً.",
+      };
     }
   };
 

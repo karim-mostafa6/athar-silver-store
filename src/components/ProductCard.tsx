@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Product } from "@/data/products";
 import { Heart, ShoppingBag, Eye, Check, Sparkles } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { getCacheBustedImageUrl } from "@/lib/version";
 
 interface ProductCardProps {
   product: Product;
@@ -70,8 +71,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  const primaryImage = product.images[0];
-  const secondaryImage = product.images[1] || product.images[0];
+  const primaryImage = getCacheBustedImageUrl(product.images[0]);
+  const secondaryImage = getCacheBustedImageUrl(product.images[1] || product.images[0]);
 
   return (
     <motion.div

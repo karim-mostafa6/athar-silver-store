@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
+import { getCacheBustedImageUrl } from "@/lib/version";
 
 export interface OrmaLogoProps {
   className?: string;
@@ -71,7 +72,7 @@ export const OrmaLogo: React.FC<OrmaLogoProps> = ({
         {/* 1. Custom Uploaded/Linked Image from Dashboard */}
         {showImage && (
           <img
-            src={effectiveImageUrl}
+            src={getCacheBustedImageUrl(effectiveImageUrl)}
             alt={brandTitle}
             style={{ height: `${targetHeight}px` }}
             className={`w-auto object-contain transition-all duration-300 ${

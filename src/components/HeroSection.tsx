@@ -4,6 +4,7 @@ import React from "react";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { ConcentricRipples } from "@/components/ConcentricRipples";
+import { getCacheBustedImageUrl } from "@/lib/version";
 
 interface HeroSectionProps {
   onExploreClick: () => void;
@@ -41,7 +42,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {hasCustomImage ? (
         <div className="absolute inset-0 w-full h-full">
           <img
-            src={storeSettings.heroImageUrl}
+            src={getCacheBustedImageUrl(storeSettings.heroImageUrl)}
             alt={headline}
             className="w-full h-full object-cover object-center scale-[1.01] hover:scale-105 transition-transform duration-[7000ms] ease-out"
           />
