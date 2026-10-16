@@ -1037,8 +1037,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Background Central Server Sync (Optimized & non-blocking)
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
-    // Allow checks every 60 seconds or immediately if forced
-    if (!force && now - lastSyncTimestampRef.current < 60000) return;
+    // Allow checks every 15 seconds or immediately if forced
+    if (!force && now - lastSyncTimestampRef.current < 15000) return;
     if (isSyncingRef.current) return;
 
     isSyncingRef.current = true;

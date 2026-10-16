@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import {
   getServerStoreData,
   saveServerStoreData,
@@ -405,6 +406,14 @@ export async function POST(request: NextRequest) {
         console.error(`[Orders Route] Error scheduling delayed WhatsApp confirmation for #${orderSnapshot.id}:`, waErr);
       }
     }
+
+    // 9. Instant Path Revalidation to keep admin and customer views completely fresh
+    try {
+      revalidatePath("/admin");
+      revalidatePath("/");
+      revalidatePath("/collection/[slug]", "page");
+      revalidatePath("/product/[id]", "page");
+    } catch {}
 
     return NextResponse.json(
       {

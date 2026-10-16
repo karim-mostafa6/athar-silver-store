@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import {
   getServerStoreData,
   saveServerStoreData,
@@ -10,6 +11,7 @@ import { Order } from "@/context/StoreContext";
 import { cancelDelayedWhatsAppJob } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /**
  * Answer Telegram Callback Query to dismiss the loading spinner and show a toast alert in chat
@@ -80,21 +82,25 @@ async function findAndUpdateOrder(
       )
     );
 
-    // 1. SUPABASE DIRECT MULTI-STRATEGY LOOKUP & UPDATE
+    // 1. SUPABASE DIRECT MULTI-STRATEGY LOOKUP & UPDATE (Fully standalone from admin dashboard)
     if (isSupabaseConfigured()) {
       try {
         const supabase = getSupabaseAdminClient();
         let dbRow: Record<string, unknown> | null = null;
 
         // Strategy 1A: Search by 'id' matching any candidate
-        const { data: byIdRows } = await supabase
-          .from("orders")
-          .select("*")
-          .in("id", candidateIds)
-          .limit(1);
+        try {
+          const { data: byIdRows } = await supabase
+            .from("orders")
+            .select("*")
+            .in("id", candidateIds)
+            .limit(1);
 
-        if (byIdRows && byIdRows.length > 0) {
-          dbRow = byIdRows[0] as Record<string, unknown>;
+          if (byIdRows && byIdRows.length > 0) {
+            dbRow = byIdRows[0] as Record<string, unknown>;
+          }
+        } catch (e1) {
+          console.warn("[Telegram Webhook] Strategy 1A notice:", e1);
         }
 
         // Strategy 1B: Search by 'order_number' column if present
@@ -155,7 +161,39 @@ async function findAndUpdateOrder(
           } catch {}
         }
 
-        // If found in Supabase, update immediately in Supabase and sync with serverStore
+        // Strategy 1F: Broad fallback scan of recent orders if still not found
+        if (!dbRow) {
+          try {
+            const { data: recentRows } = await supabase
+              .from("orders")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .limit(100);
+
+            if (recentRows && recentRows.length > 0) {
+              const candLower = candidateIds.map((c) => c.toLowerCase());
+              for (const r of recentRows) {
+                const rId = String(r.id || "").trim();
+                const rClean = rId.replace(/^#/, "").trim();
+                if (
+                  candidateIds.includes(rId) ||
+                  candidateIds.includes(rClean) ||
+                  candLower.includes(rId.toLowerCase()) ||
+                  candLower.includes(rClean.toLowerCase())
+                ) {
+                  dbRow = r as Record<string, unknown>;
+                  break;
+                }
+                if (seqNum !== null && (rId.includes(String(seqNum)) || extractOrderSequence(rId) === seqNum)) {
+                  dbRow = r as Record<string, unknown>;
+                  break;
+                }
+              }
+            }
+          } catch {}
+        }
+
+        // If found in Supabase, update immediately directly in Supabase
         if (dbRow && dbRow.id) {
           const targetDbId = String(dbRow.id);
           const existingNotes = String(dbRow.admin_notes || "");
@@ -175,11 +213,15 @@ async function findAndUpdateOrder(
             cancelDelayedWhatsAppJob(cleanId);
           }
 
-          const { data: updatedRows } = await supabase
+          const { data: updatedRows, error: updateErr } = await supabase
             .from("orders")
             .update(updatePayload)
             .eq("id", targetDbId)
             .select();
+
+          if (updateErr) {
+            console.error("[Telegram Webhook] Direct Supabase update error:", updateErr);
+          }
 
           const mergedRow = {
             ...dbRow,
@@ -189,7 +231,7 @@ async function findAndUpdateOrder(
 
           const modelOrder = mapDbOrderToModel(mergedRow);
 
-          // Sync with serverStore memory and local disk
+          // Sync with serverStore memory and local disk in background
           try {
             await saveServerStoreData({
               orders: [modelOrder],
@@ -397,6 +439,15 @@ export async function POST(request: NextRequest) {
         } catch (editErr) {
           console.error("[Telegram Webhook] Failed to edit message:", editErr);
         }
+      }
+
+      // Revalidate Admin and Orders paths so dashboard reflects it instantly upon next visit
+      try {
+        revalidatePath("/admin");
+        revalidatePath("/api/orders");
+        revalidatePath("/api/data");
+      } catch (revErr) {
+        console.warn("[Telegram Webhook] Revalidation notice:", revErr);
       }
 
       return NextResponse.json({

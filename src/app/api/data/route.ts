@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 
@@ -64,6 +65,16 @@ export async function POST(request: NextRequest) {
       lastOrderSeq: typeof lastOrderSeq === "number" ? lastOrderSeq : undefined,
       deletedOrderIds: Array.isArray(deletedOrderIds) ? deletedOrderIds : undefined,
     });
+
+    // Instant Cache Invalidation across all Next.js rendered pages
+    try {
+      revalidatePath("/");
+      revalidatePath("/admin");
+      revalidatePath("/collection/[slug]", "page");
+      revalidatePath("/product/[id]", "page");
+    } catch (e) {
+      console.warn("Revalidation notice:", e);
+    }
 
     return NextResponse.json({
       success: true,
