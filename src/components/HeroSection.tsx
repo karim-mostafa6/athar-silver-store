@@ -74,26 +74,40 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          {/* Dark Charcoal Hero Box Side with Ring in Champagne #B7A078 */}
+          {/* Hero Visual Display Side (Custom CMS Image or Signature Ring Art) */}
           <div className="relative order-1 lg:order-2 flex justify-center">
-            <div className="relative w-full max-w-[480px] aspect-square rounded-2xl bg-[#292722] overflow-hidden shadow-2xl flex items-center justify-center border border-[#292722]/30">
-              {/* Concentric Watermark Ripples in Champagne #B7A078 */}
-              <ConcentricRipples variant="hero" strokeColor="#B7A078" ringCount={14} />
-
-              {/* The Hero Ring in Champagne Gold #B7A078 + Centered ORMA Logo */}
-              <div className="relative z-10 flex flex-col items-center justify-center p-8 text-center">
-                <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full border border-[#B7A078]/40 flex items-center justify-center shadow-[0_0_50px_rgba(183,160,120,0.15)]">
-                  {/* Subtle Inner Ring */}
-                  <div className="absolute inset-2 rounded-full border border-[#B7A078]/25" />
-                  
-                  {/* Bead on Ring Accent */}
-                  <div className="absolute top-4 right-10 w-3 h-3 rounded-full bg-[#B7A078] shadow-[0_0_10px_#B7A078]" />
-
-                  {/* Centered ORMA Logo & Slogan */}
-                  <OrmaLogo variant="dark" size="xl" showSlogan={true} />
+            {storeSettings.heroImageUrl && storeSettings.heroImageUrl.trim() ? (
+              <div className="relative w-full max-w-[480px] aspect-square rounded-2xl overflow-hidden shadow-2xl border border-[#292722]/30 group bg-[#292722]">
+                <img
+                  src={storeSettings.heroImageUrl}
+                  alt={headline}
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-4 right-4 bg-[#292722]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#B7A078]/40 text-[#B7A078] text-[11px] font-tajawal font-medium shadow-md">
+                  {slogan}
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="relative w-full max-w-[480px] aspect-square rounded-2xl bg-[#292722] overflow-hidden shadow-2xl flex items-center justify-center border border-[#292722]/30">
+                {/* Concentric Watermark Ripples in Champagne #B7A078 */}
+                <ConcentricRipples variant="hero" strokeColor="#B7A078" ringCount={14} />
+
+                {/* The Hero Ring in Champagne Gold #B7A078 + Centered ORMA Logo */}
+                <div className="relative z-10 flex flex-col items-center justify-center p-8 text-center">
+                  <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full border border-[#B7A078]/40 flex items-center justify-center shadow-[0_0_50px_rgba(183,160,120,0.15)]">
+                    {/* Subtle Inner Ring */}
+                    <div className="absolute inset-2 rounded-full border border-[#B7A078]/25" />
+                    
+                    {/* Bead on Ring Accent */}
+                    <div className="absolute top-4 right-10 w-3 h-3 rounded-full bg-[#B7A078] shadow-[0_0_10px_#B7A078]" />
+
+                    {/* Centered ORMA Logo & Slogan */}
+                    <OrmaLogo variant="dark" size="xl" showSlogan={true} />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

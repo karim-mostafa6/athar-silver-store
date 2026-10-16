@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Product } from "@/data/products";
-import { X, ShieldCheck, ShoppingBag, MessageCircle, Heart, Sparkles, Check } from "lucide-react";
+import { X, ShieldCheck, ShoppingBag, MessageCircle, Heart, Sparkles, Check, Scale, AlertCircle } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 
 interface ProductQuickViewModalProps {
@@ -49,8 +49,23 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
 
   if (!product) return null;
 
+  const isRingProduct = Boolean(
+    product.category === "rings" ||
+    product.category?.toLowerCase().includes("ring") ||
+    product.arabicName?.includes("خاتم") ||
+    product.arabicName?.includes("دبل") ||
+    (product.collections || []).some(
+      (c) => c === "rings" || c.toLowerCase().includes("ring") || c.includes("خواتم")
+    )
+  );
+
+  const isOutOfStock =
+    product.inStock === false ||
+    (product.stockQuantity !== undefined && product.stockQuantity <= 0);
+
   const handleAdd = () => {
-    onAddToCart(product, selectedSize, quantity);
+    if (isOutOfStock) return;
+    onAddToCart(product, isRingProduct ? selectedSize : undefined, quantity);
     setIsAdded(true);
     onNotify?.("تمت الإضافة للسلة", `تم إضافة ${quantity} × ${product.arabicName}`, "cart");
     setTimeout(() => {
@@ -60,7 +75,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   };
 
   const handleWhatsAppOrder = () => {
-    const sizeText = selectedSize ? ` (المقاس: ${selectedSize})` : "";
+    const sizeText = (isRingProduct && selectedSize) ? ` (المقاس: ${selectedSize})` : "";
     const qtyText = quantity > 1 ? ` (العدد: ${quantity})` : "";
     const total = product.price * quantity;
     const productUrl =
@@ -182,9 +197,15 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
               </div>
 
               <div className="text-left">
-                <span className="inline-block text-[11px] font-normal text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                  متوفر وجاهز للشحن
-                </span>
+                {isOutOfStock ? (
+                  <span className="inline-block text-[11px] font-medium text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
+                    نفد من المخزون مؤقتاً
+                  </span>
+                ) : (
+                  <span className="inline-block text-[11px] font-normal text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                    متوفر وجاهز للشحن
+                  </span>
+                )}
               </div>
             </div>
 
@@ -206,8 +227,8 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
               </div>
             </div>
 
-            {/* Sizes */}
-            {product.sizes && product.sizes.length > 0 && (
+            {/* Smart Product Attributes: Sizes ONLY for rings */}
+            {isRingProduct && product.sizes && product.sizes.length > 0 ? (
               <div className="space-y-2 pt-2 border-t border-[#e8ded0]">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium text-[#1c1815]">اختر المقاس:</span>
@@ -237,46 +258,65 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                   ))}
                 </div>
               </div>
-            )}
+            ) : !isRingProduct ? (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#faf6f0] border border-[#e8ded0] text-xs">
+                <div className="flex items-center gap-1.5 text-[#524436]">
+                  <Scale className="w-3.5 h-3.5 text-[#8c7865]" />
+                  <span>الوزن الصافي: ~{product.weightGrams || 5} جرام فضة 925</span>
+                </div>
+                <span className="text-[10px] text-[#8c7865] bg-white px-2 py-0.5 rounded border border-[#ded1be]">
+                  مقاس قياسي مريح
+                </span>
+              </div>
+            ) : null}
 
             {/* Quantity and Actions */}
             <div className="pt-3 border-t border-[#e8ded0] space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-[#1c1815]">الكمية:</span>
-                <div className="flex items-center gap-3 bg-white border border-[#ded1be] rounded-xl px-2 py-1 shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-normal transition-colors"
-                  >
-                    -
-                  </button>
-                  <span className="text-sm font-normal text-[#1c1815] font-sans px-2">
-                    {quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-normal transition-colors"
-                  >
-                    +
-                  </button>
+              {!isOutOfStock && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[#1c1815]">الكمية:</span>
+                  <div className="flex items-center gap-3 bg-white border border-[#ded1be] rounded-xl px-2 py-1 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-normal transition-colors"
+                    >
+                      -
+                    </button>
+                    <span className="text-sm font-normal text-[#1c1815] font-sans px-2">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-7 h-7 rounded-lg text-[#524436] hover:bg-[#f6efe4] flex items-center justify-center font-normal transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={handleAdd}
-                  disabled={isAdded}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-md hover-lift ${
-                    isAdded
+                  disabled={isAdded || isOutOfStock}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-md ${
+                    isOutOfStock
+                      ? "bg-stone-300 text-stone-600 cursor-not-allowed border border-stone-300 shadow-none"
+                      : isAdded
                       ? "bg-emerald-600 text-white animate-pop"
                       : "bg-[#1c1815] text-[#faf8f5] hover:bg-[#2e2620]"
                   }`}
                 >
-                  {isAdded ? (
+                  {isOutOfStock ? (
+                    <>
+                      <AlertCircle className="w-4 h-4 text-stone-500" />
+                      <span>نفد من المخزون • SOLD OUT</span>
+                    </>
+                  ) : isAdded ? (
                     <>
                       <Check className="w-4 h-4" />
                       <span>تمت الإضافة للسلة!</span>

@@ -19,6 +19,8 @@ import {
   Check,
   Ruler,
   Share2,
+  Scale,
+  AlertCircle,
 } from "lucide-react";
 
 export default function ProductDetailPage() {
@@ -71,8 +73,27 @@ export default function ProductDetailPage() {
 
   const effectivelyWishlisted = isWishlisted(product.id);
 
+  // Smart Product Attribute Detection: Ring vs Weight-based piece
+  const isRingProduct = Boolean(
+    product.category === "rings" ||
+    product.category?.toLowerCase().includes("ring") ||
+    product.arabicName?.includes("خاتم") ||
+    product.arabicName?.includes("دبل") ||
+    (product.collections || []).some(
+      (c) => c === "rings" || c.toLowerCase().includes("ring") || c.includes("خواتم")
+    )
+  );
+
+  const isOutOfStock =
+    product.inStock === false ||
+    (product.stockQuantity !== undefined && product.stockQuantity <= 0);
+
   const handleAddToCart = () => {
-    let effectiveSize = selectedSize;
+    if (isOutOfStock) {
+      addToast("تنبيه", "هذه القطعة غير متوفرة حالياً بالمخزن", "info");
+      return;
+    }
+    let effectiveSize = isRingProduct ? selectedSize : undefined;
     if (engravingText.trim()) {
       effectiveSize = effectiveSize
         ? `${effectiveSize} (نقش ليزر: ${engravingText.trim()})`
@@ -87,7 +108,7 @@ export default function ProductDetailPage() {
   };
 
   const handleWhatsAppOrder = () => {
-    const sizeText = selectedSize ? ` (المقاس: ${selectedSize})` : "";
+    const sizeText = (isRingProduct && selectedSize) ? ` (المقاس: ${selectedSize})` : "";
     const productUrl =
       typeof window !== "undefined"
         ? window.location.href
@@ -154,11 +175,18 @@ export default function ProductDetailPage() {
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
-              <span className="bg-white/95 backdrop-blur-md text-[#1c1815] border border-[#ded1be] text-[11px] font-sans font-medium px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 tracking-wider">
-                <Sparkles className="w-3 h-3 text-amber-600" />
-                925 STERLING SILVER
-              </span>
-              {discountPercent > 0 && (
+              {isOutOfStock ? (
+                <span className="bg-[#1c1815]/95 backdrop-blur-md text-[#f7d7d7] border border-rose-500/50 text-[11px] font-sans font-bold px-3.5 py-1 rounded-full shadow-md flex items-center gap-1.5 tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 inline-block animate-pulse" />
+                  SOLD OUT • نفد من المخزون
+                </span>
+              ) : (
+                <span className="bg-white/95 backdrop-blur-md text-[#1c1815] border border-[#ded1be] text-[11px] font-sans font-medium px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 tracking-wider">
+                  <Sparkles className="w-3 h-3 text-amber-600" />
+                  925 STERLING SILVER
+                </span>
+              )}
+              {discountPercent > 0 && !isOutOfStock && (
                 <span className="bg-[#1c1815] text-[#faf8f5] text-[10px] font-medium px-2.5 py-0.5 rounded-full shadow-sm tracking-wider">
                   خصم {discountPercent}%
                 </span>
@@ -278,16 +306,27 @@ export default function ProductDetailPage() {
                   </span>
                 )}
               </div>
-              {discountPercent > 0 && (
-                <span className="text-[11px] font-normal text-rose-700 bg-rose-50 border border-rose-200/70 px-2.5 py-0.5 rounded-full">
-                  وفر {discountPercent}%
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {isOutOfStock ? (
+                  <span className="text-[11px] font-medium text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
+                    نفد من المخزون مؤقتاً
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                    متوفر بالمخزن وجاهز للشحن
+                  </span>
+                )}
+                {discountPercent > 0 && (
+                  <span className="text-[11px] font-normal text-rose-700 bg-rose-50 border border-rose-200/70 px-2.5 py-0.5 rounded-full">
+                    وفر {discountPercent}%
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Size Selector (If applicable) */}
-          {product.sizes && product.sizes.length > 0 && (
+          {/* Smart Product Attributes: Size Selector ONLY for rings/bands */}
+          {isRingProduct && product.sizes && product.sizes.length > 0 ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium text-[#1c1815]">اختر المقاس:</span>
@@ -317,7 +356,19 @@ export default function ProductDetailPage() {
                 ))}
               </div>
             </div>
-          )}
+          ) : !isRingProduct ? (
+            /* Chains, bracelets, and weight-based pieces */
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#faf6f0] border border-[#ece4d8] text-xs">
+              <div className="flex items-center gap-2 text-[#524436]">
+                <Scale className="w-4 h-4 text-[#8c7865]" />
+                <span className="font-medium">الوزن الصافي:</span>
+                <span className="font-bold text-[#1c1815]">~{product.weightGrams || 5} جرام فضة 925</span>
+              </div>
+              <span className="text-[11px] text-[#8c7865] bg-white px-2.5 py-0.5 rounded-full border border-[#ded1be]">
+                مقاس مريح قياسي
+              </span>
+            </div>
+          ) : null}
 
           {/* Custom Laser Engraving Input Card */}
           {product.customEngravingAvailable && (
@@ -347,62 +398,81 @@ export default function ProductDetailPage() {
 
           {/* Quantity Selector & Action Buttons */}
           <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-3">
-              {/* Quantity */}
-              <div className="flex items-center bg-white border border-[#ded2c0] rounded-2xl p-1 shadow-sm">
+            {isOutOfStock ? (
+              <div className="space-y-3">
+                <div className="w-full py-4 px-6 rounded-2xl bg-stone-200 text-stone-600 font-medium text-xs tracking-wider flex items-center justify-center gap-2 cursor-not-allowed border border-stone-300">
+                  <AlertCircle className="w-4 h-4 text-stone-500" />
+                  <span>نفد من المخزون مؤقتاً • SOLD OUT</span>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
+                  onClick={handleWhatsAppOrder}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-[#1c1815] hover:bg-[#2c241e] text-white text-xs font-medium tracking-wide transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
                 >
-                  -
-                </button>
-                <span className="w-10 text-center font-normal text-sm text-[#1c1815] font-sans">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
-                >
-                  +
+                  <MessageCircle className="w-4 h-4 text-[#d8c8b4]" />
+                  <span>تواصل معنا للاستفسار عن توفره عبر واتساب</span>
                 </button>
               </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3">
+                  {/* Quantity */}
+                  <div className="flex items-center bg-white border border-[#ded2c0] rounded-2xl p-1 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center font-normal text-sm text-[#1c1815] font-sans">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((q) => q + 1)}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
 
-              {/* Add to Bag Button */}
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={isAdded}
-                className={`flex-1 py-4 px-6 rounded-2xl font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-lg hover-lift flex items-center justify-center gap-2 ${
-                  isAdded
-                    ? "bg-emerald-600 text-white"
-                    : "bg-[#1c1815] hover:bg-[#2c241e] text-[#faf8f5] shadow-[#1c1815]/15"
-                }`}
-              >
-                {isAdded ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    <span>تمت الإضافة للسلة!</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag className="w-4 h-4 text-[#d8c8b4]" />
-                    <span>أضف إلى السلة • ADD TO BAG</span>
-                  </>
-                )}
-              </button>
-            </div>
+                  {/* Add to Bag Button */}
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={isAdded}
+                    className={`flex-1 py-4 px-6 rounded-2xl font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-lg hover-lift flex items-center justify-center gap-2 ${
+                      isAdded
+                        ? "bg-emerald-600 text-white"
+                        : "bg-[#1c1815] hover:bg-[#2c241e] text-[#faf8f5] shadow-[#1c1815]/15"
+                    }`}
+                  >
+                    {isAdded ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>تمت الإضافة للسلة!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-4 h-4 text-[#d8c8b4]" />
+                        <span>أضف إلى السلة • ADD TO BAG</span>
+                      </>
+                    )}
+                  </button>
+                </div>
 
-            {/* Direct WhatsApp Order Button */}
-            <button
-              type="button"
-              onClick={handleWhatsAppOrder}
-              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700/95 hover:bg-emerald-700 text-white text-xs font-medium tracking-wide transition-all shadow-md active:scale-95 hover-lift flex items-center justify-center gap-2"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>اطلب فوراً عبر واتساب • ORDER VIA WHATSAPP</span>
-            </button>
+                {/* Direct WhatsApp Order Button */}
+                <button
+                  type="button"
+                  onClick={handleWhatsAppOrder}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700/95 hover:bg-emerald-700 text-white text-xs font-medium tracking-wide transition-all shadow-md active:scale-95 hover-lift flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>اطلب فوراً عبر واتساب • ORDER VIA WHATSAPP</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Expandable Accordions */}

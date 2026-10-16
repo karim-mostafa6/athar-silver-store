@@ -33,9 +33,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const effectivelyWishlisted =
     isWishlisted !== undefined ? isWishlisted : store.isWishlisted(product.id);
 
+  const isOutOfStock =
+    product.inStock === false ||
+    (product.stockQuantity !== undefined && product.stockQuantity <= 0);
+
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isOutOfStock) return;
     if (onAddToCart) {
       onAddToCart(product, selectedSize);
     } else {
@@ -124,7 +129,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Minimal Badges: Top Left */}
           <div className="absolute top-3 left-3 z-10 pointer-events-none flex flex-col gap-1 items-start">
-            {product.customBadge ? (
+            {isOutOfStock ? (
+              <span className="bg-[#292722]/95 backdrop-blur-md text-[#f7d7d7] border border-rose-500/40 text-[10px] font-tajawal font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block animate-pulse" />
+                SOLD OUT
+              </span>
+            ) : product.customBadge ? (
               <span className="bg-[#292722] text-[#F5F0E7] border border-[#292722]/30 text-[10px] font-tajawal font-medium px-2.5 py-0.5 rounded-full tracking-wider shadow-sm">
                 {product.customBadge}
               </span>
@@ -174,17 +184,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <motion.button
               type="button"
               onClick={handleAdd}
-              disabled={isAdded}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.95 }}
+              disabled={isAdded || isOutOfStock}
+              whileHover={isOutOfStock ? {} : { scale: 1.03 }}
+              whileTap={isOutOfStock ? {} : { scale: 0.95 }}
               className={`flex-1 py-2 rounded-full text-[11px] font-tajawal font-medium shadow-sm transition-all flex items-center justify-center gap-1 ${
-                isAdded
+                isOutOfStock
+                  ? "bg-stone-300 text-stone-600 cursor-not-allowed border border-stone-300"
+                  : isAdded
                   ? "bg-emerald-600 text-white"
                   : "bg-[#292722] text-[#F5F0E7] hover:bg-[#3d3a33]"
               }`}
             >
               <AnimatePresence mode="wait">
-                {isAdded ? (
+                {isOutOfStock ? (
+                  <span className="font-tajawal text-[10px] font-bold">غير متوفر</span>
+                ) : isAdded ? (
                   <motion.div
                     key="added"
                     initial={{ scale: 0.7, opacity: 0 }}

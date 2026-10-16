@@ -12,7 +12,7 @@ import {
   Settings, Globe, Megaphone, CreditCard, Mail, FileText, LayoutDashboard, Star, Layers, Image as ImageIcon,
   RotateCw, X, Smartphone, Monitor, BookOpen, Printer, ChevronUp, ChevronDown,
   Lock, Unlock, PhoneCall, Calendar, UserPlus, Ban, Download, Crown, Shield, KeyRound, UserCheck, Users,
-  BarChart3, TrendingUp, MapPin
+  BarChart3, TrendingUp, MapPin, Scale
 } from "lucide-react";
 
 type ActiveTab =
@@ -224,6 +224,7 @@ export default function AdminPage() {
     features: ["فضة إسترليني أصلية مختومة عيار 925", "علبة مخملية فاخرة وشهادة ضمان"],
     sizes: ["مقاس 16", "مقاس 17", "مقاس 18"],
     defaultSize: "مقاس 17",
+    stockQuantity: 10,
     inStock: true,
     isBestSeller: false,
     isNew: true,
@@ -986,6 +987,7 @@ export default function AdminPage() {
       features: prod.features || [],
       sizes: prod.sizes || [],
       defaultSize: prod.defaultSize || "",
+      stockQuantity: prod.stockQuantity !== undefined ? prod.stockQuantity : (prod.inStock ? 10 : 0),
       inStock: prod.inStock,
       isBestSeller: prod.isBestSeller || false,
       isNew: prod.isNew || false,
@@ -1036,14 +1038,31 @@ export default function AdminPage() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const rawStock = Number(productForm.stockQuantity);
+    const stockQty = !isNaN(rawStock) && rawStock >= 0 ? rawStock : 10;
+    const finalInStock = stockQty > 0 && productForm.inStock !== false;
+
+    // Check if category is ring-based or explicitly has sizes
+    const isRing =
+      productForm.category === "rings" ||
+      productForm.category?.toLowerCase().includes("ring") ||
+      productForm.arabicName?.includes("خاتم") ||
+      productForm.arabicName?.includes("دبل") ||
+      (productForm.collections || []).some(
+        (c) => c === "rings" || c.toLowerCase().includes("ring") || c.includes("خواتم")
+      );
+
     const updatedData: Omit<Product, "id"> = {
       ...productForm,
+      stockQuantity: stockQty,
+      inStock: finalInStock,
       collections:
         productForm.collections && productForm.collections.length > 0
           ? productForm.collections
           : [productForm.category],
       features: parsedFeatures.length > 0 ? parsedFeatures : ["فضة إسترليني 925 معتمدة"],
-      sizes: parsedSizes.length > 0 ? parsedSizes : undefined,
+      sizes: isRing && parsedSizes.length > 0 ? parsedSizes : (isRing ? ["مقاس 16", "مقاس 17", "مقاس 18"] : undefined),
+      defaultSize: isRing ? (productForm.defaultSize || parsedSizes[0] || "مقاس 17") : undefined,
       tags: parsedTags.length > 0 ? parsedTags : ["فضة 925"],
     };
 
@@ -2964,24 +2983,80 @@ export default function AdminPage() {
                           );
                         })}
                       </div>
+                      {/* Inventory Stock Indicator with quick adjustment */}
+                      <div className="bg-[#f7f4ee] rounded-lg p-2 mb-3 border border-[#ded2c0] flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              !product.inStock || (product.stockQuantity ?? 10) <= 0
+                                ? "bg-rose-500"
+                                : (product.stockQuantity ?? 10) <= 5
+                                ? "bg-amber-500"
+                                : "bg-emerald-500"
+                            }`}
+                          />
+                          <span className="font-medium text-[#161412]">
+                            المخزون:{" "}
+                            <strong className="font-bold">
+                              {product.stockQuantity !== undefined ? product.stockQuantity : (product.inStock ? 10 : 0)}
+                            </strong>{" "}
+                            قطعة
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = product.stockQuantity !== undefined ? product.stockQuantity : (product.inStock ? 10 : 0);
+                              const next = Math.max(0, cur - 1);
+                              updateProduct(product.id, {
+                                stockQuantity: next,
+                                inStock: next > 0,
+                              });
+                            }}
+                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] flex items-center justify-center text-xs font-bold hover:bg-gray-100"
+                            title="خصم 1 من المخزون"
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cur = product.stockQuantity !== undefined ? product.stockQuantity : (product.inStock ? 10 : 0);
+                              const next = cur + 1;
+                              updateProduct(product.id, {
+                                stockQuantity: next,
+                                inStock: true,
+                              });
+                            }}
+                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] flex items-center justify-center text-xs font-bold hover:bg-gray-100"
+                            title="إضافة 1 للمخزون"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Actions & Stock Toggle */}
                     <div className="pt-3 border-t border-[#f0e8dc] flex items-center justify-between gap-2">
                       <button
                         onClick={() => {
+                          const nextInStock = !product.inStock;
+                          const nextStock = nextInStock ? (product.stockQuantity && product.stockQuantity > 0 ? product.stockQuantity : 10) : 0;
                           updateProduct(product.id, {
-                            inStock: !product.inStock,
+                            inStock: nextInStock,
+                            stockQuantity: nextStock,
                           });
                           addToast("تم التحديث", `تم تعديل حالة توفر "${product.arabicName}"`, "info");
                         }}
                         className={`text-[11px] font-bold px-2.5 py-1 rounded transition-colors ${
-                          product.inStock
+                          product.inStock && (product.stockQuantity === undefined || product.stockQuantity > 0)
                             ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             : "bg-rose-50 text-rose-700 hover:bg-rose-100"
                         }`}
                       >
-                        {product.inStock ? "متوفر للطلب" : "غير متوفر"}
+                        {product.inStock && (product.stockQuantity === undefined || product.stockQuantity > 0) ? "متوفر للطلب" : "غير متوفر (SOLD OUT)"}
                       </button>
 
                       <div className="flex items-center gap-1">
@@ -6892,7 +6967,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="block font-medium text-[#756555] mb-1">السعر الحالي (ج.م) *</label>
                   <input
@@ -6916,13 +6991,39 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-[#756555] mb-1">الوزن بالجرام التقريبي</label>
+                  <label className="block font-medium text-[#756555] mb-1">الوزن بالجرام التقريبي *</label>
                   <input
                     type="number"
                     step="0.1"
                     value={productForm.weightGrams || 5}
                     onChange={(e) => setProductForm({ ...productForm, weightGrams: Number(e.target.value) })}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] font-bold focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-[#756555] mb-1 flex items-center justify-between">
+                    <span>الكمية بالمخزون *</span>
+                    <span className="text-[10px] text-[#8c7865] font-mono">Stock Qty</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={productForm.stockQuantity !== undefined ? productForm.stockQuantity : 10}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setProductForm({
+                        ...productForm,
+                        stockQuantity: val,
+                        inStock: val > 0,
+                      });
+                    }}
+                    className={`w-full border rounded-lg px-3 py-2 text-xs font-bold focus:outline-none transition-colors ${
+                      (productForm.stockQuantity ?? 10) <= 0
+                        ? "bg-rose-50 border-rose-300 text-rose-800"
+                        : "bg-[#f7f4ee] border-[#ded2c0] text-[#161412]"
+                    }`}
                   />
                 </div>
               </div>
@@ -7176,31 +7277,121 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-medium text-[#756555] mb-1">
-                    المقاسات المتاحة (مفصولة بفاصلة ,)
-                  </label>
-                  <input
-                    type="text"
-                    value={productSizesText}
-                    onChange={(e) => setProductSizesText(e.target.value)}
-                    placeholder="مقاس 16, مقاس 17, مقاس 18"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
-                  />
-                </div>
+              {/* Smart Product Attributes: Ring Sizes Builder vs Weight-based Piece */}
+              {(() => {
+                const isRingType =
+                  productForm.category === "rings" ||
+                  productForm.category?.toLowerCase().includes("ring") ||
+                  productForm.arabicName?.includes("خاتم") ||
+                  productForm.arabicName?.includes("دبل") ||
+                  (productForm.collections || []).some(
+                    (c) => c === "rings" || c.toLowerCase().includes("ring") || c.includes("خواتم")
+                  );
 
-                <div>
-                  <label className="block font-medium text-[#756555] mb-1">المقاس الافتراضي المحدد</label>
-                  <input
-                    type="text"
-                    value={productForm.defaultSize || ""}
-                    onChange={(e) => setProductForm({ ...productForm, defaultSize: e.target.value })}
-                    placeholder="مقاس 17"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
-                  />
-                </div>
-              </div>
+                const standardRingSizes = ["مقاس 14", "مقاس 15", "مقاس 16", "مقاس 17", "مقاس 18", "مقاس 19", "مقاس 20", "مقاس 21", "مقاس 22"];
+                const activeSizesList = productSizesText
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+
+                return isRingType ? (
+                  <div className="p-4 bg-[#faf6f0] rounded-xl border border-[#ded2c0] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">💍</span>
+                        <div>
+                          <h5 className="font-bold text-xs text-[#161412]">
+                            نظام مقاسات الخواتم والدبل الذكي
+                          </h5>
+                          <p className="text-[10px] text-[#756555]">
+                            اضغط على أي مقاس لإضافته أو إلغائه فورياً من الخيارات المتاحة للعميل
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] bg-[#161412] text-[#c5a880] px-2.5 py-0.5 rounded-full font-bold">
+                        {activeSizesList.length} مقاسات نشطة
+                      </span>
+                    </div>
+
+                    {/* Quick Toggle Preset Sizes */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {standardRingSizes.map((preset) => {
+                        const isSelected = activeSizesList.includes(preset);
+                        return (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => {
+                              let next: string[];
+                              if (isSelected) {
+                                next = activeSizesList.filter((s) => s !== preset);
+                              } else {
+                                next = [...activeSizesList, preset];
+                              }
+                              setProductSizesText(next.join(", "));
+                              if (!productForm.defaultSize || !next.includes(productForm.defaultSize)) {
+                                setProductForm((p) => ({ ...p, defaultSize: next[0] || "" }));
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all active:scale-95 ${
+                              isSelected
+                                ? "bg-[#161412] text-[#f7f4ee] border-[#161412] shadow-sm font-bold"
+                                : "bg-white text-[#756555] border-[#ded2c0] hover:border-[#b8a490]"
+                            }`}
+                          >
+                            {isSelected ? `✓ ${preset}` : `+ ${preset}`}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#ded2c0]">
+                      <div>
+                        <label className="block font-medium text-[#756555] mb-1">
+                          كافة المقاسات المفعلة (مفصولة بفاصلة ,)
+                        </label>
+                        <input
+                          type="text"
+                          value={productSizesText}
+                          onChange={(e) => setProductSizesText(e.target.value)}
+                          placeholder="مقاس 16, مقاس 17, مقاس 18"
+                          className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-[#756555] mb-1">المقاس الافتراضي المختار</label>
+                        <input
+                          type="text"
+                          value={productForm.defaultSize || ""}
+                          onChange={(e) => setProductForm({ ...productForm, defaultSize: e.target.value })}
+                          placeholder="مقاس 17"
+                          className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-[#faf6f0] border border-[#ded2c0] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#161412] text-[#c5a880] flex items-center justify-center font-bold shrink-0">
+                        <Scale className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h5 className="font-bold text-xs text-[#161412] flex items-center gap-2">
+                          <span>الخصائص الذكية: سلاسل / أساور / أنسيالات (تعتمد على الوزن فقط)</span>
+                          <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium">
+                            تفعيل تلقائي
+                          </span>
+                        </h5>
+                        <p className="text-[11px] text-[#756555] mt-0.5">
+                          وفقاً لنوع الكولكشن المختار، تم إخفاء حقل المقاسات للزوار، وسيتم اعتماد الوزن الصافي ({productForm.weightGrams || 5} جرام) وعيار الفضة تلقائياً.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div>
                 <label className="block font-medium text-[#756555] mb-1">
@@ -7221,7 +7412,14 @@ export default function AdminPage() {
                   <input
                     type="checkbox"
                     checked={productForm.inStock}
-                    onChange={(e) => setProductForm({ ...productForm, inStock: e.target.checked })}
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      setProductForm({
+                        ...productForm,
+                        inStock: next,
+                        stockQuantity: next ? (productForm.stockQuantity && productForm.stockQuantity > 0 ? productForm.stockQuantity : 10) : 0,
+                      });
+                    }}
                     className="rounded border-[#ded2c0] text-[#161412]"
                   />
                   <span>متوفر بالمخزن للطلب</span>

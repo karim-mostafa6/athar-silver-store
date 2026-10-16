@@ -290,8 +290,25 @@ export async function POST(request: NextRequest) {
 
     const updatedOrders = [finalOrder, ...currentData.orders.filter((o) => o.id !== finalOrder.id)];
 
+    // Automated Inventory Management: Deduct purchased quantity and auto-mark SOLD OUT if stock reaches 0
+    const updatedProducts = currentData.products.map((p) => {
+      const purchasedItem = verifiedItems.find((it) => it.productId === p.id);
+      if (!purchasedItem) return p;
+
+      const purchasedQty = Math.max(1, Math.min(50, Number(purchasedItem.quantity) || 1));
+      const currentStock = p.stockQuantity !== undefined ? p.stockQuantity : (p.inStock ? 10 : 0);
+      const newStock = Math.max(0, currentStock - purchasedQty);
+
+      return {
+        ...p,
+        stockQuantity: newStock,
+        inStock: newStock > 0,
+      };
+    });
+
     const saved = await saveServerStoreData({
       orders: updatedOrders,
+      products: updatedProducts,
       lastOrderSeq: newSeq,
     });
 

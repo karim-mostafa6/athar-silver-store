@@ -1485,6 +1485,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     applyOrdersMutation((prev) => [newOrder, ...prev], false);
 
+    // Optimistically update stock in products state
+    setProducts((prev) =>
+      prev.map((p) => {
+        const item = orderData.items.find((it) => it.productId === p.id);
+        if (!item) return p;
+        const curStock = p.stockQuantity !== undefined ? p.stockQuantity : (p.inStock ? 10 : 0);
+        const newStock = Math.max(0, curStock - (Number(item.quantity) || 1));
+        return {
+          ...p,
+          stockQuantity: newStock,
+          inStock: newStock > 0,
+        };
+      })
+    );
+
     // Automatically dispatch order via POST /api/orders to save in Supabase and trigger Telegram notification
     fetch("/api/orders", {
       method: "POST",
