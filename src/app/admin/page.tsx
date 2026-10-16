@@ -1678,7 +1678,7 @@ export default function AdminPage() {
       <div dir="rtl" className="min-h-screen bg-[#f7f4ee] flex items-center justify-center p-4 selection:bg-[#dfd2bf] font-cairo">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#e8ded0] p-8 sm:p-10 text-center">
           <div className="mb-6 flex justify-center">
-            <OrmaLogo variant="light" size="lg" />
+            <OrmaLogo variant="light" size="lg" customImageUrl={settingsForm.logoImageUrl} customHeight={settingsForm.logoHeight} customType={settingsForm.logoType} />
           </div>
 
           <h1 className="font-amiri text-2xl font-bold text-[#161412] mb-1">
@@ -1772,7 +1772,7 @@ export default function AdminPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Logo & Cloud Status */}
           <div className="flex items-center gap-4">
-            <OrmaLogo variant="light" size="sm" />
+            <OrmaLogo variant="light" size="sm" customImageUrl={settingsForm.logoImageUrl} customHeight={settingsForm.logoHeight} customType={settingsForm.logoType} />
             <div className="border-r border-[#d8c8b4] pr-4 hidden sm:block">
               <span className="text-xs font-bold text-[#161412] flex items-center gap-1.5">
                 <LayoutDashboard className="w-3.5 h-3.5 text-[#c5a880]" />
@@ -6368,7 +6368,14 @@ export default function AdminPage() {
                     <input
                       type="text"
                       value={settingsForm.logoImageUrl || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, logoImageUrl: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          logoImageUrl: val,
+                          logoType: prev.logoType === "text" && val ? "image" : prev.logoType,
+                        }));
+                      }}
                       placeholder="https://... أو اضغط زر الرفع من جهازك"
                       className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
                     />
@@ -6384,7 +6391,11 @@ export default function AdminPage() {
                           if (file) {
                             const dataUrl = await compressImageFile(file);
                             if (dataUrl) {
-                              setSettingsForm((prev) => ({ ...prev, logoImageUrl: dataUrl }));
+                              setSettingsForm((prev) => ({
+                                ...prev,
+                                logoImageUrl: dataUrl,
+                                logoType: prev.logoType === "text" ? "image" : prev.logoType,
+                              }));
                               addToast("تم اختيار الشعار", "تم تحديد وتعيين صورة الشعار بنجاح", "info");
                             }
                           }

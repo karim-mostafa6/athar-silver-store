@@ -58,6 +58,12 @@ export async function POST(request: NextRequest) {
       senderEmail: senderEmail || (settings && settings.senderEmail),
       senderEmailName: senderEmailName || (settings && settings.senderEmailName),
       gmailAppPassword: gmailAppPassword || (settings && settings.gmailAppPassword),
+      logoImageUrl: settings && settings.logoImageUrl,
+      logoType: settings && settings.logoType,
+      logoHeight: settings && settings.logoHeight,
+      brandNameArabic: settings && settings.brandNameArabic,
+      brandNameEnglish: settings && settings.brandNameEnglish,
+      brandSubtitle: settings && settings.brandSubtitle,
     });
 
     let savedData;

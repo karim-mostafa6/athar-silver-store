@@ -372,6 +372,12 @@ export default function CheckoutPage() {
           senderEmail: storeSettings.senderEmail || "theorma.eg@gmail.com",
           senderName: storeSettings.senderEmailName || "ORMA للفضة 925",
           gmailAppPassword: storeSettings.gmailAppPassword,
+          logoImageUrl: storeSettings.logoImageUrl,
+          logoType: storeSettings.logoType,
+          logoHeight: storeSettings.logoHeight,
+          brandNameArabic: storeSettings.brandNameArabic,
+          brandNameEnglish: storeSettings.brandNameEnglish,
+          brandSubtitle: storeSettings.brandSubtitle,
         }),
       }).catch((err) => console.warn("Email send notification:", err));
     }

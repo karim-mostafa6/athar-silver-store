@@ -30,6 +30,12 @@ interface EmailRequestBody {
   senderName?: string;
   gmailAppPassword?: string;
   isTest?: boolean;
+  logoImageUrl?: string;
+  logoType?: "text" | "image" | "both";
+  logoHeight?: number;
+  brandNameArabic?: string;
+  brandNameEnglish?: string;
+  brandSubtitle?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -55,6 +61,12 @@ export async function POST(request: NextRequest) {
       senderName: bodySenderName,
       gmailAppPassword: bodyAppPassword,
       isTest = false,
+      logoImageUrl: bodyLogoImageUrl,
+      logoType: bodyLogoType,
+      logoHeight: bodyLogoHeight,
+      brandNameArabic: bodyBrandNameArabic,
+      brandNameEnglish: bodyBrandNameEnglish,
+      brandSubtitle: bodyBrandSubtitle,
     } = body;
 
     if (!email || !email.includes("@")) {
@@ -79,6 +91,33 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const effectiveLogoImageUrl = (
+      bodyLogoImageUrl ||
+      serverConfig.logoImageUrl ||
+      ""
+    ).trim();
+    const effectiveLogoType =
+      bodyLogoType ||
+      serverConfig.logoType ||
+      (effectiveLogoImageUrl ? "both" : "text");
+    const effectiveLogoHeight = Number(
+      bodyLogoHeight ||
+      serverConfig.logoHeight ||
+      44
+    );
+    const effectiveBrandNameArabic =
+      bodyBrandNameArabic ||
+      serverConfig.brandNameArabic ||
+      "أورما";
+    const effectiveBrandNameEnglish =
+      bodyBrandNameEnglish ||
+      serverConfig.brandNameEnglish ||
+      "ORMA";
+    const effectiveBrandSubtitle =
+      bodyBrandSubtitle ||
+      serverConfig.brandSubtitle ||
+      "Not Given, But Left";
+
     const officialSenderEmail =
       process.env.GMAIL_USER ||
       serverConfig.senderEmail ||
@@ -88,7 +127,7 @@ export async function POST(request: NextRequest) {
       process.env.GMAIL_SENDER_NAME ||
       serverConfig.senderEmailName ||
       bodySenderName ||
-      "ORMA للفضة 925";
+      `${effectiveBrandNameEnglish} للفضة 925`;
     const effectiveAppPassword = (
       process.env.GMAIL_APP_PASSWORD ||
       serverConfig.gmailAppPassword ||
@@ -141,11 +180,11 @@ export async function POST(request: NextRequest) {
       ? "تم تسليم الطلب بنجاح"
       : status === "cancelled"
       ? "تم إلغاء الطلب"
-      : "فاتورة تأكيد استلام طلبك من متجر أَثَر";
+      : `فاتورة تأكيد استلام طلبك من متجر ${effectiveBrandNameEnglish}`;
 
     const subject = isTest
-      ? `أَثَر للفضة 925 | تجربة إرسال ناجحة من الحساب الرسمي (${officialSenderEmail})`
-      : `أَثَر للفضة 925 | ${statusTitle} - طلب #${orderId}`;
+      ? `${effectiveBrandNameEnglish} | تجربة إرسال ناجحة من الحساب الرسمي (${officialSenderEmail})`
+      : `${effectiveBrandNameEnglish} | ${statusTitle} - طلب #${orderId}`;
 
     const orderDate = new Date().toLocaleDateString("ar-EG", {
       year: "numeric",
@@ -166,15 +205,26 @@ export async function POST(request: NextRequest) {
         
         <!-- Luxury Brand Header -->
         <tr>
-          <td style="background-color: #161412; padding: 35px 25px 30px 25px; text-align: center; border-bottom: 3px solid #c5a880;">
-            <div style="font-size: 11px; letter-spacing: 4px; color: #c5a880; font-family: monospace; text-transform: uppercase; margin-bottom: 8px;">
+          <td style="background-color: #161412; padding: 32px 25px 28px 25px; text-align: center; border-bottom: 3px solid #c5a880;">
+            <div style="font-size: 11px; letter-spacing: 4px; color: #c5a880; font-family: monospace; text-transform: uppercase; margin-bottom: 12px;">
               OFFICIAL ORDER INVOICE
             </div>
-            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 2px;">
-              ORMA • SILVER
-            </h1>
+            ${
+              effectiveLogoImageUrl && effectiveLogoType !== "text"
+                ? `<div style="margin: 0 auto 10px auto; text-align: center;">
+                    <img src="${effectiveLogoImageUrl}" alt="${effectiveBrandNameArabic}" style="max-height: ${effectiveLogoHeight}px; height: auto; max-width: 220px; display: inline-block; object-fit: contain;" />
+                   </div>`
+                : ""
+            }
+            ${
+              effectiveLogoType === "text" || !effectiveLogoImageUrl || effectiveLogoType === "both"
+                ? `<h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 2px; font-family: 'Segoe UI', Tahoma, sans-serif;">
+                     ${effectiveBrandNameEnglish} • SILVER
+                   </h1>`
+                : ""
+            }
             <p style="color: #d4b896; margin: 8px 0 0 0; font-size: 13px; font-weight: 300;">
-              فضة إسترليني عيار 925 • Not Given, But Left
+              فضة إسترليني عيار 925 • ${effectiveBrandSubtitle}
             </p>
           </td>
         </tr>
@@ -313,13 +363,13 @@ export async function POST(request: NextRequest) {
               <tr>
                 <td>
                   <p style="margin: 2px 0; font-weight: bold; color: #161412;">
-                    دار ORMA للفضة 925 • صياغة إيطالية وتركية فاخرة
+                    دار ${effectiveBrandNameEnglish} (${effectiveBrandNameArabic}) للفضة 925 • صياغة إيطالية وتركية فاخرة
                   </p>
                   <p style="margin: 2px 0;">
                     خدمة العملاء هاتفياً وواتساب: <strong>01143837730</strong> | البريد الرسمي: <strong>${officialSenderEmail}</strong>
                   </p>
                   <p style="margin: 6px 0 0 0; color: #c5a880; font-weight: bold;">
-                    Not Given, But Left • مش بتتهدي.. بتتساب
+                    ${effectiveBrandSubtitle}
                   </p>
                 </td>
               </tr>
