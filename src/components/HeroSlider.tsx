@@ -185,16 +185,16 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
             )}
 
             {/* Main Title */}
-            <h1 className="font-amiri text-4xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.2] tracking-tight drop-shadow-lg mb-4">
+            <h1 className="font-cairo text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.25] sm:leading-[1.18] tracking-tight drop-shadow-md mb-4">
               <span className="block">{slide.title}</span>
               {slide.titleLine2 && (
-                <span className="block text-[#d4b896]">{slide.titleLine2}</span>
+                <span className="block text-[#B7A078]">{slide.titleLine2}</span>
               )}
             </h1>
 
             {/* Subtitle */}
             {slide.subtitle && (
-              <p className="text-sm sm:text-base text-white/85 font-light leading-relaxed max-w-md drop-shadow-md mb-8">
+              <p className="font-tajawal text-sm sm:text-base text-stone-200/90 leading-relaxed max-w-md drop-shadow-sm mb-8 font-normal">
                 {slide.subtitle}
               </p>
             )}
