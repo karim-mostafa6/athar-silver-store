@@ -25,6 +25,9 @@ export interface CustomPage {
   subtitle?: string;
   content: string;
   bannerImage?: string;
+  steps?: { title: string; text: string }[];
+  ctaTitle?: string;
+  ctaText?: string;
   metaDescription?: string;
   isPublished: boolean;
   showInFooter?: boolean;
@@ -92,6 +95,11 @@ export const DEFAULT_CUSTOM_PAGES: CustomPage[] = [
     isPublished: true,
     showInFooter: true,
     footerLabel: "الاستبدال والاسترجاع",
+    steps: [
+      { title: "تواصل معنا", text: "ابعتلنا رقم الطلب على واتساب خلال 14 يوماً من الاستلام." },
+      { title: "جهّز القطعة", text: "احتفظ بالقطعة في علبتها مع كارت الضمان." },
+      { title: "استبدل أو استرجع", text: "بنستلمها منك ونبعتلك البديل أو نرد المبلغ." },
+    ],
     content: `في متجر ORMA، نسعى دائماً لتقديم تجربة تسوق استثنائية تمنحك الثقة وراحة البال المطلقة.
 
 سياسة الاستلام والاستبدال:

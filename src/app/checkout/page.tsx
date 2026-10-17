@@ -585,9 +585,9 @@ export default function CheckoutPage() {
   // MAIN STANDALONE SHOPIFY-STYLE CHECKOUT VIEW
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-white text-[#292722] font-cairo" dir="rtl">
+    <div className="min-h-screen bg-[#F5F0E7] text-[#292722] font-cairo" dir="rtl">
       {/* Top Header - Clean Centered Logo matching Shopify */}
-      <header className="border-b border-[#e8ded0] bg-white sticky top-0 z-30">
+      <header className="border-b border-[#292722]/12 bg-[#F5F0E7] sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           <Link
             href="/"
@@ -607,6 +607,15 @@ export default function CheckoutPage() {
           </div>
         </div>
       </header>
+
+      {/* Steps (visual guide, like the approved design) */}
+      <div className="hidden sm:flex justify-center gap-4 pt-8 text-sm text-[#8a7d6c]" aria-hidden="true">
+        <span className="text-[#292722] font-bold">1 · البيانات</span>
+        <span>—</span>
+        <span>2 · الشحن والدفع</span>
+        <span>—</span>
+        <span>3 · التأكيد</span>
+      </div>
 
       {/* Mobile Collapsible Order Summary Bar */}
       <div className="lg:hidden border-b border-[#e8ded0] bg-[#F5F0E7]">
@@ -742,8 +751,8 @@ export default function CheckoutPage() {
       </div>
 
       {/* Main Container - 2 Columns Desktop */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-8 sm:py-10">
+        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* =========================================================
               LEFT COLUMN: CHECKOUT FORM (Shopify Pattern)
               ========================================================= */}
@@ -751,15 +760,15 @@ export default function CheckoutPage() {
             {/* 1. Contact Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#292722] flex items-center gap-2">
-                  <span>معلومات التواصل</span>
+                <h2 className="font-cairo text-xl sm:text-2xl font-semibold text-[#292722] flex items-center gap-2">
+                  <span>بيانات التواصل</span>
                 </h2>
-                <span className="text-[11px] text-[#8c7865]">لتأكيد الطلب وإرسال الفاتورة</span>
+                <span className="text-xs text-[#7d6c5c]">لتأكيد الطلب وإرسال تفاصيله</span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#292722] mb-1">
-                  البريد الإلكتروني (اختياري)
+                <label className="block text-sm font-medium text-[#292722] mb-2">
+                  البريد الإلكتروني (اختياري) — هيوصلك عليه تأكيد الطلب وتفاصيله
                 </label>
                 <div className="relative">
                   <input
@@ -767,7 +776,7 @@ export default function CheckoutPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="example@domain.com"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors dir-ltr text-right"
+                    className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors dir-ltr text-right"
                   />
                   <Mail className="w-4 h-4 text-[#a89582] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
@@ -786,7 +795,7 @@ export default function CheckoutPage() {
 
             {/* 2. Delivery Section */}
             <div className="space-y-4 pt-4 border-t border-[#e8ded0]">
-              <h2 className="text-base font-bold text-[#292722]">
+              <h2 className="font-cairo text-xl sm:text-2xl font-semibold text-[#292722]">
                 عنوان الشحن والتوصيل
               </h2>
 
@@ -814,7 +823,7 @@ export default function CheckoutPage() {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="مثال: كريم"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
+                    className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                   />
                 </div>
                 <div>
@@ -828,7 +837,7 @@ export default function CheckoutPage() {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="مثال: مصطفى"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
+                    className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                   />
                 </div>
               </div>
@@ -845,7 +854,7 @@ export default function CheckoutPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="مثال: شارع النزهة، مصر الجديدة، عمارة 15"
-                  className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
+                  className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                 />
               </div>
 
@@ -860,7 +869,7 @@ export default function CheckoutPage() {
                   value={apartment}
                   onChange={(e) => setApartment(e.target.value)}
                   placeholder="مثال: شقة 4، الطابق الثالث، بجوار مسجد..."
-                  className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
+                  className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                 />
               </div>
 
@@ -877,7 +886,7 @@ export default function CheckoutPage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="المدينة"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
+                    className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                   />
                 </div>
 
@@ -888,7 +897,7 @@ export default function CheckoutPage() {
                   <select
                     value={governorate}
                     onChange={(e) => setGovernorate(e.target.value)}
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] font-semibold focus:outline-none focus:border-[#292722] transition-colors cursor-pointer"
+                    className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] font-semibold focus:outline-none focus:border-[#292722] transition-colors cursor-pointer"
                   >
                     {GOVERNORATES.map((g) => (
                       <option key={g.name} value={g.name}>
@@ -909,7 +918,7 @@ export default function CheckoutPage() {
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
                     placeholder="11511"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors font-mono"
+                    className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors font-mono"
                   />
                 </div>
               </div>
@@ -928,7 +937,7 @@ export default function CheckoutPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="01012345678"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors dir-ltr text-right font-mono"
+                    className="w-full bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] transition-colors dir-ltr text-right font-mono"
                   />
                   <Phone className="w-4 h-4 text-[#a89582] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
@@ -948,7 +957,7 @@ export default function CheckoutPage() {
 
             {/* 3. Shipping Method Section */}
             <div className="space-y-3 pt-4 border-t border-[#e8ded0]">
-              <h2 className="text-base font-bold text-[#292722]">
+              <h2 className="font-cairo text-xl sm:text-2xl font-semibold text-[#292722]">
                 طريقة الشحن والتوصيل
               </h2>
 
@@ -978,7 +987,7 @@ export default function CheckoutPage() {
             {/* 4. Payment Section (Shopify-Style Accordion) */}
             <div className="space-y-3 pt-4 border-t border-[#e8ded0]">
               <div>
-                <h2 className="text-base font-bold text-[#292722]">
+                <h2 className="font-cairo text-xl sm:text-2xl font-semibold text-[#292722]">
                   طريقة الدفع
                 </h2>
                 <p className="text-xs text-[#756555] mt-0.5">
@@ -1277,13 +1286,13 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#F5F0E7] font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full h-[58px] rounded-full bg-[#292722] hover:bg-[#1E1C18] text-[#F5F0E7] font-bold text-base transition-all btn-shine flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <span>جاري تسجيل الطلب وتأكيده...</span>
                 ) : (
                   <>
-                    <span>تأكيد الطلب الآن</span>
+                    <span>تأكيد الطلب</span>
                     <span>•</span>
                     <span className="font-mono">{grandTotal.toLocaleString("en-US")} ج.م</span>
                   </>
@@ -1308,8 +1317,8 @@ export default function CheckoutPage() {
               RIGHT COLUMN: ORDER SUMMARY (Shopify Desktop Pattern)
               ========================================================= */}
           <div className="hidden lg:block lg:col-span-5 sticky top-24">
-            <div className="bg-[#F5F0E7] border border-[#e8ded0] rounded-3xl p-6 sm:p-7 space-y-6 shadow-sm">
-              <h2 className="text-sm font-bold text-[#292722] flex items-center justify-between pb-3 border-b border-[#e8ded0]">
+            <div className="bg-[#fbf8f3] border border-[#292722]/14 rounded-[24px] p-6 sm:p-7 space-y-6">
+              <h2 className="font-cairo text-xl font-semibold text-[#292722] flex items-center justify-between pb-3 border-b border-[#292722]/12">
                 <span>ملخص الطلب ({cartItems.reduce((acc, i) => acc + i.quantity, 0)} قطعة)</span>
                 <ShoppingBag className="w-4 h-4 text-[#c5a880]" />
               </h2>
@@ -1410,7 +1419,7 @@ export default function CheckoutPage() {
                         placeholder="كود الخصم أو كوبون الهدية"
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value)}
-                        className="flex-1 bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] uppercase font-mono"
+                        className="flex-1 bg-[#fbf8f3] border border-[#292722]/25 rounded-xl px-4 h-[54px] text-base text-[#292722] focus:outline-none focus:border-[#292722] uppercase font-mono"
                       />
                       <button
                         type="button"

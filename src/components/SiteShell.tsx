@@ -26,6 +26,13 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   React.useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
+      if (e.data && e.data.type === "ORMA_NAVIGATE" && typeof e.data.path === "string") {
+        const path: string = e.data.path;
+        if (path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/admin")) {
+          if (window.location.pathname + window.location.search !== path) router.push(path);
+        }
+        return;
+      }
       if (e.data && (e.data.type === "ORMA_SCROLL_TO" || e.data.type === "ATHAR_SCROLL_TO")) {
         const { tab } = e.data;
         if (tab === "hero" || tab === "marquee" || tab === "nav" || tab === "logo") {

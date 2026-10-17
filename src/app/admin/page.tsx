@@ -248,6 +248,9 @@ export default function AdminPage() {
     isPublished: boolean;
     showInFooter: boolean;
     footerLabel: string;
+    steps: { title: string; text: string }[];
+    ctaTitle: string;
+    ctaText: string;
   }>({
     id: "",
     slug: "",
@@ -259,6 +262,9 @@ export default function AdminPage() {
     isPublished: true,
     showInFooter: true,
     footerLabel: "",
+    steps: [],
+    ctaTitle: "",
+    ctaText: "",
   });
   const pageFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -755,6 +761,10 @@ export default function AdminPage() {
       const timer = setTimeout(() => {
         try {
           iframeRef.current?.contentWindow?.postMessage(
+            { type: "ORMA_NAVIGATE", path: activeTab === "pages" ? "/page/returns" : activeTab === "collections" ? "/collection/all" : "/" },
+            "*"
+          );
+          iframeRef.current?.contentWindow?.postMessage(
             { type: "ORMA_SCROLL_TO", tab: activeTab },
             "*"
           );
@@ -763,6 +773,37 @@ export default function AdminPage() {
       return () => clearTimeout(timer);
     }
   }, [activeTab, isPreviewOpen]);
+
+  // Live preview of the page being edited: send the draft to the preview iframe and open that page there.
+  useEffect(() => {
+    if (!isPreviewOpen || !iframeRef.current?.contentWindow) return;
+    const timer = setTimeout(() => {
+      try {
+        const win = iframeRef.current?.contentWindow;
+        if (!win) return;
+        if (isPageModalOpen && pageForm.slug) {
+          const draft: CustomPage = {
+            id: pageForm.id || "draft",
+            slug: pageForm.slug,
+            title: pageForm.title,
+            englishTitle: pageForm.englishTitle || undefined,
+            subtitle: pageForm.subtitle || undefined,
+            bannerImage: pageForm.bannerImage || undefined,
+            content: pageForm.content,
+            isPublished: true,
+            steps: pageForm.steps,
+            ctaTitle: pageForm.ctaTitle || undefined,
+            ctaText: pageForm.ctaText || undefined,
+          };
+          const base = settingsForm.customPages && settingsForm.customPages.length > 0 ? settingsForm.customPages : DEFAULT_CUSTOM_PAGES;
+          const list = base.some((x) => x.id === draft.id) ? base.map((x) => (x.id === draft.id ? { ...x, ...draft } : x)) : [...base, draft];
+          win.postMessage({ type: "ORMA_SETTINGS_UPDATE", settings: { ...settingsForm, customPages: list } }, "*");
+          win.postMessage({ type: "ORMA_NAVIGATE", path: `/page/${pageForm.slug}` }, "*");
+        }
+      } catch {}
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [isPageModalOpen, pageForm, isPreviewOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Multiple Product Images Upload Handler
   const handleMultipleFilesUpload = async (files: FileList | File[]) => {
@@ -1064,6 +1105,9 @@ export default function AdminPage() {
       isPublished: true,
       showInFooter: true,
       footerLabel: "",
+      steps: [],
+      ctaTitle: "",
+      ctaText: "",
     });
     setIsPageModalOpen(true);
   };
@@ -1081,6 +1125,9 @@ export default function AdminPage() {
       isPublished: page.isPublished !== false,
       showInFooter: page.showInFooter !== false,
       footerLabel: page.footerLabel || page.title,
+      steps: page.steps ?? DEFAULT_CUSTOM_PAGES.find((d) => d.slug === page.slug)?.steps ?? [],
+      ctaTitle: page.ctaTitle || "",
+      ctaText: page.ctaText || "",
     });
     setIsPageModalOpen(true);
   };
@@ -1124,6 +1171,9 @@ export default function AdminPage() {
       isPublished: pageForm.isPublished,
       showInFooter: pageForm.showInFooter,
       footerLabel: pageForm.footerLabel.trim() || pageForm.title.trim(),
+      steps: pageForm.steps.filter((st) => st.title.trim() || st.text.trim()),
+      ctaTitle: pageForm.ctaTitle.trim() || undefined,
+      ctaText: pageForm.ctaText.trim() || undefined,
       updatedAt: new Date().toISOString(),
     };
 
@@ -3121,6 +3171,54 @@ export default function AdminPage() {
                   placeholder="اكتب هنا محتوى صفحتك بالتفصيل...&#10;&#10;يمكنك كتابة مقدمة وعناوين فرعية ونقاط توضيحية لتظهر بشكل ملكي وأنيق للزوار."
                   className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none font-sans leading-relaxed"
                 />
+              </div>
+
+              {/* Optional step cards + closing call-to-action (shown on the page like the approved design) */}
+              <div className="space-y-2 pt-2 border-t border-[#f0e8dc]">
+                <div className="font-medium text-[#756555]">بطاقات الخطوات (اختياري - حتى 3)</div>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      value={pageForm.steps[i]?.title || ""}
+                      onChange={(e) => {
+                        const next = [0, 1, 2].map((k) => pageForm.steps[k] || { title: "", text: "" });
+                        next[i] = { ...next[i], title: e.target.value };
+                        setPageForm({ ...pageForm, steps: next });
+                      }}
+                      placeholder={`عنوان الخطوة ${i + 1}`}
+                      className="bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={pageForm.steps[i]?.text || ""}
+                      onChange={(e) => {
+                        const next = [0, 1, 2].map((k) => pageForm.steps[k] || { title: "", text: "" });
+                        next[i] = { ...next[i], text: e.target.value };
+                        setPageForm({ ...pageForm, steps: next });
+                      }}
+                      placeholder="الوصف"
+                      className="sm:col-span-2 bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+                    />
+                  </div>
+                ))}
+                <div className="font-medium text-[#756555] pt-1">البلوك الغامق في آخر الصفحة (واتساب)</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={pageForm.ctaTitle}
+                    onChange={(e) => setPageForm({ ...pageForm, ctaTitle: e.target.value })}
+                    placeholder="محتاج مساعدة في طلب؟"
+                    className="bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+                  />
+                  <input
+                    type="text"
+                    value={pageForm.ctaText}
+                    onChange={(e) => setPageForm({ ...pageForm, ctaText: e.target.value })}
+                    placeholder="فريقنا بيرد على واتساب كل يوم."
+                    className="bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+                  />
+                </div>
               </div>
 
               {/* Page Controls */}

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
-import { ArrowUpDown } from "lucide-react";
 import { DEFAULT_CATEGORIES } from "@/data/products";
 
 function CollectionPageContent() {
@@ -23,7 +22,13 @@ function CollectionPageContent() {
     if (genderQuery === "men" || genderQuery === "women") return genderQuery;
     return "all";
   });
-  const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("popular");
+  const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("newest");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [page, setPage] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const PAGE_SIZE = 12;
 
   // Keep selectedSubCategory synced with ?gender= URL query param
   useEffect(() => {
@@ -256,6 +261,9 @@ function CollectionPageContent() {
   // Filtering products
   const products = useMemo(() => {
     return allStoreProducts.filter((p) => {
+      if (inStockOnly && (p.inStock === false || (p.stockQuantity !== undefined && p.stockQuantity <= 0))) return false;
+      if (priceMin !== "" && p.price < Number(priceMin)) return false;
+      if (priceMax !== "" && p.price > Number(priceMax)) return false;
       // 1. Strict Category isolation when on a Category Page:
       if (isCategoryPage && collectionInfo.filterCategory) {
         const matchCat = p.category === collectionInfo.filterCategory;
@@ -315,110 +323,184 @@ function CollectionPageContent() {
       if (sortBy === "newest") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
       return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
     });
-  }, [allStoreProducts, isCategoryPage, isGenderPage, collectionInfo.filterCategory, collectionInfo.filterGender, selectedSubCategory, sortBy]);
+  }, [allStoreProducts, isCategoryPage, isGenderPage, collectionInfo.filterCategory, collectionInfo.filterGender, selectedSubCategory, sortBy, inStockOnly, priceMin, priceMax]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [slug, selectedSubCategory, sortBy, inStockOnly, priceMin, priceMax]);
+
+  const pageCount = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const activeChips: { key: string; label: string; clear: () => void }[] = [];
+  if (selectedSubCategory !== "all") {
+    const cur = subCategories.find((x) => x.id === selectedSubCategory);
+    if (cur) activeChips.push({ key: "sub", label: cur.label, clear: () => setSelectedSubCategory("all") });
+  }
+  if (inStockOnly) activeChips.push({ key: "stock", label: "متوفر", clear: () => setInStockOnly(false) });
+  if (priceMin !== "" || priceMax !== "") {
+    activeChips.push({ key: "price", label: `السعر ${priceMin || 0} – ${priceMax || "∞"}`, clear: () => { setPriceMin(""); setPriceMax(""); } });
+  }
+
+  const filtersPanel = (
+    <div className="flex flex-col gap-7">
+      <div>
+        <div className="font-bold text-[15px] mb-3">الفئة</div>
+        <div className="flex flex-col gap-1">
+          {subCategories.map((sub) => (
+            <label key={sub.id} className="flex items-center gap-2.5 min-h-[40px] text-[15px] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedSubCategory === sub.id}
+                onChange={() => setSelectedSubCategory(selectedSubCategory === sub.id ? "all" : sub.id)}
+                className="w-5 h-5 accent-[#292722]"
+              />
+              {sub.label}
+            </label>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="font-bold text-[15px] mb-3">السعر (ج.م)</div>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={priceMin}
+            onChange={(e) => setPriceMin(e.target.value)}
+            placeholder="من"
+            aria-label="السعر من"
+            className="w-full h-11 rounded-xl border border-[#292722]/25 bg-[#fbf8f3] px-3 text-sm"
+          />
+          <span className="text-[#7d6c5c]">–</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={priceMax}
+            onChange={(e) => setPriceMax(e.target.value)}
+            placeholder="إلى"
+            aria-label="السعر إلى"
+            className="w-full h-11 rounded-xl border border-[#292722]/25 bg-[#fbf8f3] px-3 text-sm"
+          />
+        </div>
+      </div>
+      <div>
+        <div className="font-bold text-[15px] mb-3">التوفر</div>
+        <label className="flex items-center gap-2.5 min-h-[40px] text-[15px] cursor-pointer">
+          <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="w-5 h-5 accent-[#292722]" />
+          متوفر بالمخزن فقط
+        </label>
+      </div>
+    </div>
+  );
 
   return (
     <div>
-      {/* Collection title band (image shown as an arch when a banner is enabled in the dashboard) */}
-      <div className="bg-[#F5F0E7] border-b border-[#292722]/12">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-10 sm:py-14 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-          <div className="md:col-span-8 text-right">
-            {collectionInfo.englishTitle && (
-              <div className="eyebrow text-base sm:text-lg mb-2 normal-case">{collectionInfo.englishTitle}</div>
-            )}
-            {collectionInfo.title && (
-              <h1 className="font-cairo font-light text-4xl sm:text-6xl leading-[1.2] text-[#292722]">
-                {collectionInfo.title}
-              </h1>
-            )}
+      {/* Title band */}
+      <section className="border-b border-[#292722]/12">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-10 sm:pt-14 pb-8 sm:pb-10 flex items-end justify-between gap-6">
+          <div className="text-right">
+            <nav className="text-[13px] text-[#7d6c5c] mb-3.5">
+              <Link href="/" className="hover:text-[#292722] transition-colors">الرئيسية</Link> / {collectionInfo.title}
+            </nav>
+            <h1 className="font-cairo font-light text-4xl sm:text-6xl leading-[1.2] text-[#292722]">{collectionInfo.title}</h1>
             {collectionInfo.subtitle && (
-              <p className="text-sm sm:text-lg text-[#5c5346] mt-4 max-w-xl leading-[1.9]">{collectionInfo.subtitle}</p>
+              <p className="text-base sm:text-[17px] text-[#5c5346] mt-3 max-w-[520px] leading-[1.9]">{collectionInfo.subtitle}</p>
             )}
           </div>
-          {collectionInfo.showBanner !== false && collectionInfo.bannerImage && (
-            <div className="hidden md:block md:col-span-4">
-              <div className="relative h-[220px] overflow-hidden bg-[#D8C8B3] ml-auto max-w-[320px]" style={{ borderRadius: "999px 999px 20px 20px / 160px 160px 20px 20px" }}>
-                <img
-                  src={collectionInfo.bannerImage}
-                  alt={collectionInfo.title || "تشكيلة أورما"}
-                  className="img-fade-in absolute inset-0 w-full h-full object-cover object-center"
-                  decoding="async"
-                />
-              </div>
-            </div>
-          )}
+          <div className="text-sm text-[#7d6c5c] whitespace-nowrap">{products.length} قطعة</div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-8 sm:py-12 animate-fade-in-up">
-        {/* Breadcrumb Bar */}
-        <nav className="flex items-center gap-2 text-xs text-[#705e4d] mb-8 font-light">
-          <Link href="/" className="py-3 -my-3 hover:text-[#1c1815] transition-colors">
-            الرئيسية
-          </Link>
-          <span className="text-[#c4b5a5]">/</span>
-          <span className="text-[#1c1815] font-normal">{collectionInfo.title}</span>
-        </nav>
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-8 sm:pt-9 pb-20 sm:pb-24 grid grid-cols-1 lg:grid-cols-12 gap-x-8 gap-y-6 items-start">
+        {/* Filters: sidebar on desktop, collapsible on mobile */}
+        <aside className="lg:col-span-3 lg:sticky lg:top-24">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            className="lg:hidden w-full min-h-[48px] flex items-center justify-between px-4 rounded-xl border border-[#292722]/25 font-bold text-sm"
+          >
+            <span>تصفية</span>
+            <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
+          </button>
+          <div className={`${filtersOpen ? "block" : "hidden"} lg:block mt-4 lg:mt-0`}>{filtersPanel}</div>
+        </aside>
 
-        {/* Filters and Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#e8ded0] mb-10">
-          {/* Subcategory / Gender Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none text-xs">
-            {subCategories.map((sub) => (
-              <button
-                key={sub.id}
-                onClick={() => setSelectedSubCategory(sub.id)}
-                className={`min-h-[44px] px-5 rounded-full transition-all duration-200 active:scale-95 whitespace-nowrap ${
-                  selectedSubCategory === sub.id
-                    ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
-                    : "bg-transparent text-[#292722] border border-[#292722]/25 hover:border-[#292722] font-medium"
-                }`}
-              >
-                {sub.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort Dropdown & Product Count */}
-          <div className="flex items-center justify-between sm:justify-end gap-4 text-xs">
-            <span className="text-[#705e4d] font-light">
-              عرض <strong className="text-[#1c1815] font-medium font-sans">{products.length}</strong> قطعة
-            </span>
-
-            <div className="flex items-center gap-1.5 bg-white border border-[#ded2c0] px-3 py-1.5 rounded-full shadow-sm hover-lift">
-              <ArrowUpDown className="w-3.5 h-3.5 text-[#7d6852]" />
+        <div className="lg:col-span-9 min-w-0 animate-fade-in-up">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div className="flex flex-wrap gap-2">
+              {activeChips.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={c.clear}
+                  className="text-[13px] px-3.5 min-h-[40px] border border-[#292722] rounded-full hover:bg-[#292722] hover:text-[#F5F0E7] transition-colors"
+                >
+                  {c.label} ×
+                </button>
+              ))}
+            </div>
+            <label className="flex items-center gap-2.5 text-sm">
+              ترتيب حسب
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as "popular" | "price-asc" | "price-desc" | "newest")}
-                className="bg-transparent text-[#1c1815] font-medium focus:outline-none cursor-pointer"
+                className="h-11 rounded-full border border-[#292722]/25 bg-transparent px-4 text-sm cursor-pointer focus:outline-none"
               >
+                <option value="newest">الأحدث</option>
                 <option value="popular">الأكثر طلباً</option>
-                <option value="newest">الأحدث وصولاً</option>
-                <option value="price-asc">السعر: من الأقل</option>
-                <option value="price-desc">السعر: من الأعلى</option>
+                <option value="price-asc">السعر: الأقل</option>
+                <option value="price-desc">السعر: الأعلى</option>
               </select>
-            </div>
+            </label>
           </div>
-        </div>
 
-        {/* 5-Column Product Grid */}
-        {products.length === 0 ? (
-          <div className="py-24 text-center space-y-4 bg-white rounded-3xl border border-[#ded1be]">
-            <h3 className="text-base font-bold text-[#1c1815]">لا توجد قطع تطابق هذا الفلتر حالياً</h3>
-            <button
-              onClick={() => setSelectedSubCategory("all")}
-              className="px-6 py-2.5 rounded-full bg-[#1c1815] text-[#faf8f5] font-bold text-xs"
-            >
-              عرض كافة قطع التشكيلة
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-10 sm:gap-y-14">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        )}
+          {products.length === 0 ? (
+            <div className="py-24 text-center space-y-4 border border-[#292722]/12 rounded-3xl">
+              <h3 className="text-base font-bold text-[#292722]">لا توجد قطع تطابق هذا الفلتر حالياً</h3>
+              <button
+                onClick={() => {
+                  setSelectedSubCategory("all");
+                  setInStockOnly(false);
+                  setPriceMin("");
+                  setPriceMax("");
+                }}
+                className="px-6 min-h-[44px] rounded-full bg-[#292722] text-[#F5F0E7] font-bold text-xs"
+              >
+                عرض كافة قطع التشكيلة
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 sm:gap-x-5 gap-y-8 sm:gap-y-9">
+              {pageProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
+
+          {pageCount > 1 && (
+            <nav aria-label="الصفحات" className="flex justify-center gap-2 mt-12 sm:mt-14">
+              {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => {
+                    setPage(n);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  aria-current={n === page ? "page" : undefined}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${
+                    n === page ? "bg-[#292722] text-[#F5F0E7]" : "border border-[#292722]/25 hover:border-[#292722]"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </nav>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -426,7 +508,7 @@ function CollectionPageContent() {
 
 export default function CollectionPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#faf8f5]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F5F0E7]" />}>
       <CollectionPageContent />
     </Suspense>
   );

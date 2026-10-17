@@ -4,21 +4,7 @@ import React, { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useStore, DEFAULT_CUSTOM_PAGES, CustomPage } from "@/context/StoreContext";
-import {
-  ShieldCheck,
-  Sparkles,
-  Phone,
-  MessageCircle,
-  Mail,
-  ArrowRight,
-  Clock,
-  Truck,
-  CheckCircle2,
-  Gem,
-  Award,
-  RefreshCw,
-  HeartHandshake,
-} from "lucide-react";
+import { Sparkles, Phone, MessageCircle, Mail, ArrowRight, Clock, Truck } from "lucide-react";
 
 export default function DynamicCustomPage() {
   const { storeSettings } = useStore();
@@ -90,286 +76,157 @@ export default function DynamicCustomPage() {
     .map((p) => ({ slug: p.slug, label: p.footerLabel || p.title }));
   const sideLinks = [...coreLinks, ...extraLinks];
 
+  // Content blocks: a block's first line ending with ":" becomes a section heading, the rest is its text.
+  const blocks = paragraphs.map((raw) => {
+    const lines = raw.split("\n");
+    const first = lines[0].trim();
+    if (lines.length > 1 && first.endsWith(":")) {
+      return { heading: first.replace(/^\d+\.\s*/, "").replace(/:$/, ""), text: lines.slice(1).join("\n").trim() };
+    }
+    if (lines.length === 1 && first.endsWith(":")) {
+      return { heading: first.replace(/^\d+\.\s*/, "").replace(/:$/, ""), text: "" };
+    }
+    return { heading: "", text: raw.trim() };
+  });
+  const steps = (page.steps ?? DEFAULT_CUSTOM_PAGES.find((d) => d.slug === page.slug)?.steps ?? []).filter((st) => st.title || st.text);
+  const ctaTitle = page.ctaTitle || "محتاج مساعدة في طلب؟";
+  const ctaText = page.ctaText || "فريقنا بيرد على واتساب كل يوم.";
+
   return (
     <div dir="rtl" className="min-h-screen bg-[#F5F0E7] text-[#292722] pb-20 font-cairo">
-      {/* Title band */}
-      <header className="bg-[#F5F0E7] border-b border-[#292722]/12">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-8 pb-10 sm:pt-12 sm:pb-14">
-          <nav className="flex items-center gap-2 text-xs sm:text-sm text-[#7d6c5c] mb-6 sm:mb-8">
-            <Link href="/" className="py-2 hover:text-[#292722] transition-colors">الرئيسية</Link>
-            <span>/</span>
-            <span className="text-[#292722] truncate">{page.title}</span>
-          </nav>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            <div className="md:col-span-8 text-right">
-              {page.englishTitle && <div className="eyebrow text-base sm:text-xl mb-2 normal-case">{page.englishTitle}</div>}
-              <h1 className="font-cairo font-light text-4xl sm:text-6xl leading-[1.2] text-[#292722]">{page.title}</h1>
-              {page.subtitle && (
-                <p className="text-sm sm:text-lg text-[#5c5346] mt-4 max-w-xl leading-[1.9]">{page.subtitle}</p>
-              )}
-            </div>
-            {page.bannerImage && (
-              <div className="hidden md:block md:col-span-4">
-                <div className="relative h-[200px] max-w-[300px] ml-auto overflow-hidden bg-[#D8C8B3]" style={{ borderRadius: "999px 999px 20px 20px / 150px 150px 20px 20px" }}>
-                  <img src={page.bannerImage} alt={page.title} className="img-fade-in absolute inset-0 w-full h-full object-cover" decoding="async" />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Title */}
+      <header className="px-4 sm:px-8 lg:px-16 pt-12 sm:pt-[72px] pb-10 sm:pb-12 text-center">
+        {page.englishTitle && <div className="eyebrow text-lg sm:text-xl normal-case">{page.englishTitle}</div>}
+        <h1 className="font-cairo font-light text-4xl sm:text-6xl leading-[1.25] mt-1.5 text-[#292722]">{page.title}</h1>
+        {page.subtitle && (
+          <p className="mx-auto mt-4 max-w-[560px] text-base sm:text-lg leading-[1.9] text-[#5c5346] font-tajawal">{page.subtitle}</p>
+        )}
       </header>
 
-      {/* Main Content Area */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-8 sm:pt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-      <aside className="lg:col-span-3 lg:sticky lg:top-28">
-        <nav aria-label="صفحات المتجر" className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none">
-          {sideLinks.map((l) => (
-            <Link
-              key={l.slug}
-              href={`/page/${l.slug}`}
-              className={`shrink-0 min-h-[46px] flex items-center px-4 rounded-xl text-sm transition-colors whitespace-nowrap ${
-                l.slug === slug ? "bg-[#292722] text-[#F5F0E7] font-bold" : "text-[#292722] hover:bg-[#D8C8B3]/45"
-              }`}
-            >
-              {l.label}
-            </Link>
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-4 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-start">
+        <aside className="lg:col-span-3 lg:sticky lg:top-24">
+          <nav aria-label="صفحات المتجر" className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none">
+            {sideLinks.map((l) => (
+              <Link
+                key={l.slug}
+                href={`/page/${l.slug}`}
+                className={`shrink-0 min-h-[48px] flex items-center px-4 rounded-xl text-[15px] transition-colors whitespace-nowrap ${
+                  l.slug === slug ? "bg-[#292722] text-[#F5F0E7] font-bold" : "text-[#292722] hover:bg-[#D8C8B3]/45"
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        </aside>
+
+        <main className="lg:col-span-9 min-w-0 flex flex-col gap-10">
+          {steps.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {steps.map((st, i) => (
+                <div key={i} className="p-6 border border-[#292722]/12 rounded-[18px] flex flex-col gap-2.5 bg-[#fbf8f3]">
+                  <div className="font-cormorant text-[34px] leading-none text-[#8E7545]">{String(i + 1).padStart(2, "0")}</div>
+                  <div className="font-cairo font-semibold text-lg">{st.title}</div>
+                  <div className="text-sm leading-[1.9] text-[#5c5346] font-tajawal">{st.text}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {blocks.map((b, idx) => (
+            <section key={idx} className="flex flex-col gap-3.5">
+              {b.heading && <h2 className="font-cairo font-semibold text-2xl sm:text-[26px]">{b.heading}</h2>}
+              {b.text && (
+                <p className="text-base sm:text-[17px] leading-[2.1] text-[#4a4236] font-tajawal whitespace-pre-line">{b.text}</p>
+              )}
+            </section>
           ))}
-        </nav>
-      </aside>
-      <main className="lg:col-span-9 min-w-0">
-        {/* Dynamic Interactive Highlights based on Page Type */}
-        {slug === "warranty" && (
-          <div className="mb-10 bg-gradient-to-br from-[#1c1916] to-[#2b2520] text-[#f7f4ee] rounded-2xl p-6 sm:p-8 border border-[#c5a880]/40 shadow-xl relative overflow-hidden">
-            <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-[#c5a880]/10 rounded-full blur-2xl" />
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
-              <div className="w-16 h-16 rounded-2xl bg-[#c5a880]/20 border border-[#c5a880]/40 flex items-center justify-center shrink-0 text-[#c5a880]">
-                <Award className="w-9 h-9" />
-              </div>
-              <div className="space-y-2 text-center sm:text-right">
-                <span className="text-[10px] tracking-widest text-[#c5a880] font-sans font-bold uppercase">
-                  ROYAL LIFETIME WARRANTY
-                </span>
-                <h2 className="font-cairo text-xl sm:text-2xl font-bold text-white">
-                  وثيقة الضمان الملكي المعتمد مدى الحياة
-                </h2>
-                <p className="text-xs sm:text-sm text-[#ded5c7] leading-relaxed font-light">
-                  تضمن دار أورما نقاء الفضة الإسترليني عيار 925 الإيطالية والسويسرية بنسبة 100%، مع كارت ضمان رسمي داخل كل علبة وخدمة تلميع مجانية مدى الحياة.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {slug === "returns" && (
-          <div className="mb-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl p-5 border border-[#e8ded0] text-center space-y-2 shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-[#f4ece0] text-[#8c7865] mx-auto flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-[#c5a880]" />
-              </div>
-              <h3 className="font-bold text-xs text-[#292722]">فضة إسترليني أصلية 925</h3>
-              <p className="text-[11px] text-[#756555] leading-relaxed">
-                كافة القطع مصنوعة من الفضة الخالصة عيار 925 ومدموغة بالختم الرسمي مع كارت ضمان معتمد.
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-5 border border-[#e8ded0] text-center space-y-2 shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-[#f4ece0] text-[#8c7865] mx-auto flex items-center justify-center">
-                <RefreshCw className="w-5 h-5 text-[#c5a880]" />
-              </div>
-              <h3 className="font-bold text-xs text-[#292722]">استبدال خلال 14 يوماً</h3>
-              <p className="text-[11px] text-[#756555] leading-relaxed">
-                مرونة كاملة في استبدال المقاس أو التصميم بكل يسر وسرعة.
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-5 border border-[#e8ded0] text-center space-y-2 shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-[#f4ece0] text-[#8c7865] mx-auto flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-[#c5a880]" />
-              </div>
-              <h3 className="font-bold text-xs text-[#292722]">شحن مجاني للعيوب</h3>
-              <p className="text-[11px] text-[#756555] leading-relaxed">
-                في حال وجود أي عيب مصنعي نتحمل تكاليف الشحن كاملة مع استبدال فوري.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {slug === "care" && (
-          <div className="mb-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl p-5 border border-[#e8ded0] space-y-2 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#f0e8dc] text-[#8c7865] flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-[#c5a880]" />
-                </div>
-                <h3 className="font-bold text-xs text-[#292722]">العطور والكحول</h3>
-              </div>
-              <p className="text-xs text-[#756555] leading-relaxed pr-11">
-                ارتدِ قطعتك بعد رش العطر وجفاف الكريمات لحماية طبقة الروديوم البلاتيني اللامعة.
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-5 border border-[#e8ded0] space-y-2 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#f0e8dc] text-[#8c7865] flex items-center justify-center shrink-0">
-                  <Gem className="w-4 h-4 text-[#c5a880]" />
-                </div>
-                <h3 className="font-bold text-xs text-[#292722]">الحفظ في العلبة الأصلية</h3>
-              </div>
-              <p className="text-xs text-[#756555] leading-relaxed pr-11">
-                احفظ مجوهراتك داخل علبة ORMA المخملية المبطنة بمكان جاف عند عدم ارتدائها.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {slug === "about" && (
-          <div className="mb-10 bg-white rounded-2xl p-6 sm:p-8 border border-[#e8ded0] shadow-sm flex flex-col sm:flex-row items-center gap-6">
-            <div className="w-16 h-16 rounded-full bg-[#292722] text-[#F5F0E7] flex items-center justify-center shrink-0 shadow-md">
-              <HeartHandshake className="w-8 h-8 text-[#B7A078]" />
-            </div>
-            <div className="space-y-1 text-center sm:text-right">
-              <h2 className="font-cairo text-lg sm:text-xl font-bold text-[#292722]">
-                شعارنا الدائم: مش بتتهدي.. بتتساب
-              </h2>
-              <p className="text-xs sm:text-sm text-[#756555] leading-relaxed">
-                كل قطعة من روائع ORMA مصممة لتكون بصمة تخلد حضورك، ومصنوعة بأيدي أمهر الصاغة من الفضة عيار 925 النقية.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Formatted Paragraphs */}
-        <article className="bg-[#fbf8f3] rounded-3xl border border-[#292722]/12 p-6 sm:p-10 space-y-6">
-          {paragraphs.map((p, idx) => {
-            const isHeader = p.endsWith(":") || p.startsWith("1.") || p.startsWith("2.") || p.startsWith("3.") || p.startsWith("4.");
-            return (
-              <div key={idx} className="space-y-2">
-                <p
-                  className={`text-sm sm:text-[17px] leading-[2.1] text-[#4a4236] whitespace-pre-line ${
-                    isHeader ? "font-bold text-[#292722] border-r-2 border-[#c5a880] pr-3" : "font-normal"
-                  }`}
+          {slug === "contact" && (
+            <section className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-[#2f6b4a] hover:bg-[#285c3f] text-white rounded-[18px] p-5 transition-colors flex items-center gap-4"
                 >
-                  {p}
-                </p>
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                    <MessageCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold">محادثة واتساب مباشرة</div>
+                    <div className="text-xs text-white/80 mt-0.5 dir-ltr text-right">{whatsappNumber}</div>
+                  </div>
+                </a>
+                <a
+                  href={`tel:${contactPhone}`}
+                  className="bg-[#fbf8f3] hover:border-[#8E7545]/60 border border-[#292722]/12 text-[#292722] rounded-[18px] p-5 transition-colors flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-[#D8C8B3]/50 flex items-center justify-center shrink-0">
+                    <Phone className="w-6 h-6 text-[#8E7545]" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold">الاتصال الهاتفي</div>
+                    <div className="text-xs text-[#5c5346] mt-0.5 dir-ltr text-right">{contactPhone}</div>
+                  </div>
+                </a>
+                <a
+                  href={`mailto:${contactEmail}`}
+                  className="bg-[#fbf8f3] hover:border-[#8E7545]/60 border border-[#292722]/12 text-[#292722] rounded-[18px] p-5 transition-colors flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-[#D8C8B3]/50 flex items-center justify-center shrink-0">
+                    <Mail className="w-6 h-6 text-[#8E7545]" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold">البريد الإلكتروني</div>
+                    <div className="text-xs text-[#5c5346] mt-0.5 dir-ltr text-right">{contactEmail}</div>
+                  </div>
+                </a>
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-[#292722] hover:bg-[#1E1C18] text-[#F5F0E7] rounded-[18px] p-5 transition-colors flex items-center gap-4"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-6 h-6 text-[#B7A078]" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold">إنستجرام</div>
+                    <div className="text-xs text-[#D8C8B3] mt-0.5">@ormasilver</div>
+                  </div>
+                </a>
               </div>
-            );
-          })}
-        </article>
+              <div className="rounded-[18px] p-5 border border-[#292722]/12 flex flex-wrap items-center justify-between gap-4 text-sm text-[#5c5346]">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#8E7545]" />
+                  <span>أوقات العمل: يومياً 10:00 ص – 11:00 م بتوقيت القاهرة</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-[#8E7545]" />
+                  <span>توصيل لكل محافظات مصر</span>
+                </div>
+              </div>
+            </section>
+          )}
 
-        {/* Interactive Contact Section if slug is contact */}
-        {slug === "contact" && (
-          <section className="mt-10 space-y-6">
-            <h2 className="font-cairo text-xl font-bold text-[#292722]">قنوات التواصل الفوري والمباشر</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* WhatsApp Card */}
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-5 shadow-sm transition-all flex items-center gap-4 group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold">محادثة واتساب مباشرة ✦</div>
-                  <div className="text-[11px] text-emerald-100 font-mono mt-0.5">{whatsappNumber}</div>
-                  <div className="text-[10px] text-emerald-200 mt-1">متواجدون للرد الفوري على مدار الساعة</div>
-                </div>
-              </a>
-
-              {/* Phone Card */}
-              <a
-                href={`tel:${contactPhone}`}
-                className="bg-white hover:bg-[#faf6f0] border border-[#e8ded0] text-[#292722] rounded-xl p-5 shadow-sm transition-all flex items-center gap-4"
-              >
-                <div className="w-12 h-12 rounded-xl bg-[#f0e7db] text-[#8c7865] flex items-center justify-center shrink-0">
-                  <Phone className="w-6 h-6 text-[#c5a880]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold">الاتصال الهاتفي المباشر</div>
-                  <div className="text-[11px] text-[#756555] font-mono mt-0.5">{contactPhone}</div>
-                  <div className="text-[10px] text-[#8c7865] mt-1">يومياً من 10:00 ص حتى 11:00 م</div>
-                </div>
-              </a>
-
-              {/* Email Card */}
-              <a
-                href={`mailto:${contactEmail}`}
-                className="bg-white hover:bg-[#faf6f0] border border-[#e8ded0] text-[#292722] rounded-xl p-5 shadow-sm transition-all flex items-center gap-4"
-              >
-                <div className="w-12 h-12 rounded-xl bg-[#f0e7db] text-[#8c7865] flex items-center justify-center shrink-0">
-                  <Mail className="w-6 h-6 text-[#c5a880]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold">البريد الإلكتروني المعتمد</div>
-                  <div className="text-[11px] text-[#756555] font-mono mt-0.5">{contactEmail}</div>
-                  <div className="text-[10px] text-[#8c7865] mt-1">للاستفسارات والتعاون التجاري</div>
-                </div>
-              </a>
-
-              {/* Instagram Card */}
-              <a
-                href={instagramUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="bg-gradient-to-r from-purple-600 via-pink-600 to-amber-600 text-white rounded-xl p-5 shadow-sm transition-all flex items-center gap-4"
-              >
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                  <svg className="w-6 h-6 fill-none stroke-currentColor stroke-2" viewBox="0 0 24 24">
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-xs font-bold">حساب إنستجرام الرسمي</div>
-                  <div className="text-[11px] text-white/90 font-mono mt-0.5">@ormasilver</div>
-                  <div className="text-[10px] text-white/80 mt-1">شاهد أحدث التشكيلات والكواليس الحصرية</div>
-                </div>
-              </a>
+          {/* Closing call-to-action */}
+          <div className="p-6 sm:p-8 rounded-[20px] bg-[#292722] text-[#F5F0E7] flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+            <div>
+              <div className="font-cairo font-light text-2xl sm:text-[26px]">{ctaTitle}</div>
+              <div className="mt-1.5 text-[15px] text-[#D8C8B3] font-tajawal">{ctaText}</div>
             </div>
-
-            {/* Additional Info Badges */}
-            <div className="bg-[#f0e8dc]/70 rounded-xl p-5 border border-[#ded2c0] flex flex-wrap items-center justify-between gap-4 text-xs text-[#6e5d4e]">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-[#c5a880]" />
-                <span>أوقات العمل: يومياً 10:00 صباحاً – 11:00 مساءً بتوقيت القاهرة</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-[#c5a880]" />
-                <span>توصيل سريع لكافة محافظات الجمهورية</span>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Quick Footer Action Callout */}
-        <div className="mt-12 pt-8 border-t border-[#e2d7c7] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right">
-          <div>
-            <h3 className="font-cairo text-base font-bold text-[#292722]">
-              هل ترغب في استكشاف روائع الفضة الإسترليني 925؟
-            </h3>
-            <p className="text-xs text-[#756555] mt-1">
-              تشكيلة واسعة من الخواتم والسلاسل والأساور الملكية بانتظارك.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/collection/all"
-              className="px-5 py-2.5 rounded-full bg-[#292722] text-[#f7f4ee] text-xs font-bold hover:bg-[#2b2521] transition-all shadow-sm"
-            >
-              تصفح التشكيلة الكاملة
-            </Link>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-1.5"
+              className="btn-shine inline-flex items-center justify-center min-h-[52px] px-8 rounded-full bg-[#F5F0E7] text-[#292722] font-bold whitespace-nowrap hover:bg-white transition-colors"
             >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span>محادثة واتساب</span>
+              تواصل عبر واتساب
             </a>
           </div>
-        </div>
-      </main>
+        </main>
       </div>
     </div>
   );
