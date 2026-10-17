@@ -197,7 +197,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main Navbar */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
-        <div className={`flex items-center justify-between gap-3 sm:gap-6 transition-all duration-300 ${scrolled ? "h-14 sm:h-[68px]" : "h-16 sm:h-20"}`}>
+        <div className={`flex items-center justify-between gap-3 sm:gap-6 h-16 sm:h-20`}>
           {/* Right: Mobile Menu & Signature ORMA Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button

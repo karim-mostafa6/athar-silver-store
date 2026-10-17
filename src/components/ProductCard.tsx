@@ -15,6 +15,8 @@ interface ProductCardProps {
   onAddToCart?: (product: Product, size?: string) => void;
   onQuickView?: (product: Product) => void;
   onNotify?: (title: string, msg: string, type: "cart" | "wishlist" | "promo" | "info") => void;
+  /** false = render in place with no fade/slide-in (used in the swipe row so a refresh never "jumps"). */
+  animateIn?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -23,6 +25,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onToggleWishlist,
   onAddToCart,
   onQuickView,
+  animateIn = true,
 }) => {
   const store = useStore();
   const [selectedSize] = useState<string | undefined>(
@@ -86,8 +89,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={animateIn ? { opacity: 0, y: 24 } : false}
+      whileInView={animateIn ? { opacity: 1, y: 0 } : undefined}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       whileHover={canHover ? { y: -6 } : undefined}
