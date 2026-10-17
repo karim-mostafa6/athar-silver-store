@@ -8,6 +8,7 @@ import { OrmaLogo } from "@/components/OrmaLogo";
 import { getAdminAuthHeaders } from "@/lib/clientAdmin";
 import { printOrderInvoice, printOrdersInvoices } from "@/lib/printInvoices";
 import AnalyticsTab from "./tabs/AnalyticsTab";
+import { AdminMobileNav, groupNavItems, type NavItem } from "./AdminNav";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   User, Eye, EyeOff, LogOut, Plus, Trash2, Edit, Save, Search, Package, ShoppingBag,
@@ -1570,6 +1571,20 @@ export default function AdminPage() {
     return baseSettingsTabs;
   }, [canViewSettings, canManageUsers, settingsForm.adminUsers]);
 
+  // Grouped navigation for the mobile sheet (sales / catalog / storefront / payment & shipping / settings)
+  const mobileNavGroups = useMemo(() => {
+    const items: NavItem[] = [];
+    if (canViewOrders) {
+      items.push(
+        { id: "orders", label: "الطلبات", icon: <ShoppingBag className="w-4 h-4" />, badge: orderMetrics.pending },
+        { id: "customers", label: "العملاء", icon: <Users className="w-4 h-4" />, badge: customersList.length },
+        { id: "analytics", label: "التقارير والإحصائيات", icon: <BarChart3 className="w-4 h-4" /> }
+      );
+    }
+    for (const t of settingsTabs) items.push({ id: t.id, label: t.label, icon: t.icon, badge: t.badge });
+    return groupNavItems(items);
+  }, [canViewOrders, settingsTabs, orderMetrics.pending, customersList.length]);
+
   // ========================================================
   // LOGIN SCREEN
   // ========================================================
@@ -1800,77 +1815,13 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* MOBILE HORIZONTAL TABS (< md) */}
-        <div className="md:hidden flex items-center gap-1 mt-2.5 pt-2 border-t border-[#e8ded0] overflow-x-auto scrollbar-none text-xs">
-          {canViewOrders && (
-            <>
-              <button
-                onClick={() => setActiveTab("orders")}
-                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-                  activeTab === "orders"
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:bg-white/60"
-                }`}
-              >
-                <ShoppingBag className="w-3.5 h-3.5" />
-                <span>الطلبات</span>
-                {orderMetrics.pending > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">
-                    {orderMetrics.pending}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab("customers")}
-                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-                  activeTab === "customers"
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:bg-white/60"
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>العملاء</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-[#e8ded0] text-[#161412] text-[10px] font-bold">
-                  {customersList.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("analytics")}
-                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-                  activeTab === "analytics"
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:bg-white/60"
-                }`}
-              >
-                <BarChart3 className="w-3.5 h-3.5" />
-                <span>التقارير</span>
-              </button>
-            </>
-          )}
-
-          {canViewOrders && canViewSettings && settingsTabs.length > 0 && (
-            <div className="w-px h-5 bg-[#ded2c0] mx-1 shrink-0" />
-          )}
-
-          {canViewSettings &&
-            settingsTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:bg-white/60"
-                }`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-                {!isSettingsUnlocked && <Lock className="w-2.5 h-2.5 text-[#baa996]" />}
-              </button>
-            ))}
-        </div>
+        {/* MOBILE NAVIGATION (< md): current section + grouped sheet */}
+        <AdminMobileNav
+          groups={mobileNavGroups}
+          activeId={activeTab}
+          onSelect={(id) => handleTabClick(id as ActiveTab)}
+          locked={!isSettingsUnlocked}
+        />
       </header>
 
       {/* DASHBOARD BODY: FIXED-WIDTH SIDEBAR + MAIN CONTENT AREA */}
@@ -1998,7 +1949,11 @@ export default function AdminPage() {
 
             {/* Settings Tabs List */}
             <div className="space-y-0.5 pt-1">
-              {settingsTabs.map((tab) => {
+              {groupNavItems(settingsTabs.map((t) => ({ id: t.id, label: t.label, icon: t.icon, badge: t.badge }))).map((group) => (
+              <div key={group.title} className="space-y-0.5">
+                <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wide text-[#a08c75]">{group.title}</div>
+              {group.items.map((item) => {
+                const tab = { ...item, id: item.id as ActiveTab };
                 const isActive = activeTab === tab.id;
                 return (
                   <button
@@ -2023,6 +1978,8 @@ export default function AdminPage() {
                   </button>
                 );
               })}
+              </div>
+              ))}
             </div>
           </div>
         )}
