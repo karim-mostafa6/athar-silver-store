@@ -1806,7 +1806,7 @@ export default function AdminPage() {
             <>
               <button
                 onClick={() => setActiveTab("orders")}
-                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
                   activeTab === "orders"
                     ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
                     : "text-[#5c4f42] hover:bg-white/60"
@@ -1823,7 +1823,7 @@ export default function AdminPage() {
 
               <button
                 onClick={() => setActiveTab("customers")}
-                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
                   activeTab === "customers"
                     ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
                     : "text-[#5c4f42] hover:bg-white/60"
@@ -1838,7 +1838,7 @@ export default function AdminPage() {
 
               <button
                 onClick={() => setActiveTab("analytics")}
-                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
                   activeTab === "analytics"
                     ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
                     : "text-[#5c4f42] hover:bg-white/60"
@@ -1859,7 +1859,7 @@ export default function AdminPage() {
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
-                className={`py-1.5 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                className={`py-2.5 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors ${
                   activeTab === tab.id
                     ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
                     : "text-[#5c4f42] hover:bg-white/60"
@@ -3317,7 +3317,7 @@ export default function AdminPage() {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className="flex-1 text-xs">
+                        <div className="flex-1 min-w-0 text-xs">
                           <span className="font-bold text-emerald-700 block">صورة البانر الترويجي محددة</span>
                           <span className="text-[10px] text-[#756555] truncate block dir-ltr">
                             {settingsForm.promoBannerImageUrl.startsWith("data:") ? "صورة مرفوعة من الجهاز" : settingsForm.promoBannerImageUrl}
@@ -3342,9 +3342,9 @@ export default function AdminPage() {
                           setSettingsForm({ ...settingsForm, promoBannerImageUrl: e.target.value })
                         }
                         placeholder="https://images.unsplash.com/... أو اضغط زر الرفع من جهازك"
-                        className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none dir-ltr"
+                        className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none dir-ltr"
                       />
-                      <label className="px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
+                      <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
                         <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                         <span>رفع من جهازك</span>
                         <input
@@ -3974,7 +3974,7 @@ export default function AdminPage() {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className="flex-1 text-xs">
+                        <div className="flex-1 min-w-0 text-xs">
                           <span className="font-bold text-emerald-700 block">صورة البانر محددة</span>
                           <span className="text-[10px] text-[#756555] truncate block dir-ltr">
                             {settingsForm.heroImageUrl.startsWith("data:") ? "صورة مرفوعة من الجهاز" : settingsForm.heroImageUrl}
@@ -3997,9 +3997,9 @@ export default function AdminPage() {
                         value={settingsForm.heroImageUrl || ""}
                         onChange={(e) => setSettingsForm({ ...settingsForm, heroImageUrl: e.target.value })}
                         placeholder="https://... أو اضغط زر الرفع من جهازك"
-                        className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] dir-ltr"
+                        className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] dir-ltr"
                       />
-                      <label className="px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
+                      <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
                         <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                         <span>رفع من جهازك</span>
                         <input
@@ -4439,7 +4439,7 @@ export default function AdminPage() {
                       value={newExtraMsgText}
                       onChange={(e) => setNewExtraMsgText(e.target.value)}
                       placeholder="اكتب رسالة إضافية للشريط..."
-                      className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+                      className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
                     />
                     <button
                       type="button"
@@ -6156,7 +6156,7 @@ export default function AdminPage() {
                           className="max-h-full max-w-full object-contain"
                         />
                       </div>
-                      <div className="flex-1 text-xs">
+                      <div className="flex-1 min-w-0 text-xs">
                         <span className="font-bold text-emerald-700 block">شعار مخصص نشط</span>
                         <span className="text-[10px] text-[#756555] truncate block dir-ltr">
                           {settingsForm.logoImageUrl.startsWith("data:") ? "صورة مرفوعة من الجهاز" : settingsForm.logoImageUrl}
@@ -6186,9 +6186,9 @@ export default function AdminPage() {
                         }));
                       }}
                       placeholder="https://... أو اضغط زر الرفع من جهازك"
-                      className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                      className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
                     />
-                    <label className="px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
+                    <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
                       <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                       <span>رفع من جهازك</span>
                       <input
