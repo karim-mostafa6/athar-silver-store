@@ -50,7 +50,7 @@ export default function Home() {
     if (showAllProducts || selectedCategory !== "all" || searchQuery.trim()) {
       return filteredProducts;
     }
-    return filteredProducts.slice(0, 8);
+    return filteredProducts.slice(0, 20);
   }, [filteredProducts, showAllProducts, selectedCategory, searchQuery]);
 
   return (
