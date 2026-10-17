@@ -1100,10 +1100,20 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
   // Only these are sent to the server, and the periodic server refresh must not overwrite them.
   const dirtyOrderIdsRef = useRef<Set<string>>(new Set());
   const inflightOrderIdsRef = useRef<Set<string>>(new Set());
+  // Last local edit / save-confirmation time per order. A server snapshot that was REQUESTED before
+  // that moment can be stale (it was read before our change landed), so it must not overwrite the
+  // admin's version. This is what made a status flip back for a few seconds and then re-apply.
+  const orderTouchRef = useRef<Map<string, number>>(new Map());
+  const keepLocalOrder = (id: string, fetchStartedAt: number) => {
+    if (dirtyOrderIdsRef.current.has(id) || inflightOrderIdsRef.current.has(id)) return true;
+    const t = orderTouchRef.current.get(id);
+    return t !== undefined && t >= fetchStartedAt;
+  };
   const orderPersistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
+    const fetchStartedAt = now;
     // Allow checks every 15 seconds or immediately if forced
     if (!force && now - lastSyncTimestampRef.current < 15000) return;
     if (isSyncingRef.current) return;
@@ -1234,10 +1244,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
             // Orders the admin just changed but the server has not confirmed yet keep their local
             // version; otherwise a refresh landing mid-save flips them back to the old status.
             for (const o of prev) {
-              if (
-                o && o.id &&
-                (dirtyOrderIdsRef.current.has(o.id) || inflightOrderIdsRef.current.has(o.id))
-              ) {
+              if (o && o.id && keepLocalOrder(o.id, fetchStartedAt)) {
                 orderMap.set(o.id, o);
               }
             }
@@ -1273,7 +1280,8 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       return;
     }
     try {
-      const res = await fetch(`/api/orders?t=${Date.now()}&v=${BUILD_ID}`, {
+      const fetchStartedAt = Date.now();
+      const res = await fetch(`/api/orders?t=${fetchStartedAt}&v=${BUILD_ID}`, {
         headers: {
           "Accept": "application/json",
           "Cache-Control": "no-cache",
@@ -1289,6 +1297,12 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
           const orderMap = new Map<string, Order>();
           for (const o of serverOrders) {
             if (o && o.id) orderMap.set(o.id, o);
+          }
+          // Keep the admin's own not-yet-confirmed (or just-confirmed) edits over a possibly stale snapshot
+          for (const o of prev) {
+            if (o && o.id && keepLocalOrder(o.id, fetchStartedAt)) {
+              orderMap.set(o.id, o);
+            }
           }
           for (const o of prev) {
             if (o && o.id && !orderMap.has(o.id)) {
@@ -1708,14 +1722,21 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         reportSaveFailure("الطلبات", 0);
       })
       .finally(() => {
+        const doneAt = Date.now();
         inflightOrderIdsRef.current = new Set();
         isOrderSyncingRef.current = false;
         if (failed) {
           // Show the truth instead of a phantom state the server never received.
           dirtyOrderIdsRef.current.clear();
+          for (const id of ids) orderTouchRef.current.delete(id);
           syncWithServer(true);
           return;
         }
+        // A snapshot requested before this moment may predate the save: keep our version for it.
+        for (const id of ids) orderTouchRef.current.set(id, doneAt);
+        orderTouchRef.current.forEach((t, id) => {
+          if (doneAt - t > 60000) orderTouchRef.current.delete(id);
+        });
         if (hasPendingOrderSyncRef.current || dirtyOrderIdsRef.current.size > 0) {
           flushOrdersSync();
         }
@@ -1758,7 +1779,10 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
           // Mark exactly the orders whose object changed (new or replaced) as needing a save.
           const before = new Map(prev.map((o) => [o.id, o]));
           for (const o of next) {
-            if (o && o.id && before.get(o.id) !== o) dirtyOrderIdsRef.current.add(o.id);
+            if (o && o.id && before.get(o.id) !== o) {
+              dirtyOrderIdsRef.current.add(o.id);
+              orderTouchRef.current.set(o.id, Date.now());
+            }
           }
         }
 
