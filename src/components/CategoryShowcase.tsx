@@ -29,34 +29,36 @@ export const CategoryShowcase: React.FC = () => {
           </Link>
         </div>
       </ScrollReveal>
-      <div className={`grid grid-cols-2 ${tiles.length >= 4 ? "lg:grid-cols-4" : tiles.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-3 sm:gap-5`}>
-        {tiles.map((t, i) => (
-          <ScrollReveal key={t.key} direction="up" delay={i * 90}>
-            <Link
-              href={t.href}
-              className="group relative block overflow-hidden rounded-2xl sm:rounded-[20px] h-[240px] sm:h-[340px] lg:h-[420px] bg-gradient-to-br from-[#D8C8B3] to-[#8E7545]"
-            >
-              {t.image && (
-                <img
-                  src={getCacheBustedImageUrl(t.image)}
-                  alt={t.label}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#292722]/65 via-[#292722]/10 to-transparent" />
-              <div className="absolute inset-x-4 sm:inset-x-6 bottom-4 sm:bottom-5 flex items-end justify-between text-[#F5F0E7]">
-                <div>
-                  <div className="font-cairo text-xl sm:text-2xl font-semibold">{t.label}</div>
-                  {t.count > 0 && <div className="text-xs sm:text-sm opacity-80 mt-0.5">{t.count} قطعة</div>}
-                </div>
-                <span className="hidden sm:flex w-10 h-10 rounded-full border border-[#F5F0E7]/60 items-center justify-center transition-all duration-300 group-hover:bg-[#F5F0E7] group-hover:text-[#292722] group-hover:-translate-x-1">
-                  <ArrowLeft className="w-4 h-4" />
-                </span>
+      {/* Always one row: swipe sideways on phones; on desktop 4 or fewer tiles fill the row, more tiles swipe */}
+      <div className="flex gap-3 sm:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory -mx-4 px-4 scroll-px-4 sm:-mx-8 sm:px-8 sm:scroll-px-8 lg:mx-0 lg:px-0 lg:scroll-px-0 pb-1 overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {tiles.map((t) => (
+          <Link
+            key={t.key}
+            href={t.href}
+            className={`group relative block overflow-hidden rounded-2xl sm:rounded-[20px] h-[240px] sm:h-[340px] lg:h-[420px] bg-gradient-to-br from-[#D8C8B3] to-[#8E7545] snap-start shrink-0 w-[44%] sm:w-[31%] ${
+              tiles.length <= 4 ? "lg:shrink lg:w-auto lg:flex-1 lg:min-w-0" : "lg:w-[calc(25%-15px)]"
+            }`}
+          >
+            {t.image && (
+              <img
+                src={getCacheBustedImageUrl(t.image)}
+                alt={t.label}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#292722]/65 via-[#292722]/10 to-transparent" />
+            <div className="absolute inset-x-4 sm:inset-x-6 bottom-4 sm:bottom-5 flex items-end justify-between text-[#F5F0E7]">
+              <div>
+                <div className="font-cairo text-xl sm:text-2xl font-semibold">{t.label}</div>
+                {t.count > 0 && <div className="text-xs sm:text-sm opacity-80 mt-0.5">{t.count} قطعة</div>}
               </div>
-            </Link>
-          </ScrollReveal>
+              <span className="hidden sm:flex w-10 h-10 rounded-full border border-[#F5F0E7]/60 items-center justify-center transition-all duration-300 group-hover:bg-[#F5F0E7] group-hover:text-[#292722] group-hover:-translate-x-1">
+                <ArrowLeft className="w-4 h-4" />
+              </span>
+            </div>
+          </Link>
         ))}
       </div>
     </section>

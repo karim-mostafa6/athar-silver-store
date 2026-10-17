@@ -122,7 +122,7 @@ export default function Home() {
             {/* Horizontal swipe row: swipe with a finger on phones, arrows / trackpad on desktop */}
             <div
               ref={carouselRef}
-              className="flex gap-3 sm:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 scroll-px-4 sm:-mx-8 sm:px-8 sm:scroll-px-8 lg:mx-0 lg:px-0 lg:scroll-px-0 pb-2 overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="flex gap-3 sm:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 scroll-px-4 sm:-mx-8 sm:px-8 sm:scroll-px-8 lg:mx-0 lg:px-0 lg:scroll-px-0 pt-2 pb-6 overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {displayedProducts.map((product) => (
                 <div
