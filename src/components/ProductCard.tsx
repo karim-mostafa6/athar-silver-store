@@ -16,7 +16,7 @@ interface ProductCardProps {
   onQuickView?: (product: Product) => void;
   onNotify?: (title: string, msg: string, type: "cart" | "wishlist" | "promo" | "info") => void;
   /** false = no entrance animation; "fade" = opacity only (no vertical movement, so nothing jumps). */
-  animateIn?: boolean | "fade";
+  animateIn?: boolean | "fade" | "rise";
   /** Load the image immediately (above-the-fold cards) so it doesn't pop in late. */
   priority?: boolean;
 }
@@ -92,8 +92,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <motion.div
-      initial={animateIn === "fade" ? { opacity: 0 } : animateIn ? { opacity: 0, y: 24 } : false}
-      whileInView={animateIn === "fade" ? { opacity: 1 } : animateIn ? { opacity: 1, y: 0 } : undefined}
+      initial={animateIn === "fade" ? { opacity: 0 } : animateIn === "rise" ? { opacity: 0, y: 10 } : animateIn ? { opacity: 0, y: 24 } : false}
+      whileInView={animateIn === "fade" || animateIn === "rise" ? (animateIn === "rise" ? { opacity: 1, y: 0 } : { opacity: 1 }) : animateIn ? { opacity: 1, y: 0 } : undefined}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       whileHover={canHover ? { y: -6 } : undefined}

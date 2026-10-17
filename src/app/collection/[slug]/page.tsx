@@ -485,7 +485,7 @@ function CollectionPageContent() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 sm:gap-x-5 gap-y-8 sm:gap-y-9">
               {pageProducts.map((p, i) => (
-                <ProductCard key={p.id} product={p} animateIn={false} priority={i < 6} />
+                <ProductCard key={p.id} product={p} animateIn={i < 4 ? false : "rise"} priority={i < 6} />
               ))}
             </div>
           )}
