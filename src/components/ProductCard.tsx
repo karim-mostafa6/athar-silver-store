@@ -101,6 +101,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 : "opacity-100 scale-100 group-hover:scale-105"
             }`}
             loading="lazy"
+            decoding="async"
             onError={(e) => {
               (e.target as HTMLImageElement).src =
                 "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80";

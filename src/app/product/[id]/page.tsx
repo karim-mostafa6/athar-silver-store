@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
@@ -50,6 +50,16 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<"specs" | "shipping" | "care" | null>("specs");
+  // Sticky mobile buy bar: shown only once the main "add to bag" button has scrolled out of view.
+  const addBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  useEffect(() => {
+    const el = addBtnRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([entry]) => setShowStickyBar(!entry.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [productId, product]);
 
   if (!product) {
     return (
@@ -161,7 +171,8 @@ export default function ProductDetailPage() {
   ).slice(0, 5);
 
   return (
-    <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
+    <>
+    <div className="pt-8 sm:pt-12 pb-28 lg:pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
       {/* Breadcrumb Navigation */}
       <nav className="flex items-center gap-2 text-xs text-[#7d6c5c] mb-8 font-light">
         <Link href="/" className="hover:text-[#1c1815] transition-colors">
@@ -188,6 +199,10 @@ export default function ProductDetailPage() {
               src={product.images[activeImageIdx] || product.images[0]}
               alt={product.arabicName}
               className="w-full h-full object-cover object-center transition-all duration-700 ease-out"
+              width={800}
+              height={800}
+              fetchPriority="high"
+              decoding="async"
             />
 
             {/* Badges */}
@@ -247,7 +262,7 @@ export default function ProductDetailPage() {
                       : "border-[#e8ded0] opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img src={img} alt="" className="w-full h-full object-cover" width={80} height={80} loading="lazy" decoding="async" />
                 </button>
               ))}
             </div>
@@ -472,6 +487,7 @@ export default function ProductDetailPage() {
 
                   {/* Add to Bag Button */}
                   <button
+                    ref={addBtnRef}
                     type="button"
                     onClick={handleAddToCart}
                     disabled={isAdded}
@@ -618,5 +634,36 @@ export default function ProductDetailPage() {
         </section>
       )}
     </div>
+
+      {/* Sticky mobile buy bar */}
+      {!isOutOfStock && (
+        <div
+          className={`lg:hidden fixed inset-x-0 bottom-0 z-30 bg-[#faf8f5]/95 backdrop-blur border-t border-[#e8ded0] pl-4 pr-[84px] pt-3 transition-transform duration-300 ${
+            showStickyBar ? "translate-y-0" : "translate-y-full pointer-events-none"
+          }`}
+          style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+          aria-hidden={!showStickyBar}
+        >
+          <div className="flex items-center gap-3">
+            <div className="shrink-0 text-right leading-tight">
+              <div className="text-base font-bold text-[#1c1815]">{(product.price * quantity).toLocaleString("en-US")} ج.م</div>
+              {quantity > 1 && <div className="text-[10px] text-[#8a7663]">{quantity} قطع</div>}
+            </div>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={isAdded}
+              tabIndex={showStickyBar ? 0 : -1}
+              className={`flex-1 min-h-[48px] rounded-2xl text-xs font-bold tracking-wide active:scale-95 transition-all flex items-center justify-center gap-2 ${
+                isAdded ? "bg-emerald-600 text-white" : "bg-[#1c1815] text-[#faf8f5]"
+              }`}
+            >
+              {isAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4 text-[#d8c8b4]" />}
+              <span>{isAdded ? "تمت الإضافة" : "أضف إلى السلة"}</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

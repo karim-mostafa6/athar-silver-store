@@ -48,6 +48,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <img
             src={getCacheBustedImageUrl(storeSettings.heroImageUrl)}
             alt={headline}
+            fetchPriority="high"
+            decoding="async"
             className="w-full h-full object-cover object-center scale-[1.01] hover:scale-105 transition-transform duration-[7000ms] ease-out"
           />
           {/* Multi-layer Cinematic Overlay for Pristine Readability */}

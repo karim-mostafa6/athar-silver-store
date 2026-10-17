@@ -7,21 +7,20 @@ export const revalidate = 0;
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "700", "800", "900"],
+  weight: ["300", "400", "500", "700"],
   variable: "--font-tajawal",
   display: "swap",
 });
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-cairo",
   display: "swap",
 });
 
 import { SiteShell } from "@/components/SiteShell";
 import { BUILD_ID, STORE_VERSION } from "@/lib/version";
-import { getPublicStoreSnapshot } from "@/lib/serverStore";
+import { getPublicStoreSnapshotCached as getPublicStoreSnapshot } from "@/lib/serverStore";
 
 // Settings document also holds private values (mail password, payment keys, sub-admin accounts).
 // Never put them into the HTML that every visitor receives.

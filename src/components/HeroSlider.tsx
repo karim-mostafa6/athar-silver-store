@@ -148,6 +148,9 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
           <img
             src={s.imageUrl}
             alt={s.title}
+            fetchPriority={idx === 0 ? "high" : "low"}
+            loading={idx === 0 ? "eager" : "lazy"}
+            decoding="async"
             className={`absolute inset-0 w-full h-full object-cover object-center transition-transform duration-[8000ms] ease-out ${
               idx === current ? "scale-110" : "scale-100"
             }`}

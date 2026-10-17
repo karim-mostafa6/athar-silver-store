@@ -1,4 +1,5 @@
 import fs from "fs";
+import { cache } from "react";
 import path from "path";
 import { revalidatePath } from "next/cache";
 import { Product, PRODUCTS, DEFAULT_CATEGORIES } from "@/data/products";
@@ -288,6 +289,9 @@ export async function getPublicStoreSnapshot(): Promise<{ products: Product[]; s
   const full = await getServerStoreData();
   return { products: full.products, settings: full.settings, updatedAt: full.updatedAt };
 }
+
+// One read per request: the root layout and page-level metadata share the same snapshot.
+export const getPublicStoreSnapshotCached = cache(getPublicStoreSnapshot);
 
 // ----------------------------------------------------
 // READ DATA (Supabase First -> Local File Fallback)
