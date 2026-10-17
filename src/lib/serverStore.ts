@@ -327,7 +327,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       } else {
         settings = {
           categories: DEFAULT_CATEGORIES,
-          senderEmail: process.env.GMAIL_USER || "contact@ormasilver.com",
+          senderEmail: process.env.GMAIL_USER || "",
           senderEmailName: process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
         };
         try {
@@ -436,7 +436,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
     products: PRODUCTS,
     settings: {
       categories: DEFAULT_CATEGORIES,
-      senderEmail: process.env.GMAIL_USER || "contact@ormasilver.com",
+      senderEmail: process.env.GMAIL_USER || "",
       senderEmailName: process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
     },
     orders: [],

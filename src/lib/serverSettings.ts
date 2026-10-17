@@ -21,7 +21,7 @@ export function getServerSettings(): ServerSettings {
       const data = fs.readFileSync(CONFIG_PATH, "utf-8");
       const parsed = JSON.parse(data);
       return {
-        senderEmail: parsed.senderEmail || process.env.GMAIL_USER || "contact@ormasilver.com",
+        senderEmail: parsed.senderEmail || process.env.GMAIL_USER || "",
         senderEmailName: parsed.senderEmailName || process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
         gmailAppPassword: (parsed.gmailAppPassword || process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, ""),
         logoImageUrl: parsed.logoImageUrl || "",
@@ -37,7 +37,7 @@ export function getServerSettings(): ServerSettings {
   }
 
   return {
-    senderEmail: process.env.GMAIL_USER || "contact@ormasilver.com",
+    senderEmail: process.env.GMAIL_USER || "",
     senderEmailName: process.env.GMAIL_SENDER_NAME || "ORMA للفضة 925",
     gmailAppPassword: (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, ""),
     logoImageUrl: "",

@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
       process.env.GMAIL_USER ||
       serverConfig.senderEmail ||
       bodySenderEmail ||
-      "contact@ormasilver.com";
+      "";
     const officialSenderName =
       process.env.GMAIL_SENDER_NAME ||
       serverConfig.senderEmailName ||
@@ -206,22 +206,6 @@ export async function POST(request: NextRequest) {
         ? "بطاقة دفع إلكترونية بنكية"
         : "الدفع عند الاستلام (نقداً عند التوصيل)";
 
-    const itemsRows = items
-      .map(
-        (item) => `
-        <tr style="border-bottom: 1px solid #ebdcca;">
-          <td style="padding: 12px 10px; font-weight: bold; color: #161412; font-size: 13px;">
-            ${item.arabicName}
-            ${item.selectedSize ? `<span style="display: block; font-size: 11px; color: #8c7865; font-weight: normal; margin-top: 3px;">المقاس: ${item.selectedSize}</span>` : ""}
-          </td>
-          <td style="padding: 12px 10px; text-align: center; color: #5a4c3e; font-size: 13px;">${item.quantity}</td>
-          <td style="padding: 12px 10px; text-align: left; font-weight: bold; color: #161412; font-size: 13px; font-family: Tahoma, sans-serif;">
-            ${(item.price * item.quantity).toLocaleString("ar-EG")} ج.م
-          </td>
-        </tr>`
-      )
-      .join("");
-
     const statusTitle = isTest
       ? "رسالة تجريبية لاختبار البريد الإلكتروني"
       : status === "confirmed_phone"
@@ -236,208 +220,123 @@ export async function POST(request: NextRequest) {
 
     const subject = isTest
       ? `${effectiveBrandNameEnglish} | تجربة إرسال ناجحة من الحساب الرسمي (${officialSenderEmail})`
-      : `${effectiveBrandNameEnglish} | ${statusTitle} - طلب #${orderId}`;
+      : `${effectiveBrandNameEnglish} | ${status === "new_order" ? "تم استلام طلبك" : statusTitle} #${orderId}`;
 
-    const orderDate = new Date().toLocaleDateString("ar-EG", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    const htmlContent = `
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-      <meta charset="utf-8"/>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-      <title>${subject}</title>
-    </head>
-    <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f7f4ee; margin: 0; padding: 25px 15px; direction: rtl; text-align: right; color: #161412;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 620px; margin: auto; background-color: #ffffff; border-radius: 20px; border: 1px solid #ebdcca; overflow: hidden; box-shadow: 0 10px 30px rgba(22, 20, 18, 0.06);">
-        
-        <!-- Luxury Brand Header -->
+    const GOLD = "#8E7545";
+    const INK = "#292722";
+    const IVORY = "#F5F0E7";
+    const CARD = "#fbf8f3";
+    const LINE = "#e4dccd";
+    const money = (n: number) => `${n.toLocaleString("en-US")} ج.م`;
+    const intro =
+      status === "new_order"
+        ? "وصلنا طلبك وإحنا بنجهّزه. هنكلمك على رقم الموبايل لتأكيد المقاس والعنوان قبل ما الشحنة تخرج."
+        : status === "confirmed_phone"
+        ? "اتأكد طلبك وبدأنا نجهّز القطع بعناية."
+        : status === "shipped"
+        ? "طلبك خرج مع مندوب الشحن وفي الطريق ليك."
+        : status === "completed"
+        ? "الطلب اتسلّم. نتمنى القطع تعجبك وتفضل معاك."
+        : status === "cancelled"
+        ? "اتلغى الطلب. لو ده مش المقصود كلمنا على واتساب ونظبطه معاك."
+        : "";
+    const headline =
+      isTest
+        ? "رسالة تجريبية"
+        : status === "new_order"
+        ? "تم استلام طلبك"
+        : status === "confirmed_phone"
+        ? "تم تأكيد طلبك"
+        : status === "shipped"
+        ? "طلبك في الطريق"
+        : status === "completed"
+        ? "تم تسليم طلبك"
+        : status === "cancelled"
+        ? "تم إلغاء الطلب"
+        : "تحديث على طلبك";
+    const firstName = String(customerName || "").trim().split(/\s+/)[0] || "";
+    const itemsHtml = items
+      .map(
+        (item) => `
         <tr>
-          <td style="background-color: #161412; padding: 32px 25px 28px 25px; text-align: center; border-bottom: 3px solid #c5a880;">
-            <div style="font-size: 11px; letter-spacing: 4px; color: #c5a880; font-family: monospace; text-transform: uppercase; margin-bottom: 12px;">
-              OFFICIAL ORDER INVOICE
-            </div>
-            ${
-              effectiveLogoImageUrl && effectiveLogoType !== "text"
-                ? `<div style="margin: 0 auto 10px auto; text-align: center;">
-                    <img src="${effectiveLogoImageUrl}" alt="${effectiveBrandNameArabic}" style="max-height: ${effectiveLogoHeight}px; height: auto; max-width: 220px; display: inline-block; object-fit: contain;" />
-                   </div>`
-                : ""
-            }
-            ${
-              effectiveLogoType === "text" || !effectiveLogoImageUrl || effectiveLogoType === "both"
-                ? `<h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 2px; font-family: 'Segoe UI', Tahoma, sans-serif;">
-                     ${effectiveBrandNameEnglish} • SILVER
-                   </h1>`
-                : ""
-            }
-            <p style="color: #d4b896; margin: 8px 0 0 0; font-size: 13px; font-weight: 300;">
-              فضة إسترليني عيار 925 • ${effectiveBrandSubtitle}
-            </p>
+          <td style="padding:14px 0;border-bottom:1px solid ${LINE};font-size:14px;color:${INK};line-height:1.6;">
+            <b>${item.arabicName}</b>
+            <div style="font-size:12px;color:#7d6c5c;">${item.selectedSize ? `مقاس ${item.selectedSize} · ` : ""}الكمية ${item.quantity}</div>
           </td>
-        </tr>
+          <td style="padding:14px 0;border-bottom:1px solid ${LINE};font-size:14px;font-weight:bold;color:${INK};text-align:left;white-space:nowrap;">${money(item.price * item.quantity)}</td>
+        </tr>`
+      )
+      .join("");
+    const addressLine = [governorate, address].filter(Boolean).join(" — ");
+    const infoRow = (k: string, v: string) =>
+      `<tr><td style="padding:6px 0;font-size:13px;color:#7d6c5c;width:34%;vertical-align:top;">${k}</td><td style="padding:6px 0;font-size:14px;color:${INK};font-weight:bold;">${v}</td></tr>`;
+    const logoBlock =
+      effectiveLogoImageUrl && effectiveLogoType !== "text"
+        ? `<img src="${effectiveLogoImageUrl}" alt="${effectiveBrandNameArabic}" style="max-height:${effectiveLogoHeight}px;max-width:200px;height:auto;display:inline-block;" />`
+        : `<div style="font-family:Georgia,'Times New Roman',serif;font-size:30px;letter-spacing:8px;color:${IVORY};">${effectiveBrandNameEnglish}</div>`;
+    const contactLine = officialSenderEmail
+      ? `واتساب: <b>01143837730</b> · ${officialSenderEmail}`
+      : `واتساب: <b>01143837730</b>`;
 
-        <!-- Body Container -->
-        <tr>
-          <td style="padding: 30px 25px;">
-            
-            <!-- Status Greeting Banner -->
-            <div style="background-color: #faf8f5; padding: 18px 20px; border-radius: 14px; margin-bottom: 24px; border: 1px solid #ebdcca; border-right: 4px solid #c5a880;">
-              <div style="font-size: 11px; color: #8c7865; font-weight: bold; margin-bottom: 4px;">حالة الطلب الرسمية:</div>
-              <h2 style="margin: 0 0 6px 0; font-size: 19px; color: #161412; font-weight: bold;">${statusTitle}</h2>
-              <p style="margin: 0; font-size: 13px; color: #5c4f42; line-height: 1.6;">
-                أهلاً بك يا <strong>${customerName}</strong>، يسعدنا إشعارك بتفاصيل وفاتورة طلبك رقم <strong>#${orderId}</strong> المؤرخ في ${orderDate}.
-              </p>
-            </div>
+    const htmlContent = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>${subject}</title></head>
+<body style="margin:0;padding:24px 12px;background:${IVORY};font-family:Tahoma,'Segoe UI',Arial,sans-serif;direction:rtl;text-align:right;color:${INK};">
+  <table width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;">
+    <tr><td style="background:${INK};border-radius:20px 20px 0 0;padding:34px 24px;text-align:center;">
+      ${logoBlock}
+      <div style="margin-top:8px;font-size:12px;color:#B7A078;letter-spacing:1px;">${effectiveBrandSubtitle}</div>
+    </td></tr>
+    <tr><td style="background:${CARD};padding:34px 28px 10px;border-left:1px solid ${LINE};border-right:1px solid ${LINE};">
+      <div style="font-size:12px;color:${GOLD};font-weight:bold;letter-spacing:1px;margin-bottom:8px;">طلب رقم #${orderId}</div>
+      <h1 style="margin:0 0 12px;font-size:26px;line-height:1.4;color:${INK};">${headline}${firstName ? ` يا ${firstName}` : ""}</h1>
+      ${intro ? `<p style="margin:0 0 6px;font-size:15px;line-height:1.9;color:#5c5346;">${intro}</p>` : ""}
+    </td></tr>
 
-            <!-- Official Order Reference Box -->
-            <table width="100%" cellspacing="0" cellpadding="0" style="background-color: #161412; border-radius: 12px; margin-bottom: 24px;">
-              <tr>
-                <td style="padding: 16px 20px; text-align: center;">
-                  <span style="display: block; font-size: 11px; color: #d4b896; margin-bottom: 4px; letter-spacing: 1px;">
-                    رقم الطلب الرسمي للمتابعة والشحن
-                  </span>
-                  <span style="display: inline-block; font-size: 24px; font-weight: bold; font-family: monospace; color: #ffffff; letter-spacing: 2px; direction: ltr;">
-                    #${orderId}
-                  </span>
-                </td>
-              </tr>
-            </table>
-
-            <!-- Customer & Shipping Information Card -->
-            <div style="background-color: #ffffff; border: 1px solid #ebdcca; border-radius: 14px; padding: 18px 20px; margin-bottom: 24px;">
-              <div style="font-size: 12px; font-weight: bold; color: #161412; border-bottom: 1px solid #ebdcca; padding-bottom: 8px; margin-bottom: 12px;">
-                بيانات العميل وعنوان التسليم
-              </div>
-              <table width="100%" cellspacing="0" cellpadding="0" style="font-size: 13px; line-height: 1.8;">
-                <tr>
-                  <td style="color: #756555; width: 35%;">اسم المستلم:</td>
-                  <td style="font-weight: bold; color: #161412;">${customerName}</td>
-                </tr>
-                <tr>
-                  <td style="color: #756555;">رقم الهاتف:</td>
-                  <td style="font-weight: bold; color: #161412; direction: ltr; text-align: right;">${phone}</td>
-                </tr>
-                ${governorate ? `
-                <tr>
-                  <td style="color: #756555;">المحافظة والعنوان:</td>
-                  <td style="font-weight: bold; color: #161412;">${governorate} - ${address}</td>
-                </tr>` : ""}
-                <tr>
-                  <td style="color: #756555;">طريقة الدفع:</td>
-                  <td style="font-weight: bold; color: #161412;">${paymentMethodLabel}</td>
-                </tr>
-                ${isGift ? `
-                <tr>
-                  <td style="color: #c5a880; font-weight: bold;">تغليف كهدية:</td>
-                  <td style="font-weight: bold; color: #161412;">نعم (تغليف ملكي مجاني)${giftMessage ? ` - "${giftMessage}"` : ""}</td>
-                </tr>` : ""}
-              </table>
-            </div>
-
-            <!-- Items Table -->
-            ${items.length > 0 ? `
-            <div style="margin-bottom: 24px;">
-              <div style="font-size: 12px; font-weight: bold; color: #161412; margin-bottom: 10px;">
-                تفاصيل القطع المختارة في طلبك:
-              </div>
-              <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: 100%; border: 1px solid #ebdcca; border-radius: 12px; overflow: hidden;">
-                <thead>
-                  <tr style="background-color: #faf8f5; border-bottom: 2px solid #ebdcca;">
-                    <th style="padding: 10px; text-align: right; color: #756555; font-size: 12px;">القطعة</th>
-                    <th style="padding: 10px; text-align: center; color: #756555; font-size: 12px; width: 15%;">الكمية</th>
-                    <th style="padding: 10px; text-align: left; color: #756555; font-size: 12px; width: 25%;">الإجمالي</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${itemsRows}
-                </tbody>
-              </table>
-            </div>
-            ` : ""}
-
-            <!-- Financial Summary Card (Subtotal + Shipping + Discount + Grand Total) -->
-            <div style="background-color: #faf8f5; border: 1px solid #ebdcca; border-radius: 14px; padding: 18px 20px; margin-bottom: 24px;">
-              <table width="100%" cellspacing="0" cellpadding="0" style="font-size: 13px; line-height: 2;">
-                <tr>
-                  <td style="color: #756555;">المجموع الفرعي للقطع:</td>
-                  <td style="text-align: left; font-weight: bold; color: #161412; font-family: Tahoma, sans-serif;">
-                    ${computedSubtotal.toLocaleString("ar-EG")} ج.م
-                  </td>
-                </tr>
-                <tr>
-                  <td style="color: #756555;">مصاريف الشحن والتوصيل:</td>
-                  <td style="text-align: left; font-weight: bold; color: ${computedShipping === 0 ? "#15803d" : "#161412"}; font-family: Tahoma, sans-serif;">
-                    ${computedShipping === 0 ? "شحن مجاني لكافة المحافظات" : `${computedShipping.toLocaleString("ar-EG")} ج.م`}
-                  </td>
-                </tr>
-                ${computedDiscount > 0 ? `
-                <tr>
-                  <td style="color: #b91c1c;">قيمة الخصم الترويجي:</td>
-                  <td style="text-align: left; font-weight: bold; color: #b91c1c; font-family: Tahoma, sans-serif;">
-                    -${computedDiscount.toLocaleString("ar-EG")} ج.م
-                  </td>
-                </tr>` : ""}
-                <tr style="border-top: 2px solid #ebdcca;">
-                  <td style="padding-top: 10px; font-size: 15px; font-weight: bold; color: #161412;">
-                    الإجمالي النهائي المطلوب دفعه:
-                  </td>
-                  <td style="padding-top: 10px; text-align: left; font-size: 17px; font-weight: bold; color: #161412; font-family: Tahoma, sans-serif;">
-                    ${finalTotal.toLocaleString("ar-EG")} ج.م
-                  </td>
-                </tr>
-              </table>
-            </div>
-
-            <!-- Next Steps & Reassurance -->
-            <div style="background-color: #f5efe6; border-radius: 12px; padding: 16px 18px; margin-bottom: 24px; font-size: 12px; color: #5c4f42; line-height: 1.6;">
-              <strong style="color: #161412; display: block; margin-bottom: 4px;">الخطوة القادمة للتأكيد والتسليم:</strong>
-              سيتواصل معك ممثل خدمة العملاء هاتفياً لتأكيد تفاصيل المقاسات والعنوان وموعد خروج الشحنة المناسب لك قبل توجه مندوب الشحن لمنزلك.
-            </div>
-
-            <!-- WhatsApp Direct Button -->
-            <table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 25px;">
-              <tr>
-                <td style="text-align: center;">
-                  <a href="https://wa.me/201143837730?text=${encodeURIComponent(`أهلاً متجر أورما، أرغب في متابعة طلبي رقم #${orderId}`)}" style="display: inline-block; background-color: #161412; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-size: 13px; font-weight: bold; border: 1px solid #c5a880;">
-                    متابعة الطلب مباشرة عبر واتساب المتجر
-                  </a>
-                </td>
-              </tr>
-            </table>
-
-            <!-- Royal Guarantee Footer Strip -->
-            <table width="100%" cellspacing="0" cellpadding="0" style="border-top: 1px solid #ebdcca; padding-top: 20px; text-align: center; font-size: 11px; color: #8c7865; line-height: 1.8;">
-              <tr>
-                <td>
-                  <p style="margin: 2px 0; font-weight: bold; color: #161412;">
-                    دار ${effectiveBrandNameEnglish} (${effectiveBrandNameArabic}) للفضة 925 • صياغة إيطالية وتركية فاخرة
-                  </p>
-                  <p style="margin: 2px 0;">
-                    خدمة العملاء هاتفياً وواتساب: <strong>01143837730</strong> | البريد الرسمي: <strong>${officialSenderEmail}</strong>
-                  </p>
-                  <p style="margin: 6px 0 0 0; color: #c5a880; font-weight: bold;">
-                    ${effectiveBrandSubtitle}
-                  </p>
-                </td>
-              </tr>
-            </table>
-
-          </td>
-        </tr>
+    <tr><td style="background:${CARD};padding:18px 28px 6px;border-left:1px solid ${LINE};border-right:1px solid ${LINE};">
+      <div style="font-size:13px;font-weight:bold;color:${GOLD};margin-bottom:4px;">القطع</div>
+      <table width="100%" cellspacing="0" cellpadding="0">${itemsHtml}</table>
+      <table width="100%" cellspacing="0" cellpadding="0" style="margin-top:14px;">
+        <tr><td style="padding:4px 0;font-size:14px;color:#5c5346;">المجموع الفرعي</td><td style="padding:4px 0;font-size:14px;text-align:left;">${money(computedSubtotal)}</td></tr>
+        ${computedDiscount > 0 ? `<tr><td style="padding:4px 0;font-size:14px;color:#5c5346;">الخصم</td><td style="padding:4px 0;font-size:14px;text-align:left;color:#2f6b4a;">-${money(computedDiscount)}</td></tr>` : ""}
+        <tr><td style="padding:4px 0;font-size:14px;color:#5c5346;">الشحن</td><td style="padding:4px 0;font-size:14px;text-align:left;${computedShipping === 0 ? "color:#2f6b4a;" : ""}">${computedShipping === 0 ? "مجاني" : money(computedShipping)}</td></tr>
+        <tr><td style="padding:12px 0 4px;border-top:1px solid ${LINE};font-size:17px;font-weight:bold;">الإجمالي</td><td style="padding:12px 0 4px;border-top:1px solid ${LINE};font-size:19px;font-weight:bold;text-align:left;">${money(finalTotal)}</td></tr>
       </table>
-    </body>
-    </html>
-    `;
+    </td></tr>
+
+    <tr><td style="background:${CARD};padding:22px 28px 8px;border-left:1px solid ${LINE};border-right:1px solid ${LINE};">
+      <div style="font-size:13px;font-weight:bold;color:${GOLD};margin-bottom:4px;">بيانات التوصيل</div>
+      <table width="100%" cellspacing="0" cellpadding="0">
+        ${infoRow("الاسم", customerName)}
+        ${infoRow("الموبايل", `<span dir="ltr">${phone}</span>`)}
+        ${addressLine ? infoRow("العنوان", addressLine) : ""}
+        ${infoRow("الدفع", paymentMethodLabel)}
+        ${isGift ? infoRow("هدية", `تغليف هدية${giftMessage ? ` — "${giftMessage}"` : ""}`) : ""}
+      </table>
+    </td></tr>
+
+    <tr><td style="background:${CARD};padding:22px 28px 34px;border-left:1px solid ${LINE};border-right:1px solid ${LINE};text-align:center;">
+      <a href="https://wa.me/201143837730?text=${encodeURIComponent(`أهلاً أورما، عايز أتابع طلبي رقم #${orderId}`)}" style="display:inline-block;background:${INK};color:${IVORY};text-decoration:none;padding:15px 34px;border-radius:999px;font-size:14px;font-weight:bold;">تابع طلبك على واتساب</a>
+    </td></tr>
+
+    <tr><td style="background:${INK};border-radius:0 0 20px 20px;padding:24px;text-align:center;font-size:12px;line-height:1.9;color:#D8C8B3;">
+      <div style="color:${IVORY};font-weight:bold;font-size:13px;">${effectiveBrandNameEnglish} · فضة إسترليني عيار 925</div>
+      <div>${contactLine}</div>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 
     let deliveryStatus = "simulated";
     let messageId: string | undefined = undefined;
 
     // Send real email via Gmail SMTP if App Password is provided
+    if (effectiveAppPassword && !officialSenderEmail) {
+      return NextResponse.json(
+        { success: false, error: "عنوان الإيميل المرسِل (GMAIL_USER) غير مضبوط. أضفه في إعدادات الإيميل أو في Vercel." },
+        { status: 500 }
+      );
+    }
     if (effectiveAppPassword) {
       try {
         const transporter = nodemailer.createTransport({
