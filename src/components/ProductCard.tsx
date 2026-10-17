@@ -119,7 +119,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             }`}
             loading={priority ? "eager" : "lazy"}
             decoding={priority ? "sync" : "async"}
-            {...(priority ? { fetchPriority: "high" as const } : {})}
             onError={(e) => {
               (e.target as HTMLImageElement).src =
                 "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80";

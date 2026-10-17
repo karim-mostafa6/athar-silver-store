@@ -629,7 +629,7 @@ export default function ProductDetailPage() {
           <h2 className="mb-8 text-3xl sm:text-4xl font-light text-[#292722] font-cairo">قطع تكمّل إطلالتك</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-5">
             {relatedProducts.slice(0, 4).map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} animateIn="rise" priority />
             ))}
           </div>
         </section>
