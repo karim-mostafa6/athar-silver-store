@@ -446,7 +446,8 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       const raw = fs.readFileSync(filePath, "utf-8");
       if (raw.trim()) {
         const parsed = JSON.parse(raw) as ServerStoreData;
-        if (Array.isArray(parsed.products) && parsed.products.length > 0) {
+        if (Array.isArray(parsed.products)) {
+          // An existing store file with an empty list means everything was deleted on purpose.
           parsed.orders = cleanOrders(parsed.orders);
           parsed.deletedOrderIds = Array.isArray(parsed.deletedOrderIds) ? parsed.deletedOrderIds : [];
           parsed.lastOrderSeq = calculateHighestOrderSeq(
@@ -464,7 +465,8 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
 
   // 3. Absolute Fallback
   return {
-    products: PRODUCTS,
+    // With a real database configured, a failed read must never present sample products as the catalog.
+    products: isSupabaseConfigured() ? [] : PRODUCTS,
     settings: {
       categories: DEFAULT_CATEGORIES,
       senderEmail: process.env.GMAIL_USER || "",

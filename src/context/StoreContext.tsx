@@ -1,5 +1,6 @@
 "use client";
 
+import { alertDialog } from "@/lib/dialog";
 import { trackEvent } from "@/lib/clientTracking";
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useRef, useCallback, ReactNode } from "react";
@@ -1511,7 +1512,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         : serverMessage || `خطأ من السيرفر (${status}).`;
     console.error(`Save failed (${what}):`, status, serverMessage);
     if (typeof window !== "undefined") {
-      window.alert(`⚠️ لم يتم حفظ تعديلات ${what} على الموقع!\n\nالتعديل ظاهر عندك فقط ولن يراه العملاء.\n${reason}`);
+      alertDialog(`التعديل ظاهر عندك فقط ولن يراه العملاء، وتم التراجع عنه.\n${reason}`, { title: `⚠️ لم يتم حفظ تعديلات ${what}` });
     }
   };
 
@@ -1577,6 +1578,13 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
           return;
         }
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+        if (deleted.length > 0) {
+          addToast(
+            "تم الحذف",
+            deleted.length === 1 ? "اتحذفت القطعة من المتجر وقاعدة البيانات ✓" : `اتحذفت ${deleted.length} قطع من المتجر وقاعدة البيانات ✓`,
+            "info"
+          );
+        }
       })
       .catch((err) => {
         failed = true;
@@ -1829,7 +1837,6 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     deletedProductIdsRef.current.add(id);
     setProducts(updated);
     scheduleProductsSync();
-    addToast("إدارة المنتجات", "تم حذف القطعة من المتجر", "info");
   };
 
   const resetProductsToDefault = () => {

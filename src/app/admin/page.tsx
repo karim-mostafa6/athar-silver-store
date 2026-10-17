@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog, alertDialog, promptDialog } from "@/lib/dialog";
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useStore, StoreSettings, Order, StoreCategory, CustomPage, DEFAULT_CATEGORIES, DEFAULT_CUSTOM_PAGES, AdminUser, AdminRole } from "@/context/StoreContext";
@@ -653,7 +654,7 @@ export default function AdminPage() {
 
   // Delete Sub-User
   const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`هل أنت متأكد من حذف حساب "${userName}" نهائياً؟`)) return;
+    if (!(await confirmDialog(`هل أنت متأكد من حذف حساب "${userName}" نهائياً؟`, { danger: true, confirmText: "احذف الحساب" }))) return;
 
     const currentUsers = settingsForm.adminUsers || [];
     const updatedUsers = currentUsers.filter((u) => u.id !== userId);
@@ -1064,7 +1065,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteCollection = async (id: string, label: string) => {
-    if (confirm(`هل أنت متأكد من حذف كولكشن "${label}" نهائياً من المتجر وقاعدة البيانات السحابية؟`)) {
+    if (await confirmDialog(`هل أنت متأكد من حذف كولكشن "${label}" نهائياً من المتجر وقاعدة البيانات السحابية؟`, { danger: true, confirmText: "احذف الكولكشن" })) {
       const currentCats =
         settingsForm.categories && settingsForm.categories.length > 0
           ? settingsForm.categories
@@ -1220,7 +1221,7 @@ export default function AdminPage() {
   };
 
   const handleDeletePage = async (id: string, title: string) => {
-    if (confirm(`هل أنت متأكد من حذف صفحة "${title}" نهائياً من المتجر؟`)) {
+    if (await confirmDialog(`هل أنت متأكد من حذف صفحة "${title}" نهائياً من المتجر؟`, { danger: true, confirmText: "احذف الصفحة" })) {
       const currentPages =
         settingsForm.customPages && settingsForm.customPages.length > 0
           ? settingsForm.customPages
@@ -3839,7 +3840,7 @@ export default function AdminPage() {
                           <div className="flex items-center border border-[#ded2c0] rounded-lg bg-white shadow-2xs">
                             <button
                               type="button"
-                              onClick={() => {
+                              onClick={async () => {
                                 const updatedItems = [...order.items];
                                 if (updatedItems[idx].quantity > 1) {
                                   updatedItems[idx].quantity -= 1;
@@ -3858,10 +3859,10 @@ export default function AdminPage() {
                                   });
                                 } else {
                                   if (order.items.length <= 1) {
-                                    alert("لا يمكن حذف آخر قطعة من الطلب. إذا أردت إلغاء الطلب بالكامل، يرجى استخدام زر إلغاء الطلب.");
+                                    alertDialog("لا يمكن حذف آخر قطعة من الطلب. إذا أردت إلغاء الطلب بالكامل، يرجى استخدام زر إلغاء الطلب.");
                                     return;
                                   }
-                                  if (confirm(`هل أنت متأكد من إزالة "${item.arabicName}" من هذا الطلب؟`)) {
+                                  if (await confirmDialog(`هل أنت متأكد من إزالة "${item.arabicName}" من هذا الطلب؟`, { danger: true, confirmText: "أزل القطعة" })) {
                                     updatedItems.splice(idx, 1);
                                     const newSubtotal = updatedItems.reduce((s, i) => s + i.price * i.quantity, 0);
                                     const newTotal = Math.max(0, newSubtotal + (order.shippingFee || 0) - (order.discount || 0));
@@ -3920,8 +3921,8 @@ export default function AdminPage() {
                           {order.items.length > 1 && (
                             <button
                               type="button"
-                              onClick={() => {
-                                if (confirm(`هل أنت متأكد من إزالة "${item.arabicName}" من هذا الطلب؟`)) {
+                              onClick={async () => {
+                                if (await confirmDialog(`هل أنت متأكد من إزالة "${item.arabicName}" من هذا الطلب؟`, { danger: true, confirmText: "أزل القطعة" })) {
                                   const updatedItems = order.items.filter((_, i) => i !== idx);
                                   const newSubtotal = updatedItems.reduce((s, i) => s + i.price * i.quantity, 0);
                                   const newTotal = Math.max(0, newSubtotal + (order.shippingFee || 0) - (order.discount || 0));
@@ -4013,8 +4014,8 @@ export default function AdminPage() {
                   {order.status !== "cancelled" ? (
                     <button
                       type="button"
-                      onClick={() => {
-                        const reason = prompt("يرجى كتابة سبب إلغاء الطلب (اختياري):", "");
+                      onClick={async () => {
+                        const reason = await promptDialog("اكتب سبب إلغاء الطلب (اختياري):", "", { title: "إلغاء الطلب", confirmText: "إلغاء الطلب", placeholder: "مثلاً: العميل طلب الإلغاء" });
                         if (reason !== null) {
                           cancelOrder(order.id, reason || "إلغاء يدوي من لوحة الإدارة");
                           setSelectedOrderForDetails((prev) =>
@@ -4102,15 +4103,15 @@ export default function AdminPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!manualOrderForm.customerName.trim()) {
-                  alert("يرجى إدخال اسم العميل");
+                  alertDialog("يرجى إدخال اسم العميل");
                   return;
                 }
                 if (!manualOrderForm.phone.trim()) {
-                  alert("يرجى إدخال رقم هاتف العميل");
+                  alertDialog("يرجى إدخال رقم هاتف العميل");
                   return;
                 }
                 if (manualOrderForm.items.length === 0) {
-                  alert("يرجى اختيار منتج واحد على الأقل للطلب من قائمة المنتجات والمخزون");
+                  alertDialog("يرجى اختيار منتج واحد على الأقل للطلب من قائمة المنتجات والمخزون");
                   return;
                 }
 

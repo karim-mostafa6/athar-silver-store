@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { confirmDialog } from "@/lib/dialog";
 import { Calendar, Download, Eye, MessageCircle, Printer, RotateCw, Search, ShoppingBag, UserPlus } from "lucide-react";
 import type { Order } from "@/context/StoreContext";
 import type { OrderDatePreset, ManualOrderForm } from "./types";
@@ -287,8 +288,8 @@ export default function OrdersTab({ orders, filteredOrders, selectedOrderIds, se
               </select>
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm(`هل أنت متأكد من تغيير حالة ${selectedOrderIds.length} طلبات إلى "${bulkStatusToApply}"؟`)) {
+                onClick={async () => {
+                  if (await confirmDialog(`هل أنت متأكد من تغيير حالة ${selectedOrderIds.length} طلبات إلى "${bulkStatusToApply}"؟`, { confirmText: "نفّذ" })) {
                     bulkUpdateOrderStatus(selectedOrderIds, bulkStatusToApply);
                   }
                 }}

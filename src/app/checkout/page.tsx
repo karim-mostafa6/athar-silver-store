@@ -1,4 +1,5 @@
 "use client";
+import { alertDialog } from "@/lib/dialog";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -391,14 +392,14 @@ export default function CheckoutPage() {
     const submitResult = await submitOrder(orderPayload);
     if (!submitResult.success) {
       setIsSubmitting(false);
-      alert(submitResult.error || "تعذر إتمام الطلب، يرجى المحاولة مرة أخرى.");
+      alertDialog(submitResult.error || "تعذر إتمام الطلب، يرجى المحاولة مرة أخرى.");
       return;
     }
 
     const newOrderId = submitResult.orderId;
     if (!newOrderId) {
       setIsSubmitting(false);
-      alert("تعذر الحصول على رقم الطلب المعتمد من الخادم. يرجى المحاولة مرة أخرى.");
+      alertDialog("تعذر الحصول على رقم الطلب المعتمد من الخادم. يرجى المحاولة مرة أخرى.");
       return;
     }
 

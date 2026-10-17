@@ -1,4 +1,5 @@
 "use client";
+import { alertDialog } from "@/lib/dialog";
 
 import React, { useState, useRef, useEffect } from "react";
 import { CartItem, GOVERNORATES } from "@/data/products";
@@ -215,28 +216,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.phone || !formData.address) {
-      alert("يرجى ملء الاسم ورقم الهاتف والعنوان بالتفصيل");
+      alertDialog("يرجى ملء الاسم ورقم الهاتف والعنوان بالتفصيل");
       return;
     }
 
     if (formData.paymentMethod === "wallet") {
       if (!senderWalletNumber.trim()) {
-        alert("يرجى كتابة رقم الهاتف أو حساب إنستاباي الذي قمت بالتحويل منه");
+        alertDialog("يرجى كتابة رقم الهاتف أو حساب إنستاباي الذي قمت بالتحويل منه");
         return;
       }
       if (storeSettings.requireReceiptUpload !== false && !receiptImage) {
-        alert("يرجى رفع صورة أو لقطة شاشة لإيصال التحويل لتأكيد الطلب");
+        alertDialog("يرجى رفع صورة أو لقطة شاشة لإيصال التحويل لتأكيد الطلب");
         return;
       }
     }
 
     if (formData.paymentMethod === "card") {
       if (cardData.cardNumber.replace(/\s/g, "").length < 16) {
-        alert("يرجى إدخال رقم بطاقة صحيح (16 رقماً)");
+        alertDialog("يرجى إدخال رقم بطاقة صحيح (16 رقماً)");
         return;
       }
       if (!cardData.cardExpiry || !cardData.cardCvc) {
-        alert("يرجى إدخال تاريخ انتهاء البطاقة ورمز الأمان CVV");
+        alertDialog("يرجى إدخال تاريخ انتهاء البطاقة ورمز الأمان CVV");
         return;
       }
     }

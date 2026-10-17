@@ -28,6 +28,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 import { SiteShell } from "@/components/SiteShell";
+import { DialogHost } from "@/components/DialogHost";
 import { BUILD_ID, STORE_VERSION } from "@/lib/version";
 import { getPublicStoreSnapshotCached as getPublicStoreSnapshot } from "@/lib/serverStore";
 
@@ -126,6 +127,7 @@ export default async function RootLayout({
         className={`${tajawal.variable} ${cairo.variable} ${cormorant.variable} font-tajawal bg-[#F5F0E7] text-[#292722] antialiased selection:bg-[#B7A078] selection:text-[#292722] min-h-screen`}
       >
         <SiteShell initialStore={initialStore}>{children}</SiteShell>
+        <DialogHost />
       </body>
     </html>
   );

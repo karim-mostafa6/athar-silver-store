@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/lib/dialog";
 
 import { Edit, Plus, Trash2 } from "lucide-react";
 import type { StoreSettings } from "@/context/StoreContext";
@@ -218,10 +219,14 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => {
-                    if (confirm(`هل أنت متأكد من حذف "${product.arabicName}"؟`)) {
+                  onClick={async () => {
+                    if (
+                      await confirmDialog(`هل أنت متأكد من حذف "${product.arabicName}"؟\nهيتحذف من المتجر ومن قاعدة البيانات ومش هيظهر للعملاء.`, {
+                        danger: true,
+                        confirmText: "احذف القطعة",
+                      })
+                    ) {
                       deleteProduct(product.id);
-                      addToast("تم الحذف", `تم حذف "${product.arabicName}"`, "info");
                     }
                   }}
                   className="p-1.5 rounded text-[#baa894] hover:text-rose-600 hover:bg-rose-50"
