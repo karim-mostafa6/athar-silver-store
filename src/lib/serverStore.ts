@@ -316,22 +316,32 @@ export const getPublicStoreSnapshotCached = cache(getPublicStoreSnapshot);
 // ----------------------------------------------------
 // READ DATA (Supabase First -> Local File Fallback)
 // ----------------------------------------------------
-export async function getServerStoreData(): Promise<ServerStoreData> {
+export async function getServerStoreData(opts: { skipOrders?: boolean; ordersOnly?: boolean } = {}): Promise<ServerStoreData> {
+  const skipOrders = Boolean(opts.skipOrders);
+  const ordersOnly = Boolean(opts.ordersOnly);
   // 1. Supabase Cloud Database
   if (isSupabaseConfigured()) {
     try {
       const supabase = getSupabaseAdminClient();
 
       const [productsRes, settingsRes, ordersRes, metaRes] = await Promise.all([
-        supabase.from("products").select("*").order("created_at", { ascending: false }),
-        supabase.from("store_settings").select("settings, updated_at").eq("id", "primary").maybeSingle(),
-        supabase.from("orders").select("*").order("created_at", { ascending: false }),
+        ordersOnly
+          ? Promise.resolve({ data: null, error: null })
+          : supabase.from("products").select("*").order("created_at", { ascending: false }),
+        ordersOnly
+          ? Promise.resolve({ data: { settings: {}, updated_at: undefined }, error: null })
+          : supabase.from("store_settings").select("settings, updated_at").eq("id", "primary").maybeSingle(),
+        skipOrders
+          ? Promise.resolve({ data: [] as Record<string, unknown>[], error: null })
+          : supabase.from("orders").select("*").order("created_at", { ascending: false }),
         supabase.from("store_metadata").select("*"),
       ]);
 
       let products: Product[] = [];
       if (productsRes.data && Array.isArray(productsRes.data) && productsRes.data.length > 0) {
         products = productsRes.data.map(mapDbProductToModel);
+      } else if (ordersOnly) {
+        products = [];
       } else if (productsRes.error) {
         // Transient read error: never seed or wipe anything because of it.
         console.warn("Supabase products query warning/error:", productsRes.error);
@@ -376,7 +386,7 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       // Offline/Local Resilience: Always merge with local store-data.json orders in case of transient Supabase latency
       try {
         const filePath = getStoreFilePath();
-        if (fs.existsSync(filePath)) {
+        if (!skipOrders && fs.existsSync(filePath)) {
           const raw = fs.readFileSync(filePath, "utf-8");
           if (raw.trim()) {
             const parsed = JSON.parse(raw) as ServerStoreData;

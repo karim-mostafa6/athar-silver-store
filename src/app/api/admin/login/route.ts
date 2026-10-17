@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateAdminToken, checkRateLimit, recordFailedAttempt, resetFailedAttempts } from "@/lib/adminAuth";
 import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
 import { verifyPassword, hashPassword } from "@/lib/passwordHash";
+import { rateLimit, clientIp, safeEqual } from "@/lib/rateLimit";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1";
+    const ip = clientIp(request);
+    if (!(await rateLimit("login", ip, 12, 900))) {
+      return NextResponse.json(
+        { success: false, error: "محاولات كتير. استنى 15 دقيقة وجرّب تاني." },
+        { status: 429 }
+      );
+    }
 
     // 1. Check brute-force rate limit
     const rateCheck = checkRateLimit(ip);
@@ -73,8 +80,7 @@ export async function POST(request: NextRequest) {
 
       if (
         expectedMasterPass.length > 0 &&
-        ((trimmedUser === expectedMasterUser && cleanPass === expectedMasterPass) ||
-          (trimmedUser === "admin" && cleanPass === expectedMasterPass))
+        ((trimmedUser === expectedMasterUser || trimmedUser === "admin") && safeEqual(cleanPass, expectedMasterPass))
       ) {
         authenticatedUser = {
           username: trimmedUser === "admin" ? "admin" : "karim mostafa",
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
     // 4. Option C: Check Custom Sub-Admins stored in Supabase / Store Settings
     if (!authenticatedUser) {
       try {
-        const storeData = await getServerStoreData();
+        const storeData = await getServerStoreData({ skipOrders: true });
         const subUsers = storeData.settings?.adminUsers || [];
         let legacyMatch = false;
         const found = subUsers.find((u) => {

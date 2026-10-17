@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   try {
     const isAdmin = isAuthorizedAdmin(request);
     const emailSettings = getServerSettings();
-    const storeData = await getServerStoreData();
+    const storeData = await getServerStoreData({ skipOrders: true });
 
     return NextResponse.json(
       {

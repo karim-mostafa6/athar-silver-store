@@ -9,7 +9,7 @@ export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
-    const data = await getServerStoreData();
+    const data = await getServerStoreData({ skipOrders: true });
     const isAdmin = isAuthorizedAdmin(request);
     return NextResponse.json(
       {

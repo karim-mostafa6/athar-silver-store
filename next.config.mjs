@@ -11,6 +11,7 @@ const BUILD_TIME = String(Date.now());
 const NO_STORE = "private, no-cache, no-store, max-age=0, must-revalidate";
 
 const nextConfig = {
+  poweredByHeader: false,
   generateBuildId: async () => BUILD_ID,
   env: {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
@@ -26,6 +27,17 @@ const nextConfig = {
   },
   async headers() {
     return [
+      {
+        // Baseline security headers on every response.
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+        ],
+      },
       {
         // HTML documents / RSC payloads: never stored by browsers, CDN or bfcache, so every
         // visit (including back/forward and in-app browsers) gets the fresh storefront.

@@ -9,6 +9,9 @@ import {
 } from "@/lib/serverStore";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 import { Order } from "@/context/StoreContext";
+import { isSecretEnforced, webhookSecret } from "@/lib/tgWebhook";
+import { safeEqual } from "@/lib/rateLimit";
+import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { cancelDelayedWhatsAppJob } from "@/lib/whatsapp";
 import { buildOrderKeyboard, formatOrderCompactTelegramMessage, formatOrderInvoiceTelegramMessage } from "@/lib/telegram";
 
@@ -338,6 +341,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "Bot token not configured" }, { status: 500 });
     }
 
+    // Only Telegram (which echoes the secret we registered) may call this endpoint.
+    if (await isSecretEnforced()) {
+      const provided = request.headers.get("x-telegram-bot-api-secret-token") || "";
+      if (!safeEqual(provided, webhookSecret())) {
+        return NextResponse.json({ ok: false }, { status: 401 });
+      }
+    }
+
     const body = await request.json().catch(() => ({}));
 
     // 1. Handle Callback Queries (when a button is clicked)
@@ -551,6 +562,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    if (!isAuthorizedAdmin(request)) {
+      return NextResponse.json({ success: false, error: "غير مصرح." }, { status: 401 });
+    }
     const rawBotToken = process.env.TELEGRAM_BOT_TOKEN;
     const botToken = rawBotToken ? rawBotToken.trim().replace(/^["']|["']$/g, "") : "";
 
@@ -571,6 +585,7 @@ export async function GET(request: NextRequest) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: setUrl,
+          secret_token: webhookSecret(),
           allowed_updates: ["message", "callback_query"],
           drop_pending_updates: false,
         }),

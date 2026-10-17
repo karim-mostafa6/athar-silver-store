@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerStoreData } from "@/lib/serverStore";
 import { generateAdminToken, checkRateLimit, recordFailedAttempt, resetFailedAttempts } from "@/lib/adminAuth";
+import { rateLimit, clientIp, safeEqual } from "@/lib/rateLimit";
 import { verifyPassword } from "@/lib/passwordHash";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1";
+    const ip = clientIp(request);
+    if (!(await rateLimit("pin", ip, 12, 900))) {
+      return NextResponse.json({ success: false, valid: false, error: "محاولات كتير. استنى 15 دقيقة." }, { status: 429 });
+    }
     const rate = checkRateLimit(ip);
     if (!rate.allowed) {
       return NextResponse.json(
@@ -26,12 +30,12 @@ export async function POST(request: NextRequest) {
     let username = "karim mostafa";
 
     // 1. Check Master Super Admin Password
-    let isValid = masterPassword.length > 0 && entered === masterPassword;
+    let isValid = masterPassword.length > 0 && safeEqual(entered, masterPassword);
 
     // 2. Check Sub-users if not matched
     if (!isValid) {
       try {
-        const storeData = await getServerStoreData();
+        const storeData = await getServerStoreData({ skipOrders: true });
         const subUsers = storeData.settings?.adminUsers || [];
         const found = subUsers.find((u) => u.isActive !== false && verifyPassword(entered, u.password).ok);
         if (found) {

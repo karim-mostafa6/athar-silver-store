@@ -3,6 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,10 @@ export async function POST(request: NextRequest) {
     const isReceipt = uploadType === "receipt";
     if (!isReceipt && !isAuthorizedAdmin(request)) {
       return NextResponse.json({ error: "غير مصرح لك برفع صور المنتجات" }, { status: 401 });
+    }
+
+    if (!isAuthorizedAdmin(request) && !(await rateLimit("upload", clientIp(request), 8, 3600))) {
+      return NextResponse.json({ error: "محاولات رفع كتير. جرّب بعد شوية." }, { status: 429 });
     }
 
     // 2. Strict File Validation
@@ -43,6 +48,17 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Content must really be an image (not just a claimed MIME type)
+    const head = buffer.subarray(0, 12);
+    const isImage =
+      (head[0] === 0xff && head[1] === 0xd8) || // JPEG
+      (head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47) || // PNG
+      head.subarray(0, 4).toString("ascii") === "GIF8" ||
+      (head.subarray(0, 4).toString("ascii") === "RIFF" && head.subarray(8, 12).toString("ascii") === "WEBP");
+    if (!isImage) {
+      return NextResponse.json({ error: "الملف ليس صورة صالحة" }, { status: 400 });
+    }
 
     // Create unique safe filename
     const originalName = file.name || "image.jpg";

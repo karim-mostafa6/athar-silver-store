@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
-
-const hits = new Map<string, number[]>();
 
 const STEP_LABEL: Record<string, string> = {
   pending: "تم استلام الطلب",
@@ -18,18 +17,15 @@ const STEP_LABEL: Record<string, string> = {
 /** Public tracking: requires order number + the phone used on the order. Returns minimal data only. */
 export async function POST(request: NextRequest) {
   try {
-    const ip = (request.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
-    const now = Date.now();
-    const arr = (hits.get(ip) || []).filter((t) => now - t < 10 * 60 * 1000);
-    if (arr.length >= 15) return NextResponse.json({ ok: false, error: "محاولات كتير. جرّب بعد شوية." }, { status: 429 });
-    arr.push(now);
-    hits.set(ip, arr);
+    if (!(await rateLimit("track", clientIp(request), 15, 600))) {
+      return NextResponse.json({ ok: false, error: "محاولات كتير. جرّب بعد شوية." }, { status: 429 });
+    }
 
     if (!isSupabaseConfigured()) return NextResponse.json({ ok: false, error: "الخدمة غير متاحة حالياً" }, { status: 503 });
     const body = await request.json().catch(() => ({}));
     const rawId = String(body.id || "").trim().replace(/^#/, "").toUpperCase();
     const phoneTail = String(body.phone || "").replace(/\D/g, "").slice(-10);
-    if (!rawId || phoneTail.length < 10) {
+    if (!rawId || !/^[A-Z0-9-]{1,24}$/.test(rawId) || phoneTail.length < 10) {
       return NextResponse.json({ ok: false, error: "اكتب رقم الطلب ورقم الموبايل اللي طلبت بيه." }, { status: 400 });
     }
     const { data } = await getSupabaseAdminClient()

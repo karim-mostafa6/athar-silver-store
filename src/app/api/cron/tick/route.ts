@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
+import { safeEqual } from "@/lib/rateLimit";
 import { processDueWhatsApp } from "@/lib/whatsapp";
+import { ensureWebhookSecret } from "@/lib/tgWebhook";
 import { processAbandonedCarts } from "@/lib/funnel";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +18,10 @@ export async function POST(request: NextRequest) {
     const provided = request.headers.get("x-cron-secret") || "";
     if (!provided) return NextResponse.json({ ok: false }, { status: 401 });
     const { data } = await getSupabaseAdminClient().from("app_config").select("value").eq("key", "cron_secret").maybeSingle();
-    if (!data || data.value !== provided) return NextResponse.json({ ok: false }, { status: 401 });
+    if (!data || !safeEqual(String(data.value), provided)) return NextResponse.json({ ok: false }, { status: 401 });
 
     const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://orma-silver.vercel.app";
+    await ensureWebhookSecret().catch(() => {});
     const wa = await processDueWhatsApp(origin);
     const carts = await processAbandonedCarts();
     return NextResponse.json({ ok: true, wa, carts });

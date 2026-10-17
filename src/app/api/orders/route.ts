@@ -1,3 +1,4 @@
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import {
@@ -49,32 +50,6 @@ const NO_CACHE_HEADERS = {
   "Expires": "0",
 };
 
-// In-memory rate limiting for checkout anti-spam (5 orders per 10 minutes per IP)
-const orderRateLimitMap = new Map<string, { count: number; firstAttempt: number }>();
-
-function checkOrderRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const windowMs = 10 * 60 * 1000; // 10 minutes
-  const record = orderRateLimitMap.get(ip);
-
-  if (!record) {
-    orderRateLimitMap.set(ip, { count: 1, firstAttempt: now });
-    return true;
-  }
-
-  if (now - record.firstAttempt > windowMs) {
-    orderRateLimitMap.set(ip, { count: 1, firstAttempt: now });
-    return true;
-  }
-
-  if (record.count >= 6) {
-    return false;
-  }
-
-  record.count += 1;
-  return true;
-}
-
 // --------------------------------------------------------------------------
 // 1. GET ORDERS (Strictly Admin Only)
 // --------------------------------------------------------------------------
@@ -87,7 +62,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const data = await getServerStoreData();
+    const data = await getServerStoreData({ ordersOnly: true });
 
     // Vercel Resilience: Trigger background reconciliation for any pending delayed WhatsApp confirmations
     const origin =
@@ -124,7 +99,6 @@ export async function GET(request: NextRequest) {
 // --------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1";
     const body = await request.json();
     const { order, orders, lastOrderSeq, deletedOrderIds, honeypot, website } = body;
 
@@ -173,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Anti-Spam Check: Rate Limit per IP
-    if (!checkOrderRateLimit(ip)) {
+    if (!(await rateLimit("order", clientIp(request), 6, 600))) {
       return NextResponse.json(
         {
           success: false,

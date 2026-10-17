@@ -19,7 +19,8 @@ function stripPrivateSettings<T extends Record<string, unknown> | undefined>(set
 export async function GET(request: NextRequest) {
   try {
     const isAdmin = isAuthorizedAdmin(request);
-    const data = await getServerStoreData();
+    // Visitors never need orders: skip that (large) query entirely for them.
+    const data = await getServerStoreData({ skipOrders: !isAdmin });
 
     // Data Privacy: Only authenticated admin can view orders & customer data
     const safeOrders = isAdmin ? data.orders : [];
