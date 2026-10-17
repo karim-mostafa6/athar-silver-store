@@ -7,7 +7,14 @@ import { playRoyalOrderChime } from "@/lib/sound";
 import { OrmaLogo } from "@/components/OrmaLogo";
 import { getAdminAuthHeaders } from "@/lib/clientAdmin";
 import { printOrderInvoice, printOrdersInvoices } from "@/lib/printInvoices";
+import { EGYPT_GOVERNORATES } from "./constants";
 import AnalyticsTab from "./tabs/AnalyticsTab";
+import PromosTab from "./tabs/PromosTab";
+import ContactTab from "./tabs/ContactTab";
+import EmailTab from "./tabs/EmailTab";
+import PoliciesTab from "./tabs/PoliciesTab";
+import ShippingTab from "./tabs/ShippingTab";
+import CheckoutTab from "./tabs/CheckoutTab";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { AdminMobileNav, groupNavItems, type NavItem } from "./AdminNav";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -43,35 +50,6 @@ type ActiveTab =
   | "policies"
   | "users";
 
-const EGYPT_GOVERNORATES: { name: string; defaultRate: number }[] = [
-  { name: "القاهرة", defaultRate: 45 },
-  { name: "الجيزة", defaultRate: 45 },
-  { name: "الإسكندرية", defaultRate: 55 },
-  { name: "القليوبية", defaultRate: 50 },
-  { name: "المنوفية", defaultRate: 60 },
-  { name: "الغربية", defaultRate: 60 },
-  { name: "الدقهلية", defaultRate: 65 },
-  { name: "كفر الشيخ", defaultRate: 65 },
-  { name: "البحيرة", defaultRate: 65 },
-  { name: "دمياط", defaultRate: 65 },
-  { name: "الشرقية", defaultRate: 65 },
-  { name: "الإسماعيلية", defaultRate: 70 },
-  { name: "بورسعيد", defaultRate: 70 },
-  { name: "السويس", defaultRate: 70 },
-  { name: "سيناء الشمالية", defaultRate: 80 },
-  { name: "سيناء الجنوبية", defaultRate: 80 },
-  { name: "الفيوم", defaultRate: 65 },
-  { name: "بني سويف", defaultRate: 70 },
-  { name: "المنيا", defaultRate: 75 },
-  { name: "أسيوط", defaultRate: 80 },
-  { name: "سوهاج", defaultRate: 80 },
-  { name: "قنا", defaultRate: 85 },
-  { name: "الأقصر", defaultRate: 85 },
-  { name: "أسوان", defaultRate: 90 },
-  { name: "البحر الأحمر", defaultRate: 90 },
-  { name: "مطروح", defaultRate: 90 },
-  { name: "الوادي الجديد", defaultRate: 90 },
-];
 
 export default function AdminPage() {
   const {
@@ -1479,15 +1457,6 @@ export default function AdminPage() {
   }, [products, categoryFilter, productSearch]);
 
   // Helper for Governorate Rate Updates
-  const updateGovRate = (govName: string, rate: number) => {
-    const currentRates = { ...(settingsForm.governorateShippingRates || {}) };
-    currentRates[govName] = rate;
-    setSettingsForm((prev) => ({
-      ...prev,
-      governorateShippingRates: currentRates,
-    }));
-  };
-
   // Helper for NavLinks Updates
   const updateNavLinkItem = (id: string, updates: Partial<NavLinkItem>) => {
     const updated = (settingsForm.navLinks || []).map((item) =>
@@ -5040,125 +5009,7 @@ export default function AdminPage() {
               TAB: CHECKOUT (صفحة الدفع والشراء المستقلة)
               ======================================================== */}
           {activeTab === "checkout" && (
-            <div className="space-y-6 max-w-4xl">
-              <div className="bg-white rounded-2xl border border-[#ded2c0] p-6 shadow-sm space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#f0e8dc]">
-                  <div>
-                    <h3 className="font-amiri text-lg font-bold text-[#161412] flex items-center gap-2">
-                      <ShoppingBag className="w-5 h-5 text-[#c5a880]" />
-                      <span>إعدادات صفحة الدفع والشراء المستقلة (Shopify Checkout)</span>
-                    </h3>
-                    <p className="text-xs text-[#756555] mt-1">
-                      التحكم الكامل في نصوص وخيارات صفحة الدفع المستقلة التي تظهر للعملاء عند الضغط على السلة.
-                    </p>
-                  </div>
-
-                  <a
-                    href="/checkout"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5 text-[#c5a880]" />
-                    <span>معاينة صفحة الدفع الحية</span>
-                  </a>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <label className="block font-bold text-[#161412] mb-1">
-                      اسم طريقة الشحن الافتراضية
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.checkoutShippingMethodTitle || ""}
-                      onChange={(e) =>
-                        setSettingsForm({ ...settingsForm, checkoutShippingMethodTitle: e.target.value })
-                      }
-                      placeholder="شحن قياسي سريع (خلال 2-4 أيام عمل)"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#161412] mb-1">
-                      نص شارة الأمان والخصوصية أسفل طرق الدفع
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.checkoutSecurityBadgeText || ""}
-                      onChange={(e) =>
-                        setSettingsForm({ ...settingsForm, checkoutSecurityBadgeText: e.target.value })
-                      }
-                      placeholder="جميع المعاملات مشفرة وآمنة بنسبة 100%"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3 pt-4 border-t border-[#f0e8dc]">
-                  <h4 className="text-xs font-bold text-[#161412]">تفعيل طرق الدفع في صفحة الشراء:</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <label className="flex items-center gap-2.5 p-3 rounded-xl border border-[#ded2c0] bg-[#f7f4ee] cursor-pointer text-xs font-bold">
-                      <input
-                        type="checkbox"
-                        checked={settingsForm.checkoutEnableCOD !== false}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, checkoutEnableCOD: e.target.checked })}
-                        className="rounded border-[#ded2c0] text-[#161412]"
-                      />
-                      <span>الدفع عند الاستلام (COD)</span>
-                    </label>
-
-                    <label className="flex items-center gap-2.5 p-3 rounded-xl border border-[#ded2c0] bg-[#f7f4ee] cursor-pointer text-xs font-bold">
-                      <input
-                        type="checkbox"
-                        checked={settingsForm.checkoutEnableWallets !== false}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, checkoutEnableWallets: e.target.checked })}
-                        className="rounded border-[#ded2c0] text-[#161412]"
-                      />
-                      <span>المحافظ وإنستاباي</span>
-                    </label>
-
-                    <label className="flex items-center gap-2.5 p-3 rounded-xl border border-[#ded2c0] bg-[#f7f4ee] cursor-pointer text-xs font-bold">
-                      <input
-                        type="checkbox"
-                        checked={settingsForm.checkoutEnableCards !== false}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, checkoutEnableCards: e.target.checked })}
-                        className="rounded border-[#ded2c0] text-[#161412]"
-                      />
-                      <span>البطاقات البنكية (فيزا/ماستركارد)</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="space-y-3 pt-4 border-t border-[#f0e8dc]">
-                  <h4 className="text-xs font-bold text-[#161412]">خيارات إضافية في صفحة الشراء:</h4>
-                  <label className="flex items-center gap-2.5 p-3 rounded-xl border border-[#ded2c0] bg-[#f7f4ee] cursor-pointer text-xs font-bold">
-                    <input
-                      type="checkbox"
-                      checked={settingsForm.checkoutEnableGiftOption !== false}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, checkoutEnableGiftOption: e.target.checked })}
-                      className="rounded border-[#ded2c0] text-[#161412]"
-                    />
-                    <span>إتاحة خيار تغليف الهدية وكتابة كارت الإهداء</span>
-                  </label>
-                </div>
-
-                <div className="pt-4 border-t border-[#f0e8dc] flex items-center justify-between">
-                  <span className="text-xs text-[#756555]">
-                    ملاحظة: يمكنك تعديل أسعار الشحن للمحافظات من تبويب «الشحن والمحافظات»، وأرقام إنستاباي من تبويب «طرق الدفع».
-                  </span>
-                  <button
-                    onClick={handleSaveSettings}
-                    disabled={isSavingSettings}
-                    className="px-6 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
-                  >
-                    <Save className="w-4 h-4 text-[#c5a880]" />
-                    <span>{isSavingSettings ? "جاري الحفظ..." : "حفظ التعديلات بالسحابة"}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+            <CheckoutTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} isSavingSettings={isSavingSettings} />
           )}
 
           {/* ========================================================
@@ -5347,295 +5198,21 @@ export default function AdminPage() {
               TAB 9: SHIPPING
               ======================================================== */}
           {activeTab === "shipping" && (
-            <div className="space-y-6 max-w-4xl">
-              {/* Regional & Free Shipping */}
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
-                  <Truck className="w-4 h-4 text-[#c5a880]" />
-                  <span>المناطق الإقليمية الرئيسية وحد الشحن المجاني</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      حد الشحن المجاني (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.freeShippingThreshold || 1500}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, freeShippingThreshold: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      شحن القاهرة والجيزة (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.shippingCairoGiza || 45}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, shippingCairoGiza: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      شحن الإسكندرية (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.shippingAlex || 55}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, shippingAlex: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      شحن الدلتا والقناة (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.shippingDeltaCanal || 65}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, shippingDeltaCanal: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      شحن الصعيد والمحافظات النائية (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.shippingUpperEgypt || 80}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, shippingUpperEgypt: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* All 27 Governorates Rates Table */}
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-[#c5a880]" />
-                    <span>جدول تسعير الشحن التفصيلي لكافة الـ 27 محافظة مصرية</span>
-                  </div>
-                  <span className="text-xs text-[#756555]">27 محافظة</span>
-                </div>
-
-                <p className="text-xs text-[#756555] mb-4">
-                  يمكنك تخصيص سعر الشحن بدقة لكل محافظة على حدة. يتم اعتماد هذه الأسعار فورياً في حاسبة السلة وإتمام الطلب.
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {EGYPT_GOVERNORATES.map((gov) => {
-                    const currentRate =
-                      settingsForm.governorateShippingRates?.[gov.name] ?? gov.defaultRate;
-
-                    return (
-                      <div
-                        key={gov.name}
-                        className="flex items-center justify-between p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] text-xs"
-                      >
-                        <span className="font-bold text-[#161412]">{gov.name}</span>
-                        <div className="flex items-center gap-1.5">
-                          <input
-                            type="number"
-                            value={currentRate}
-                            onChange={(e) => updateGovRate(gov.name, Number(e.target.value))}
-                            className="w-20 bg-white border border-[#ded2c0] rounded px-2.5 py-1 text-xs text-center font-bold text-[#161412] focus:outline-none focus:border-[#161412]"
-                          />
-                          <span className="text-[#8c7865] text-[11px]">ج.م</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4 text-[#c5a880]" />
-                <span>حفظ أسعار الشحن والمحافظات في السحابة</span>
-              </button>
-            </div>
+            <ShippingTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} />
           )}
 
           {/* ========================================================
               TAB 10: PROMOS
               ======================================================== */}
           {activeTab === "promos" && (
-            <div className="space-y-6 max-w-3xl">
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
-                  <Tag className="w-4 h-4 text-[#c5a880]" />
-                  <span>كوبونات الخصم الترويجية والعروض</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      كود الكوبون الفعّال (Promo Code)
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.promoCode || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, promoCode: e.target.value.toUpperCase() })}
-                      placeholder="ORMA10"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-mono font-bold focus:outline-none dir-ltr text-right"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      نسبة الخصم (%)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.promoDiscountPercent || 10}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, promoDiscountPercent: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-bold focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      حد الشحن المجاني المرتبط (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.freeShippingThreshold || 1500}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, freeShippingThreshold: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4 text-[#c5a880]" />
-                <span>حفظ الكوبونات والعروض</span>
-              </button>
-            </div>
+            <PromosTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} />
           )}
 
           {/* ========================================================
               TAB 11: CONTACT
               ======================================================== */}
           {activeTab === "contact" && (
-            <div className="space-y-6 max-w-4xl">
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
-                  <Phone className="w-4 h-4 text-[#c5a880]" />
-                  <span>بيانات التواصل وقنوات السوشيال ميديا</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      رقم الواتساب الرسمي (مباشر)
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.whatsappNumber || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, whatsappNumber: e.target.value })}
-                      placeholder="01143837730"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      رقم الهاتف المباشر للاتصال
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.contactPhone || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, contactPhone: e.target.value })}
-                      placeholder="01143837730"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      البريد الإلكتروني الرسمي
-                    </label>
-                    <input
-                      type="email"
-                      value={settingsForm.contactEmail || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })}
-                      placeholder="theorma.eg@gmail.com"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
-                    />
-                  </div>
-
-                </div>
-
-                <div className="pt-4 border-t border-[#f0e8dc] space-y-4">
-                  <div className="text-xs font-bold text-[#161412]">روابط منصات التواصل:</div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                        رابط إنستجرام (Instagram)
-                      </label>
-                      <input
-                        type="text"
-                        value={settingsForm.instagramUrl || ""}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
-                        placeholder="https://instagram.com/ormasilver"
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] dir-ltr focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                        رابط فيسبوك (Facebook)
-                      </label>
-                      <input
-                        type="text"
-                        value={settingsForm.facebookUrl || ""}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
-                        placeholder="https://facebook.com"
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] dir-ltr focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                        رابط تيك توك (TikTok)
-                      </label>
-                      <input
-                        type="text"
-                        value={settingsForm.tiktokUrl || ""}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, tiktokUrl: e.target.value })}
-                        placeholder="https://tiktok.com"
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] dir-ltr focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4 text-[#c5a880]" />
-                <span>حفظ بيانات التواصل والسوشيال</span>
-              </button>
-            </div>
+            <ContactTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} />
           )}
 
           {/* ========================================================
@@ -5817,143 +5394,14 @@ export default function AdminPage() {
               TAB 13: EMAIL
               ======================================================== */}
           {activeTab === "email" && (
-            <div className="space-y-6 max-w-3xl">
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
-                  <Mail className="w-4 h-4 text-[#c5a880]" />
-                  <span>إعدادات البريد الإلكتروني الرسمي (Gmail SMTP)</span>
-                </div>
-
-                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
-                  <strong>ملاحظة هامة لإرسال إيميلات تأكيد الطلبات للعملاء:</strong>
-                  <br />
-                  استخدم &quot;كلمة مرور التطبيقات (App Password)&quot; المكونة من 16 حرفاً من حساب Google، وليس كلمة مرور الإيميل الشخصية العادية.
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      اسم الراسل الرسمي (Sender Name)
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.senderEmailName || "متجر ORMA للفضة"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, senderEmailName: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      البريد الإلكتروني للراسل (Sender Email)
-                    </label>
-                    <input
-                      type="email"
-                      value={settingsForm.senderEmail || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, senderEmail: e.target.value })}
-                      placeholder="theorma.eg@gmail.com"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                    كلمة مرور التطبيقات (Gmail App Password)
-                  </label>
-                  <input
-                    type="password"
-                    value={settingsForm.gmailAppPassword || ""}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, gmailAppPassword: e.target.value })}
-                    placeholder="xxxx xxxx xxxx xxxx"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr font-mono"
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4 text-[#c5a880]" />
-                <span>حفظ إعدادات البريد الإلكتروني</span>
-              </button>
-            </div>
+            <EmailTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} />
           )}
 
           {/* ========================================================
               TAB 14: POLICIES
               ======================================================== */}
           {activeTab === "policies" && (
-            <div className="space-y-6 max-w-4xl">
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
-                  <ShieldCheck className="w-4 h-4 text-[#c5a880]" />
-                  <span>سياسات المتجر (الاستبدال والاسترجاع والضمان)</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      مهلة الاستبدال والاسترجاع (بالأيام)
-                    </label>
-                    <input
-                      type="number"
-                      value={settingsForm.returnPolicyDays || 14}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyDays: Number(e.target.value) })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold text-[#161412]"
-                    />
-                  </div>
-
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                    النص التفصيلي لسياسة الاستبدال والاسترجاع
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={settingsForm.returnPolicyText || ""}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyText: e.target.value })}
-                    placeholder="يحق للعميل معاينة واستبدال القطعة خلال 14 يوماً بشرط أن تكون بحالتها الأصلية..."
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                    نص ضمان الفضة والشهادة المعتمدة (Warranty Policy)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={settingsForm.warrantyPolicyText || ""}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, warrantyPolicyText: e.target.value })}
-                    placeholder="جميع قطع متجر ORMA مصوغة من الفضة الإسترليني عيار 925 المعتمدة والمختومة رسميًا..."
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                    الجدول الزمني المعتاد للشحن والتوصيل (Shipping Timeline)
-                  </label>
-                  <input
-                    type="text"
-                    value={settingsForm.shippingPolicyTimeline || "التوصيل خلال 2-4 أيام عمل لكافة محافظات مصر"}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, shippingPolicyTimeline: e.target.value })}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4 text-[#c5a880]" />
-                <span>حفظ سياسات المتجر والضمان</span>
-              </button>
-            </div>
+            <PoliciesTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} />
           )}
 
           {/* ========================================================
