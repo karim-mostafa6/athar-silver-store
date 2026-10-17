@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Product } from "@/data/products";
@@ -30,6 +30,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   );
   const [isAdded, setIsAdded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  // Phones/tablets have no real hover: a tap used to "hover" the card first (second image + action
+  // buttons) and needed a second tap to open it. On touch devices the card opens straight away.
+  const [canHover, setCanHover] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setCanHover(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
 
   const effectivelyWishlisted =
     isWishlisted !== undefined ? isWishlisted : store.isWishlisted(product.id);
@@ -80,17 +90,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -6 }}
+      whileHover={canHover ? { y: -6 } : undefined}
       className="group flex flex-col cursor-pointer select-none text-right block transition-all duration-300"
     >
       <Link
         href={`/product/${product.id}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={canHover ? () => setIsHovered(true) : undefined}
+        onMouseLeave={canHover ? () => setIsHovered(false) : undefined}
         className="flex flex-col h-full"
       >
         {/* Product Image Container: Beige #D8C8B3 with Charcoal 12% border */}
-        <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#D8C8B3] mb-3.5 transition-all duration-500 border border-[#292722]/12 group-hover:border-[#8E7545] group-hover:shadow-[0_18px_36px_-8px_rgba(41,39,34,0.16)]">
+        <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#D8C8B3] mb-3.5 transition-all duration-500 border border-[#292722]/12 [@media(hover:hover)]:group-hover:border-[#8E7545] [@media(hover:hover)]:group-hover:shadow-[0_18px_36px_-8px_rgba(41,39,34,0.16)]">
           {/* Primary Image */}
           <img
             src={primaryImage}
@@ -98,7 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out ${
               isHovered && product.images.length > 1
                 ? "opacity-0 scale-105"
-                : "opacity-100 scale-100 group-hover:scale-105"
+                : "opacity-100 scale-100 [@media(hover:hover)]:group-hover:scale-105"
             }`}
             loading="lazy"
             decoding="async"
@@ -125,8 +135,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
 
           {/* Subtle Luxury Sheen Sweep on Hover */}
-          <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-            <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-150%] group-hover:translate-x-[250%] transition-transform duration-1000 ease-in-out" />
+          <div className="absolute inset-0 pointer-events-none opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-700">
+            <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-150%] [@media(hover:hover)]:group-hover:translate-x-[250%] transition-transform duration-1000 ease-in-out" />
           </div>
 
           {/* Minimal Badges: Top Left */}
@@ -161,7 +171,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-md transition-all duration-300 before:content-[''] before:absolute before:-inset-[7px] ${
               effectivelyWishlisted
                 ? "bg-rose-50 text-rose-500 scale-105 shadow-sm"
-                : "bg-[#F5F0E7]/85 text-[#292722] opacity-0 group-hover:opacity-100 hover:bg-[#F5F0E7] hover:text-rose-500 hover:scale-110 shadow-xs"
+                
+                : "bg-[#F5F0E7]/85 text-[#292722] [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 hover:bg-[#F5F0E7] hover:text-rose-500 hover:scale-110 shadow-xs"
             }`}
             aria-label="المفضلة"
           >
@@ -170,8 +181,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             />
           </motion.button>
 
-          {/* Slide-Up Action Bar on Hover */}
-          <div className="absolute bottom-3 inset-x-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-10">
+          {/* Slide-Up Action Bar on Hover (desktop only) */}
+          {canHover && <div className="absolute bottom-3 inset-x-3 flex items-center gap-2 opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-all duration-300 transform translate-y-2 [@media(hover:hover)]:group-hover:translate-y-0 z-10">
             <motion.button
               type="button"
               onClick={handleQuickViewClick}
@@ -224,13 +235,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 )}
               </AnimatePresence>
             </motion.button>
-          </div>
+          </div>}
         </div>
 
         {/* Centered Minimal Product Details */}
         <div className="flex flex-col items-start space-y-1.5 px-1 mt-auto">
           {/* Product Title: Charcoal #292722 */}
-          <h3 className="text-sm sm:text-[15px] font-cairo font-semibold text-[#292722] group-hover:text-[#8E7545] transition-colors duration-300 line-clamp-2 w-full leading-relaxed">
+          <h3 className="text-sm sm:text-[15px] font-cairo font-semibold text-[#292722] [@media(hover:hover)]:group-hover:text-[#8E7545] transition-colors duration-300 line-clamp-2 w-full leading-relaxed">
             {product.arabicName}
           </h3>
 
