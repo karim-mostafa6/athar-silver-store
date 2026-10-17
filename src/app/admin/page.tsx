@@ -3801,19 +3801,6 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      شارة البانر العلوية (Hero Badge)
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.heroBadge || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, heroBadge: e.target.value })}
-                      placeholder="تشكيلة الفضة الإسترليني 925"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
                       العنوان الرئيسي (Hero Title) — استخدم سطراً جديداً للتقسيم
                     </label>
                     <textarea
@@ -3990,198 +3977,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                        درجة عتامة الغطاء (Overlay)
-                      </label>
-                      <select
-                        value={settingsForm.heroOverlayDarkness || "medium"}
-                        onChange={(e) =>
-                          setSettingsForm({
-                            ...settingsForm,
-                            heroOverlayDarkness: e.target.value as "light" | "medium" | "dark",
-                          })
-                        }
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2.5 text-xs text-[#161412] focus:outline-none"
-                      >
-                        <option value="light">خفيف (Light)</option>
-                        <option value="medium">متوسط (Medium)</option>
-                        <option value="dark">داكن (Dark)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                        ارتفاع البانر
-                      </label>
-                      <select
-                        value={settingsForm.heroHeight || "normal"}
-                        onChange={(e) =>
-                          setSettingsForm({
-                            ...settingsForm,
-                            heroHeight: e.target.value as "compact" | "normal" | "large",
-                          })
-                        }
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2.5 text-xs text-[#161412] focus:outline-none"
-                      >
-                        <option value="compact">مضغوط (Compact)</option>
-                        <option value="normal">عادي (Normal)</option>
-                        <option value="large">كامل الشاشة (Large)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                        محاذاة المحتوى
-                      </label>
-                      <select
-                        value={settingsForm.heroContentAlign || "center"}
-                        onChange={(e) =>
-                          setSettingsForm({
-                            ...settingsForm,
-                            heroContentAlign: e.target.value as "center" | "right",
-                          })
-                        }
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2.5 text-xs text-[#161412] focus:outline-none"
-                      >
-                        <option value="center">وسط (Center)</option>
-                        <option value="right">يمين (Right)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="heroKenBurns"
-                      checked={settingsForm.heroKenBurns !== false}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, heroKenBurns: e.target.checked })}
-                      className="rounded border-[#ded2c0] text-[#161412]"
-                    />
-                    <label htmlFor="heroKenBurns" className="text-xs font-medium text-[#161412] cursor-pointer">
-                      تفعيل تأثير الحركة السينمائية البطيئة (Ken Burns zoom)
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Trust Bar Section */}
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
-                  <ShieldCheck className="w-4 h-4 text-[#c5a880]" />
-                  <span>شريط الثقة والمميزات (Trust Bar)</span>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                    <input
-                      type="checkbox"
-                      checked={settingsForm.showTrustBar !== false}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, showTrustBar: e.target.checked })}
-                      className="rounded border-[#ded2c0] text-[#161412]"
-                    />
-                    <span>إظهار شريط الثقة أسفل البانر</span>
-                  </label>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#756555]">الخلفية:</span>
-                    <select
-                      value={settingsForm.trustBarBg || "default"}
-                      onChange={(e) =>
-                        setSettingsForm({
-                          ...settingsForm,
-                          trustBarBg: e.target.value as "default" | "dark" | "white",
-                        })
-                      }
-                      className="bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none"
-                    >
-                      <option value="default">كريمي افتراضي</option>
-                      <option value="dark">داكن ملكي</option>
-                      <option value="white">أبيض نقي</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
-                    <label className="block text-xs font-bold text-[#161412]">الميزة 1 (النص + الأيقونة)</label>
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem1 || "فضة 925 معتمدة ومختومة"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem1: e.target.value })}
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-2 text-xs"
-                    />
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem1Icon || "shield"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem1Icon: e.target.value })}
-                      placeholder="shield"
-                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
-                    />
-                  </div>
-
-                  <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
-                    <label className="block text-xs font-bold text-[#161412]">الميزة 2 (النص + الأيقونة)</label>
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem2 || "شحن سريع لجميع مدن ومحافظات مصر"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2: e.target.value })}
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-2 text-xs"
-                    />
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem2Icon || "truck"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem2Icon: e.target.value })}
-                      placeholder="eye"
-                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
-                    />
-                  </div>
-
-                  <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
-                    <label className="block text-xs font-bold text-[#161412]">الميزة 3 (النص + الأيقونة)</label>
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem3 || "شحن سريع لكافة المحافظات"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem3: e.target.value })}
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-2 text-xs"
-                    />
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem3Icon || "truck"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem3Icon: e.target.value })}
-                      placeholder="truck"
-                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
-                    />
-                  </div>
-
-                  <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold text-[#161412]">الميزة 4 (اختياري)</label>
-                      <label className="flex items-center gap-1 text-[11px] cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settingsForm.trustItem4Show !== false}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, trustItem4Show: e.target.checked })}
-                          className="rounded border-[#ded2c0] text-[#161412]"
-                        />
-                        <span>إظهار</span>
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem4 || "تغليف هدايا ملكي مجاني"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem4: e.target.value })}
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-2 text-xs"
-                    />
-                    <input
-                      type="text"
-                      value={settingsForm.trustItem4Icon || "gift"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, trustItem4Icon: e.target.value })}
-                      placeholder="gift"
-                      className="w-24 bg-white border border-[#ded2c0] rounded px-2 py-1 text-xs dir-ltr font-mono"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -4705,13 +4500,6 @@ export default function AdminPage() {
                     <h5 className="font-bold text-xs text-[#161412] border-b border-[#d8c8b4] pb-2">التشكيلة النسائية</h5>
                     <input
                       type="text"
-                      value={settingsForm.splitWomenTag || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenTag: e.target.value })}
-                      placeholder="الشارة: رقة وأنوثة"
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs"
-                    />
-                    <input
-                      type="text"
                       value={settingsForm.splitWomenTitle || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenTitle: e.target.value })}
                       placeholder="العنوان بالعربية"
@@ -4723,13 +4511,6 @@ export default function AdminPage() {
                       onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenEnglishTitle: e.target.value })}
                       placeholder="English Title: WOMEN'S COLLECTION"
                       className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs font-mono"
-                    />
-                    <textarea
-                      rows={2}
-                      value={settingsForm.splitWomenSubtitle || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, splitWomenSubtitle: e.target.value })}
-                      placeholder="الوصف التعريفي"
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs"
                     />
                     <input
                       type="text"
@@ -4800,13 +4581,6 @@ export default function AdminPage() {
                     <h5 className="font-bold text-xs text-[#161412] border-b border-[#d8c8b4] pb-2">التشكيلة الرجالية</h5>
                     <input
                       type="text"
-                      value={settingsForm.splitMenTag || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, splitMenTag: e.target.value })}
-                      placeholder="الشارة: هيبة وأصالة"
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs"
-                    />
-                    <input
-                      type="text"
                       value={settingsForm.splitMenTitle || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, splitMenTitle: e.target.value })}
                       placeholder="العنوان بالعربية"
@@ -4818,13 +4592,6 @@ export default function AdminPage() {
                       onChange={(e) => setSettingsForm({ ...settingsForm, splitMenEnglishTitle: e.target.value })}
                       placeholder="English Title: MEN'S COLLECTION"
                       className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs font-mono"
-                    />
-                    <textarea
-                      rows={2}
-                      value={settingsForm.splitMenSubtitle || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, splitMenSubtitle: e.target.value })}
-                      placeholder="الوصف التعريفي"
-                      className="w-full bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs"
                     />
                     <input
                       type="text"
@@ -5091,16 +4858,6 @@ export default function AdminPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">شارة العناية (Badge)</label>
-                    <input
-                      type="text"
-                      value={settingsForm.careBadge || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, careBadge: e.target.value })}
-                      placeholder="إرشادات تدوم طويلاً"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                    />
-                  </div>
-                  <div>
                     <label className="block text-xs font-medium text-[#756555] mb-1">عنوان قسم العناية</label>
                     <input
                       type="text"
@@ -5110,17 +4867,6 @@ export default function AdminPage() {
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#756555] mb-1">الوصف الفرعي</label>
-                  <textarea
-                    rows={2}
-                    value={settingsForm.careSubtitle || ""}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, careSubtitle: e.target.value })}
-                    placeholder="نصائح بسيطة تضمن استمرار لمعان مصوغاتك..."
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                  />
                 </div>
 
                 {/* 4 Care Tips */}
@@ -5261,182 +5007,32 @@ export default function AdminPage() {
               TAB 7: FOOTER
               ======================================================== */}
           {activeTab === "footer" && (
-            <div className="space-y-6 max-w-4xl">
+            <div className="space-y-6 max-w-3xl">
               <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3">
                   <FileText className="w-4 h-4 text-[#c5a880]" />
-                  <span>تخصيص الفوتر أسفل الموقع (Footer)</span>
+                  <span>الفوتر (أسفل الصفحة)</span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">عنوان البراند بالفوتر</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerBrandTitle || "ORMA"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerBrandTitle: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">الشعار الإنجليزي بالفوتر</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerEnglishTag || "FINE STERLING SILVER 925"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerEnglishTag: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#756555] mb-1">النبذة التعريفية بالفوتر (Brand Bio)</label>
-                  <textarea
-                    rows={2}
-                    value={settingsForm.footerBrandBio || ""}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, footerBrandBio: e.target.value })}
-                    placeholder="نبذة موجزة عن علامة ORMA ومصوغات الفضة 925..."
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                  />
-                </div>
-
-                {/* Columns Controls */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-[#f0e8dc]">
-                  <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#161412]">عمود الأقسام</span>
-                      <label className="flex items-center gap-1 text-[11px] cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settingsForm.footerColCategoriesShow !== false}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, footerColCategoriesShow: e.target.checked })}
-                          className="rounded border-[#ded2c0] text-[#161412]"
-                        />
-                        <span>إظهار</span>
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={settingsForm.footerColCategoriesTitle || "التشكيلات"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerColCategoriesTitle: e.target.value })}
-                      className="w-full bg-white border border-[#ded2c0] rounded px-2.5 py-1.5 text-xs"
-                    />
-                  </div>
-
-                  <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#161412]">عمود خدمة العملاء</span>
-                      <label className="flex items-center gap-1 text-[11px] cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settingsForm.footerColCustomerServiceShow !== false}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, footerColCustomerServiceShow: e.target.checked })}
-                          className="rounded border-[#ded2c0] text-[#161412]"
-                        />
-                        <span>إظهار</span>
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={settingsForm.footerColCustomerServiceTitle || "خدمة العملاء"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerColCustomerServiceTitle: e.target.value })}
-                      className="w-full bg-white border border-[#ded2c0] rounded px-2.5 py-1.5 text-xs"
-                    />
-                  </div>
-
-                  <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#161412]">عمود التواصل</span>
-                      <label className="flex items-center gap-1 text-[11px] cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settingsForm.footerColContactShow !== false}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, footerColContactShow: e.target.checked })}
-                          className="rounded border-[#ded2c0] text-[#161412]"
-                        />
-                        <span>إظهار</span>
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={settingsForm.footerColContactTitle || "تواصل معنا"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerColContactTitle: e.target.value })}
-                      className="w-full bg-white border border-[#ded2c0] rounded px-2.5 py-1.5 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">نص رابط دليل المقاسات</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerSizeGuideText || "دليل مقاسات الخواتم"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerSizeGuideText: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">نص رابط العناية بالفضة</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerSilverCareText || "إرشادات الحفاظ على الفضة"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerSilverCareText: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">عنوان قسم الدفع بالفوتر</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerPaymentTitle || "طرق الدفع الآمنة"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerPaymentTitle: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">شارات الدفع المعتمدة</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerPaymentBadgesText || "الدفع عند الاستلام • إنستاباي • فودافون كاش • فيزا ومستر كارد"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerPaymentBadgesText: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#f0e8dc]">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">نص حقوق الملكية (Copyright)</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerCopyrightText || "جميع الحقوق محفوظة © 2026 متجر ORMA للفضة"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerCopyrightText: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1">عبارة الشغف والإهداء</label>
-                    <input
-                      type="text"
-                      value={settingsForm.footerPassionTagline || "Not Given, But Left • مش بتتهدي.. بتتساب"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, footerPassionTagline: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
-                    />
-                  </div>
+                <p className="text-xs leading-relaxed text-[#756555]">
+                  الفوتر في تصميم ORMA ثابت (الشعار والشعار اللفظي وحقوق النشر)، وبياخد محتواه من الأقسام التالية، فاضغط على القسم اللي عايز تعدله:
+                </p>
+                <div className="grid grid-cols-1 gap-2">
+                  {[
+                    { id: "contact", title: "التواصل والسوشيال", desc: "رقم الهاتف، الإيميل، روابط إنستجرام وفيسبوك وتيك توك اللي بتظهر كأيقونات في الفوتر." },
+                    { id: "pages", title: "الصفحات المستقلة", desc: "روابط (تواصل معنا، العناية بالفضة، عن ORMA، الاستبدال، الضمان) وأي صفحة جديدة تفعّل لها «إظهار في الفوتر»." },
+                  ].map((x) => (
+                    <button
+                      key={x.id}
+                      type="button"
+                      onClick={() => handleTabClick(x.id as ActiveTab)}
+                      className="w-full text-right min-h-[56px] px-4 py-3 rounded-xl border border-[#e8ded0] bg-[#fbf9f5] hover:bg-[#f3ece0] transition-colors"
+                    >
+                      <span className="block text-sm font-bold text-[#161412]">{x.title}</span>
+                      <span className="block text-[11px] text-[#756555] mt-0.5">{x.desc}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
-
-              <button
-                onClick={handleSaveSettings}
-                className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4 text-[#c5a880]" />
-                <span>حفظ إعدادات الفوتر</span>
-              </button>
             </div>
           )}
 
@@ -5469,19 +5065,6 @@ export default function AdminPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  <div className="md:col-span-2">
-                    <label className="block font-bold text-[#161412] mb-1">
-                      اسم المتجر أو العنوان أعلى صفحة الدفع
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.checkoutHeaderTitle || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, checkoutHeaderTitle: e.target.value })}
-                      placeholder="ORMA للفضة الإسترليني 925"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
-
                   <div>
                     <label className="block font-bold text-[#161412] mb-1">
                       اسم طريقة الشحن الافتراضية
@@ -5669,80 +5252,6 @@ export default function AdminPage() {
                     placeholder="يرجى تحويل المبلغ الإجمالي ثم إرفاق لقطة شاشة للإيصال لتأكيد الطلب فوراً..."
                     className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] focus:outline-none"
                   />
-                </div>
-              </div>
-
-              {/* Paymob Gateway */}
-              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-[#c5a880]" />
-                    <span>بوابة الدفع الإلكتروني بالبطاقات (Paymob)</span>
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#161412]">
-                    <input
-                      type="checkbox"
-                      checked={settingsForm.paymobEnabled || false}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobEnabled: e.target.checked })}
-                      className="rounded border-[#ded2c0] text-[#161412]"
-                    />
-                    <span>تفعيل الدفع بالفيزا / ماستركارد</span>
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      مفتاح الواجهة (Paymob API Key)
-                    </label>
-                    <input
-                      type="password"
-                      value={settingsForm.paymobApiKey || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobApiKey: e.target.value })}
-                      placeholder="ZXlKaGJHY2lPaUpJVXpJMU5p..."
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      وضع التشغيل (Mode)
-                    </label>
-                    <select
-                      value={settingsForm.paymobMode || "test"}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobMode: e.target.value as "test" | "live" })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    >
-                      <option value="test">بيئة تجريبية (Test Sandbox)</option>
-                      <option value="live">بيئة حية للإنتاج (Live Production)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      معرف الربط (Integration ID)
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.paymobIntegrationId || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobIntegrationId: e.target.value })}
-                      placeholder="123456"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      معرف الإطار (Iframe ID)
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.paymobIframeId || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobIframeId: e.target.value })}
-                      placeholder="789012"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -5993,18 +5502,6 @@ export default function AdminPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                      عنوان المقر / الورشة
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.contactAddress || ""}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, contactAddress: e.target.value })}
-                      placeholder="القاهرة - مصر"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
-                    />
-                  </div>
                 </div>
 
                 <div className="pt-4 border-t border-[#f0e8dc] space-y-4">
@@ -6330,29 +5827,6 @@ export default function AdminPage() {
                     />
                   </div>
 
-                  <div className="flex items-center pt-6">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                      <input
-                        type="checkbox"
-                        checked={settingsForm.returnPolicyFreeExchange !== false}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyFreeExchange: e.target.checked })}
-                        className="rounded border-[#ded2c0] text-[#161412]"
-                      />
-                      <span>استبدال مجاني في حال وجود أي عيب مصنعي</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#756555] mb-1.5">
-                    عنوان سياسة الاسترجاع (Policy Title)
-                  </label>
-                  <input
-                    type="text"
-                    value={settingsForm.returnPolicyTitle || "سياسة الاستبدال والاسترجاع وضمان الفضة 925"}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyTitle: e.target.value })}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold text-[#161412]"
-                  />
                 </div>
 
                 <div>

@@ -25,6 +25,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     "مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك وتبقى بصمة لا تُمحى.";
   const primaryButtonText = storeSettings.heroButtonText || "تسوّق المجموعة";
   const secondaryButtonText = storeSettings.heroSecondaryButtonText || "اكتشف ORMA";
+  const showPrimary = storeSettings.heroButtonShow !== false;
+  const showSecondary = storeSettings.heroSecondaryButtonShow !== false;
+  const primaryLink = (storeSettings.heroButtonLink || "").trim();
+  const secondaryLink = (storeSettings.heroSecondaryButtonLink || "").trim() || "#story";
 
   // Parse lines for headline
   const headlineLines = headline.split("\n");
@@ -92,21 +96,31 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Action Buttons matching luxury e-commerce standards */}
           <div className="flex items-center justify-start gap-4 pt-3 flex-wrap">
             {/* Primary Action Button */}
+            {showPrimary && (
             <button
-              onClick={onExploreClick}
+              onClick={() => {
+                if (primaryLink && !primaryLink.startsWith("/#") && primaryLink !== "#products") {
+                  window.location.href = primaryLink;
+                } else {
+                  onExploreClick();
+                }
+              }}
               className="px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-white text-[#161412] hover:bg-[#F5F0E7] font-cairo text-xs sm:text-sm font-bold transition-all duration-300 shadow-xl hover:shadow-2xl active:scale-95 flex items-center gap-2.5 group cursor-pointer"
             >
               <span>{primaryButtonText}</span>
               <ArrowLeft className="w-4 h-4 text-[#8E7545] group-hover:-translate-x-1 transition-transform" />
             </button>
+            )}
 
             {/* Secondary Action Link */}
+            {showSecondary && (
             <a
-              href="#story"
+              href={secondaryLink}
               className="px-7 sm:px-8 py-3.5 sm:py-4 rounded-full bg-black/40 backdrop-blur-md border border-white/30 text-white hover:bg-white/10 hover:border-white/60 font-cairo text-xs sm:text-sm font-medium transition-all duration-300 flex items-center gap-2 cursor-pointer"
             >
               <span>{secondaryButtonText}</span>
             </a>
+            )}
           </div>
         </div>
       </div>
