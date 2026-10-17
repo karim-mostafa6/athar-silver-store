@@ -113,7 +113,7 @@ export default async function RootLayout({
   const initialStore = await loadInitialStore();
 
   return (
-    <html lang="ar" dir="rtl" className="scroll-smooth">
+    <html lang="ar" dir="rtl">
       <head>
         {/* Dynamic Build Version / Hash tags: auto-generated at build time */}
         <meta name="build-id" content={BUILD_ID} />
