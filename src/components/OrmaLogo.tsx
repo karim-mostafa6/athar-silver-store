@@ -113,6 +113,4 @@ export const OrmaLogo: React.FC<OrmaLogoProps> = ({
   return logoContent;
 };
 
-// Backwards compatibility alias
-export const AtharLogo = OrmaLogo;
 export default OrmaLogo;

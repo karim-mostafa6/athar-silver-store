@@ -86,16 +86,6 @@ const config: Config = {
           border: "rgba(41, 39, 34, 0.12)",
           footerDivider: "rgba(245, 240, 231, 0.15)",
         },
-        athar: {
-          gold: "#8E7545",
-          silver: "#c0c4cc",
-          platinum: "#e2e5eb",
-          beige: "#D8C8B3",
-          cream: "#F5F0E7",
-          sand: "#D8C8B3",
-          border: "rgba(41, 39, 34, 0.12)",
-          dark: "#292722",
-        },
       },
       fontFamily: {
         tajawal: ["var(--font-tajawal)", "var(--font-cairo)", "sans-serif"],
