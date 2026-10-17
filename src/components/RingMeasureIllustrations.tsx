@@ -21,10 +21,10 @@ export const IllustrationPrepare = () => (
   <Frame label="شريط ورقي وخيط ومسطرة بالسنتيمتر">
     {/* ruler: 1 cm = 26px, tick every 0.5 cm */}
     <rect x="22" y="100" width="276" height="34" rx="5" fill="#fff" stroke={INK} strokeWidth="1.4" />
-    {Array.from({ length: 21 }).map((_, i) => (
+    {Array.from({ length: 19 }).map((_, i) => (
       <line key={i} x1={34 + i * 13} y1="100" x2={34 + i * 13} y2={i % 2 === 0 ? 118 : 110} stroke={INK} strokeWidth="1" />
     ))}
-    {Array.from({ length: 11 }).map((_, n) => (
+    {Array.from({ length: 10 }).map((_, n) => (
       <text key={n} x={34 + n * 26} y="130" fontSize="8.5" textAnchor="middle" fill={INK} fontFamily="monospace">
         {n}
       </text>

@@ -34,6 +34,7 @@ type Tab = "calc" | "table" | "how";
 
 export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, onClose }) => {
   const [tab, setTab] = useState<Tab>("calc");
+  const bodyRef = React.useRef<HTMLDivElement>(null);
   const [openStep, setOpenStep] = useState<number | null>(0);
   const [value, setValue] = useState("");
   const [result, setResult] = useState<(typeof sizeTable)[number] | null>(null);
@@ -79,10 +80,10 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full sm:max-w-xl max-h-[94vh] max-h-[94dvh] overflow-y-auto bg-[#F5F0E7] sm:rounded-[28px] rounded-t-[28px] text-[#292722] shadow-2xl text-right overscroll-contain font-tajawal"
+        className="relative w-full sm:max-w-xl flex flex-col overflow-hidden h-[88vh] h-[88dvh] sm:h-[min(86dvh,700px)] bg-[#F5F0E7] sm:rounded-[28px] rounded-t-[28px] text-[#292722] shadow-2xl text-right font-tajawal"
       >
         {/* Header */}
-        <div className="relative bg-[#292722] text-[#F5F0E7] px-6 pt-7 pb-8 overflow-hidden">
+        <div className="relative shrink-0 bg-[#292722] text-[#F5F0E7] px-6 pt-6 pb-8 overflow-hidden">
           <div className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 rounded-full border border-[#B7A078]/25" />
           <div className="pointer-events-none absolute -top-8 -left-8 w-32 h-32 rounded-full border border-[#B7A078]/25" />
           <button
@@ -94,25 +95,28 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
           </button>
           <div className="flex flex-col items-center text-center gap-3">
             <OrmaLogo variant="dark" size="sm" />
-            <div className="flex items-center gap-3 w-full max-w-[260px]">
+            <div className="flex items-center gap-3 w-full max-w-[260px] [@media(max-height:700px)]:hidden">
               <span className="h-px flex-1 bg-[#B7A078]/50" />
               <Ruler className="w-4 h-4 text-[#B7A078]" />
               <span className="h-px flex-1 bg-[#B7A078]/50" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-black font-amiri leading-tight">دليل مقاسات الخواتم</h2>
-            <p className="text-[13px] text-[#D8C8B3] leading-relaxed max-w-sm">
+            <p className="text-[13px] text-[#D8C8B3] leading-relaxed max-w-sm [@media(max-height:700px)]:hidden">
               اعرفي مقاس إصبعك بدقة، ليصلك خاتم أورما مريحاً كأنه صُنع لك.
             </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="px-4 sm:px-6 -mt-4 relative z-10">
+        <div className="shrink-0 px-4 sm:px-6 -mt-4 relative z-10">
           <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-white border border-[#292722]/12 shadow-md">
             {tabs.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id)}
+                onClick={() => {
+                  setTab(t.id);
+                  bodyRef.current?.scrollTo({ top: 0 });
+                }}
                 className={`py-2.5 rounded-xl text-[13px] font-bold transition-all active:scale-95 ${
                   tab === t.id ? "bg-[#292722] text-[#F5F0E7] shadow" : "text-[#292722]/65 hover:text-[#292722]"
                 }`}
@@ -123,7 +127,7 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 pt-5 pb-6">
+        <div ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 pt-5 pb-4">
           {/* ───────── Calculator ───────── */}
           {tab === "calc" && (
             <div className="space-y-4">
@@ -269,9 +273,12 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
             </div>
           )}
 
+        </div>
+
+        <div className="shrink-0 px-4 sm:px-6 pt-3 safe-bottom border-t border-[#292722]/10 bg-[#F5F0E7]">
           <button
             onClick={onClose}
-            className="mt-6 w-full py-3.5 rounded-2xl border border-[#292722]/20 bg-white hover:bg-[#F5F0E7] text-[#292722] font-bold text-sm transition-colors active:scale-[0.98]"
+            className="w-full py-3.5 rounded-2xl border border-[#292722]/20 bg-white hover:bg-[#F5F0E7] text-[#292722] font-bold text-sm transition-colors active:scale-[0.98]"
           >
             فهمت، شكراً
           </button>
