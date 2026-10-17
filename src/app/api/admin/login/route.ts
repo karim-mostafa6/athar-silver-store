@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAdminToken, checkRateLimit, recordFailedAttempt, resetFailedAttempts } from "@/lib/adminAuth";
-import { getServerStoreData } from "@/lib/serverStore";
+import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+import { verifyPassword, hashPassword } from "@/lib/passwordHash";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -88,12 +89,25 @@ export async function POST(request: NextRequest) {
       try {
         const storeData = await getServerStoreData();
         const subUsers = storeData.settings?.adminUsers || [];
-        const found = subUsers.find(
-          (u) =>
-            u.username.toLowerCase().trim() === trimmedUser &&
-            u.password === cleanPass &&
-            u.isActive !== false
-        );
+        let legacyMatch = false;
+        const found = subUsers.find((u) => {
+          if (u.username.toLowerCase().trim() !== trimmedUser || u.isActive === false) return false;
+          const check = verifyPassword(cleanPass, u.password);
+          if (check.ok && check.legacy) legacyMatch = true;
+          return check.ok;
+        });
+
+        // First successful login of an old plain-text account: store it hashed from now on.
+        if (found && legacyMatch && storeData.settings) {
+          try {
+            const upgraded = subUsers.map((u) =>
+              u.id === found.id ? { ...u, password: hashPassword(cleanPass) } : u
+            );
+            await saveServerStoreData({ settings: { ...storeData.settings, adminUsers: upgraded } });
+          } catch (upErr) {
+            console.warn("Could not upgrade sub-admin password hash:", upErr);
+          }
+        }
 
         if (found) {
           authenticatedUser = {

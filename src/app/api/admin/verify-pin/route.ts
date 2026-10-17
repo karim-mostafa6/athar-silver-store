@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerStoreData } from "@/lib/serverStore";
-import { generateAdminToken } from "@/lib/adminAuth";
+import { generateAdminToken, checkRateLimit, recordFailedAttempt, resetFailedAttempts } from "@/lib/adminAuth";
+import { verifyPassword } from "@/lib/passwordHash";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1";
+    const rate = checkRateLimit(ip);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { success: false, valid: false, error: `تم قفل المحاولات مؤقتاً. يرجى الانتظار ${rate.waitSeconds} ثانية.` },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { password } = body;
 
@@ -23,7 +33,7 @@ export async function POST(request: NextRequest) {
       try {
         const storeData = await getServerStoreData();
         const subUsers = storeData.settings?.adminUsers || [];
-        const found = subUsers.find((u) => u.password === entered && u.isActive !== false);
+        const found = subUsers.find((u) => u.isActive !== false && verifyPassword(entered, u.password).ok);
         if (found) {
           isValid = true;
           username = found.username;
@@ -32,6 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (isValid) {
+      resetFailedAttempts(ip);
       const token = generateAdminToken(username);
       const res = NextResponse.json({ success: true, valid: true, token });
       res.cookies.set("orma_admin_token", token, {
@@ -50,6 +61,7 @@ export async function POST(request: NextRequest) {
       });
       return res;
     } else {
+      recordFailedAttempt(ip);
       return NextResponse.json(
         { success: false, valid: false, error: "كلمة المرور غير صحيحة" },
         { status: 401 }

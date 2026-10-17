@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSettings, saveServerSettings } from "@/lib/serverSettings";
 import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
+import { hashAdminUserPasswords } from "@/lib/passwordHash";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -75,6 +76,10 @@ export async function POST(request: NextRequest) {
 
     let savedData;
     if (settings && typeof settings === "object") {
+      // Never persist plain-text sub-admin passwords.
+      if (Array.isArray(settings.adminUsers)) {
+        settings.adminUsers = hashAdminUserPasswords(settings.adminUsers);
+      }
       savedData = await saveServerStoreData({ settings });
     }
 

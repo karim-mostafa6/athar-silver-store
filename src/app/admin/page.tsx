@@ -115,7 +115,7 @@ export default function AdminPage() {
   // Active Main Tab
   const [activeTab, setActiveTab] = useState<ActiveTab>("orders");
 
-  // Settings Security Lock State (Protected by password: Kk5019Kk@#$&)
+  // Settings Security Lock State (verified on the server)
   const [isSettingsUnlocked, setIsSettingsUnlocked] = useState<boolean>(false);
   const [isSettingsPasswordModalOpen, setIsSettingsPasswordModalOpen] = useState<boolean>(false);
   const [settingsPasswordInput, setSettingsPasswordInput] = useState<string>("");
@@ -6935,7 +6935,7 @@ export default function AdminPage() {
                             {/* Password Badge */}
                             <div className="px-2.5 py-1 rounded-lg bg-white border border-[#ded2c0] text-[11px] font-mono text-[#5c4f42] flex items-center gap-1">
                               <KeyRound className="w-3 h-3 text-[#c5a880]" />
-                              <span>{u.password}</span>
+                              <span title="كلمة المرور مشفّرة ولا يمكن عرضها. لتغييرها احذف الحساب وأنشئه من جديد.">••••••••</span>
                             </div>
 
                             {/* Toggle Active Button */}
