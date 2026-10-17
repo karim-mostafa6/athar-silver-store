@@ -7,7 +7,7 @@ import { BrandStorySection } from "@/components/BrandStorySection";
 import { CategoryShowcase } from "@/components/CategoryShowcase";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useStore } from "@/context/StoreContext";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -17,6 +17,13 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const productsSectionRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  // dir = -1 moves toward the next items (leftwards in RTL), +1 back
+  const scrollCarousel = (dir: 1 | -1) => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(240, el.clientWidth * 0.8), behavior: "smooth" });
+  };
 
   const scrollToProducts = () => {
     productsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -111,23 +118,47 @@ export default function Home() {
             </div>
           </ScrollReveal>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10">
-            {displayedProducts.map((product, idx) => (
-              <ScrollReveal
-                key={product.id}
-                direction="up"
-                delay={Math.min(idx % 4, 3) * 80}
-                threshold={0.06}
-              >
-                <ProductCard
-                  product={product}
-                  isWishlisted={isWishlisted(product.id)}
-                  onToggleWishlist={toggleWishlist}
-                  onAddToCart={addToCart}
-                  onNotify={addToast}
-                />
-              </ScrollReveal>
-            ))}
+          <div className="relative">
+            {/* Horizontal swipe row: swipe with a finger on phones, arrows / trackpad on desktop */}
+            <div
+              ref={carouselRef}
+              className="flex gap-3 sm:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 scroll-px-4 sm:-mx-8 sm:px-8 sm:scroll-px-8 lg:mx-0 lg:px-0 lg:scroll-px-0 pb-2 overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {displayedProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="snap-start shrink-0 w-[42%] sm:w-[31%] lg:w-[calc(25%-15px)]"
+                >
+                  <ProductCard
+                    product={product}
+                    isWishlisted={isWishlisted(product.id)}
+                    onToggleWishlist={toggleWishlist}
+                    onAddToCart={addToCart}
+                    onNotify={addToast}
+                  />
+                </div>
+              ))}
+            </div>
+            {displayedProducts.length > 2 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="السابق"
+                  onClick={() => scrollCarousel(1)}
+                  className="hidden lg:flex absolute top-[40%] -right-5 z-10 w-10 h-10 items-center justify-center rounded-full bg-[#F5F0E7] border border-[#292722]/20 shadow-md hover:bg-[#292722] hover:text-[#F5F0E7] transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="التالي"
+                  onClick={() => scrollCarousel(-1)}
+                  className="hidden lg:flex absolute top-[40%] -left-5 z-10 w-10 h-10 items-center justify-center rounded-full bg-[#F5F0E7] border border-[#292722]/20 shadow-md hover:bg-[#292722] hover:text-[#F5F0E7] transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </div>
         )}
 
