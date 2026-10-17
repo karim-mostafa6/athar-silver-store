@@ -2,6 +2,7 @@ import { Order } from "@/context/StoreContext";
 import os from "os";
 import path from "path";
 import fs from "fs";
+import { waGoUrl } from "@/lib/waLink";
 
 /**
  * Format Egyptian phone number for WhatsApp link (e.g. 201012345678)
@@ -85,6 +86,46 @@ ${itemsText}
 
 💰 الإجمالي للتحصيل: ${totalFormatted} ج.م (شامل ${shippingFormatted}${discountLine})
 🏁━━━━━━━━━━━━━━━━━━🏁`;
+}
+
+
+/**
+ * Compact notification (keeps the chat short when many orders arrive):
+ * order #, total, customer + phone, product codes, governorate. Full invoice is one tap away ("📋 التفاصيل").
+ */
+export function formatOrderCompactTelegramMessage(order: Order): string {
+  const orderNum = order.id ? (order.id.startsWith("#") ? order.id : `#${order.id}`) : "#ORM";
+  const total = Number(order.total || 0).toLocaleString("en-US");
+  const codes = (order.items || [])
+    .map((i) => `${i.sku || (i.arabicName || i.name || "قطعة").slice(0, 14).trim()}${i.quantity > 1 ? ` ×${i.quantity}` : ""}${i.selectedSize ? ` (${String(i.selectedSize).replace(/^مقاس\s*/, "")})` : ""}`)
+    .join(" · ");
+  const pay = order.paymentMethod === "wallet" ? "محفظة" : order.paymentMethod === "card" ? "بطاقة" : "";
+  const lines = [
+    `🟢 ${orderNum} · ${total} ج.م`,
+    `👤 ${order.customerName} · ${order.phone}`,
+    `🏷 ${codes || "—"}`,
+    `📍 ${order.governorate || ""}${pay ? ` · 💳 ${pay}` : ""}${order.isGift ? " · 🎁 هدية" : ""}`,
+  ];
+  if (order.needsReview) lines.push(`⚠️ مراجعة: ${order.reviewReasons || "راجع بيانات الطلب"}`);
+  return lines.join("\n");
+}
+
+/** Inline keyboard shared by the new-order message and the status-update edit. */
+export function buildOrderKeyboard(order: Order, active?: Order["status"]) {
+  const id = order.id;
+  const mark = (s: Order["status"], on: string, off: string) => (active === s ? `✅ ${on}` : off);
+  const rows: Array<Array<Record<string, string>>> = [];
+  const waDone = order.waStatus === "sent";
+  if (order.phone) {
+    rows.push([{ text: waDone ? "✓ اتأكد على واتساب (ابعت تاني)" : "💬 تأكيد واتساب", url: waGoUrl(order) }]);
+  }
+  rows.push([
+    { text: mark("processing", "📦 جاري التجهيز", "📦 جاري التجهيز"), callback_data: `status:processing:${id}` },
+    { text: mark("shipped", "🚚 تم الشحن", "🚚 تم الشحن"), callback_data: `status:shipped:${id}` },
+    { text: mark("cancelled", "❌ ملغي", "❌ إلغاء"), callback_data: `status:cancelled:${id}` },
+  ]);
+  rows.push([{ text: "📋 التفاصيل الكاملة", callback_data: `details:${id}` }]);
+  return rows;
 }
 
 // In-memory deduplication set to avoid double notifications within warm runtime
@@ -186,7 +227,7 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
   }
 
   try {
-    const text = formatOrderInvoiceTelegramMessage(order);
+    const text = formatOrderCompactTelegramMessage(order);
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
     const response = await fetch(telegramApiUrl, {
@@ -198,24 +239,7 @@ export async function sendTelegramOrderNotification(order: Order): Promise<{
         chat_id: chatId,
         text,
         disable_web_page_preview: true,
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "📦 جاري التجهيز",
-                callback_data: `status:processing:${order.id}`,
-              },
-              {
-                text: "🚚 تم الشحن",
-                callback_data: `status:shipped:${order.id}`,
-              },
-              {
-                text: "❌ إلغاء الطلب",
-                callback_data: `status:cancelled:${order.id}`,
-              },
-            ],
-          ],
-        },
+        reply_markup: { inline_keyboard: buildOrderKeyboard(order) },
       }),
     });
 

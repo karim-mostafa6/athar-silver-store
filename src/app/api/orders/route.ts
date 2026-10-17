@@ -10,7 +10,7 @@ import {
 import { Order, OrderItem } from "@/context/StoreContext";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { sendTelegramOrderNotification } from "@/lib/telegram";
-import { reconcilePendingWhatsAppConfirmations, normalizeEgyptianPhone } from "@/lib/whatsapp";
+import { reconcilePendingWhatsAppConfirmations, normalizeEgyptianPhone, resolveProvider } from "@/lib/whatsapp";
 import { evaluateOrderReview } from "@/lib/orderReview";
 import { patchOrderFields } from "@/lib/serverStore";
 import { recordFunnelEvent, markCartRecovered, sanitizeSource } from "@/lib/funnel";
@@ -258,6 +258,7 @@ export async function POST(request: NextRequest) {
         selectedSize: item.selectedSize || undefined,
         image: realProduct.images?.[0] || item.image || "",
         costPrice: realProduct.costPrice ? Number(realProduct.costPrice) : undefined,
+        sku: realProduct.sku || undefined,
       });
     }
 
@@ -338,7 +339,7 @@ export async function POST(request: NextRequest) {
         adminNotes: rawOrder.adminNotes || undefined,
         createdAt: new Date().toISOString(),
         source: sanitizeSource(rawOrder.source),
-        waStatus: "pending",
+        waStatus: resolveProvider() ? "pending" : "manual",
       };
 
       const review = evaluateOrderReview(
@@ -404,8 +405,10 @@ export async function POST(request: NextRequest) {
     // B) WhatsApp confirmation is sent ~3 minutes later by the external scheduler (pg_cron -> /api/cron/tick).
     //    wa_status is owned by the dispatcher, so mark it "pending" explicitly here.
     if (!isExisting) {
-      await patchOrderFields(finalOrder.id, { waStatus: "pending" });
-      finalOrder.waStatus = "pending";
+      // No automatic provider connected -> "manual": the Telegram button / dashboard sends it with one tap.
+      const initialWa = resolveProvider() ? "pending" : "manual";
+      await patchOrderFields(finalOrder.id, { waStatus: initialWa });
+      finalOrder.waStatus = initialWa;
 
       // C) Funnel + abandoned-cart bookkeeping (best effort, never blocks the customer)
       (async () => {

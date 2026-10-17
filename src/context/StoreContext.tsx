@@ -312,6 +312,7 @@ export interface OrderItem {
   selectedSize?: string;
   image?: string;
   costPrice?: number; // snapshot of the product cost at order time (for profit margin)
+  sku?: string; // product code snapshot (shown in Telegram)
 }
 
 export interface Order {
@@ -351,7 +352,7 @@ export interface Order {
   whatsappConfirmedAt?: string;
   whatsappCancellation?: boolean;
   source?: string; // instagram | tiktok | facebook | google | whatsapp | direct | other
-  waStatus?: "pending" | "sending" | "sent" | "failed" | "not_configured";
+  waStatus?: "pending" | "sending" | "sent" | "failed" | "not_configured" | "manual";
   waSentAt?: string;
   waError?: string;
   needsReview?: boolean;

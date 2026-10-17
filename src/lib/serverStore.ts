@@ -854,3 +854,21 @@ export async function patchOrderFields(
     return false;
   }
 }
+
+/** Finds one order by its id (tolerates a leading "#"). Supabase first, local store fallback. */
+export async function findOrderById(rawId: string): Promise<Order | null> {
+  const clean = String(rawId || "").trim().replace(/^#/, "");
+  if (!clean) return null;
+  const candidates = [clean, `#${clean}`];
+  try {
+    if (isSupabaseConfigured()) {
+      const { data } = await getSupabaseAdminClient().from("orders").select("*").in("id", candidates).limit(1);
+      if (data && data.length > 0) return mapDbOrderToModel(data[0] as Record<string, unknown>);
+      return null;
+    }
+    const store = await getServerStoreData();
+    return store.orders.find((o) => candidates.includes(o.id)) || null;
+  } catch {
+    return null;
+  }
+}

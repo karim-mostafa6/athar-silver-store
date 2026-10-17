@@ -5,10 +5,12 @@ import {
   saveServerStoreData,
   extractOrderSequence,
   mapDbOrderToModel,
+  findOrderById,
 } from "@/lib/serverStore";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 import { Order } from "@/context/StoreContext";
 import { cancelDelayedWhatsAppJob } from "@/lib/whatsapp";
+import { buildOrderKeyboard, formatOrderInvoiceTelegramMessage } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -348,6 +350,30 @@ export async function POST(request: NextRequest) {
       const messageId = message?.message_id;
       const currentText = String(message?.text || "");
 
+      if (dataStr.startsWith("details:")) {
+        const found = await findOrderById(dataStr.slice("details:".length));
+        if (!found) {
+          await answerCallbackQuery(botToken, queryId, "⚠️ الطلب غير موجود");
+          return NextResponse.json({ ok: true });
+        }
+        await answerCallbackQuery(botToken, queryId, "📋 تفاصيل الطلب");
+        try {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: formatOrderInvoiceTelegramMessage(found),
+              reply_to_message_id: messageId,
+              disable_web_page_preview: true,
+            }),
+          });
+        } catch (e) {
+          console.error("[Telegram Webhook] details send failed:", e);
+        }
+        return NextResponse.json({ ok: true });
+      }
+
       if (!dataStr.startsWith("status:")) {
         await answerCallbackQuery(botToken, queryId, "إجراء غير معروف");
         return NextResponse.json({ ok: true });
@@ -405,23 +431,7 @@ export async function POST(request: NextRequest) {
         const baseText = currentText.split("\n\n📌 الحالة الحالية:")[0].trim();
         const updatedText = `${baseText}${statusBanner}`;
 
-        // Build updated inline keyboard with active state indicators (Only 3 status buttons)
-        const keyboard = [
-          [
-            {
-              text: newStatus === "processing" ? "✅ 📦 جاري التجهيز" : "📦 جاري التجهيز",
-              callback_data: `status:processing:${updatedOrder.id}`,
-            },
-            {
-              text: newStatus === "shipped" ? "✅ 🚚 تم الشحن" : "🚚 تم الشحن",
-              callback_data: `status:shipped:${updatedOrder.id}`,
-            },
-            {
-              text: newStatus === "cancelled" ? "✅ ❌ ملغي" : "❌ إلغاء الطلب",
-              callback_data: `status:cancelled:${updatedOrder.id}`,
-            },
-          ],
-        ];
+        const keyboard = buildOrderKeyboard(updatedOrder, newStatus);
 
         try {
           await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {

@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
     const formattedPhone = cleanPhone.startsWith("20") ? cleanPhone : `20${cleanPhone.replace(/^0/, "")}`;
     const msg = encodeURIComponent(
       `مرحباً دار ORMA، أود طلب هذه القطعة الفاخرة:\n\n*القطعة:* ${product.arabicName}\n*الكود:* ${
-        product.id
+        product.sku || product.id
       }\n${sizeText ? `*المقاس:* ${selectedSize}\n` : ""}*الكمية:* ${quantity}\n*الإجمالي:* ${
         product.price * quantity
       } ج.م.\n\n*رابط صفحة المنتج:* ${productUrl}`
@@ -328,7 +328,11 @@ export default function ProductDetailPage() {
 
             {/* English Title & Hallmark */}
             <div className="flex flex-wrap items-center justify-between gap-3 mt-2 pt-3 border-t border-[#eee5d8]">
-              <span className="text-xs text-[#705e4d] font-sans font-light tracking-wide">{product.name}</span>
+              <span className="text-xs text-[#705e4d] font-sans font-light tracking-wide">
+                {product.name}
+                {product.sku ? <span className="mx-2 text-[#c5a880]">•</span> : null}
+                {product.sku ? <span data-sku className="font-mono tracking-wider">كود: {product.sku}</span> : null}
+              </span>
               <span className="inline-flex items-center gap-1.5 text-[#524436] bg-[#f8f5f0] px-3 py-1 rounded-full text-[11px] font-normal border border-[#ded1be]">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
                 فضة إسترليني أصلية عيار 925

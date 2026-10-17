@@ -55,6 +55,34 @@ function WaChip({ order }: { order: Order }) {
     }
   };
   const base = "text-[10px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap inline-flex items-center gap-1";
+  const sendManual = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const w = window.open("", "_blank");
+    setBusy(true);
+    try {
+      const r = await fetch("/api/whatsapp/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const d = await r.json();
+      if (d.ok && d.url && w) w.location.href = d.url;
+      else w?.close();
+    } catch {
+      w?.close();
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (st === "manual")
+    return (
+      <span className={`${base} bg-amber-50 text-amber-900 border-amber-300`}>
+        📲 تأكيد واتساب لسه
+        <button type="button" onClick={sendManual} disabled={busy} className="underline disabled:opacity-50">
+          {busy ? "..." : "ابعت دلوقتي"}
+        </button>
+      </span>
+    );
   if (st === "sent")
     return <span className={`${base} bg-emerald-50 text-emerald-800 border-emerald-300`}>✓ تأكيد واتساب اتبعت{time ? ` ${time}` : ""}</span>;
   if (st === "pending")
