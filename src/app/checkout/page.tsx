@@ -652,9 +652,41 @@ export default function CheckoutPage() {
                       {item.selectedSize && (
                         <span className="text-[10px] text-[#8c7865]">مقاس: {item.selectedSize}</span>
                       )}
+                      {/* Quantity + remove (touch-sized) */}
+                      <div className="flex items-center gap-2 pt-1.5">
+                        <button
+                          type="button"
+                          aria-label="تقليل الكمية"
+                          onClick={() =>
+                            updateQuantity(item.product.id, Math.max(1, item.quantity - 1), item.selectedSize)
+                          }
+                          className="w-9 h-9 rounded-lg bg-white border border-[#ded2c0] text-[#756555] active:scale-90 flex items-center justify-center"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-sm font-mono font-bold text-[#161412] w-5 text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label="زيادة الكمية"
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize)}
+                          className="w-9 h-9 rounded-lg bg-white border border-[#ded2c0] text-[#756555] active:scale-90 flex items-center justify-center"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="حذف القطعة"
+                          onClick={() => removeFromCart(item.product.id, item.selectedSize)}
+                          className="w-9 h-9 mr-1 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 active:scale-90 flex items-center justify-center"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-[#161412] font-mono">
+                  <span className="text-xs font-bold text-[#161412] font-mono self-start pt-1">
                     {(item.product.price * item.quantity).toLocaleString("en-US")} ج.م
                   </span>
                 </div>
