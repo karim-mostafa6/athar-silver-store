@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+import { getServerStoreData, saveServerStoreData, saveProductsDelta } from "@/lib/serverStore";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { BUILD_ID, BUILD_TIMESTAMP, STORE_VERSION } from "@/lib/version";
 
@@ -47,8 +47,24 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { products } = body;
+    const { products, upserts, deletedIds } = body;
 
+    // Preferred: delta save (only the products that changed / were deleted).
+    if (Array.isArray(upserts) || Array.isArray(deletedIds)) {
+      const saved = await saveProductsDelta({
+        upserts: Array.isArray(upserts) ? upserts : [],
+        deletedIds: Array.isArray(deletedIds) ? deletedIds : [],
+      });
+      return NextResponse.json({
+        success: true,
+        message: "تم حفظ التعديل في قاعدة البيانات.",
+        productsCount: saved.savedCount,
+        deletedCount: saved.deletedCount,
+        updatedAt: saved.catalogVersion,
+      });
+    }
+
+    // Legacy / explicit "replace the whole catalog" (e.g. reset to defaults).
     if (!Array.isArray(products)) {
       return NextResponse.json(
         { success: false, error: "Invalid products array" },

@@ -821,6 +821,14 @@ function recordDeletedOrderId(orderId: string) {
   } catch {}
 }
 
+function hasInlineImage(value: unknown, depth = 0): boolean {
+  if (depth > 8 || value == null) return false;
+  if (typeof value === "string") return value.length > 2000 && value.startsWith("data:image/");
+  if (Array.isArray(value)) return value.some((v) => hasInlineImage(v, depth + 1));
+  if (typeof value === "object") return Object.values(value as Record<string, unknown>).some((v) => hasInlineImage(v, depth + 1));
+  return false;
+}
+
 export function getDeletedProductIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
@@ -1058,6 +1066,14 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
 
   // Background Central Server Sync (Optimized & non-blocking)
   const productSaveInFlightRef = useRef(0);
+  const imageMigrationTriedRef = useRef(false);
+  // Product delta-sync state: only the products that changed are sent (never the whole catalog).
+  const productsRef = useRef<Product[]>(products);
+  const dirtyProductIdsRef = useRef<Set<string>>(new Set());
+  const deletedProductIdsRef = useRef<Set<string>>(new Set());
+  const isProductSyncingRef = useRef(false);
+  const hasPendingProductSyncRef = useRef(false);
+  const productSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ids of orders with changes the server has not confirmed yet (queued OR being sent).
   // Only these are sent to the server, and the periodic server refresh must not overwrite them.
   const dirtyOrderIdsRef = useRef<Set<string>>(new Set());
@@ -1131,8 +1147,13 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         if (Array.isArray(data.products)) {
           // While one of our own product saves is still in flight, the server list is about to
           // change; applying it now would flicker deleted items back. Skip until it finishes.
-          if (productSaveInFlightRef.current === 0) {
+          if (
+            productSaveInFlightRef.current === 0 &&
+            dirtyProductIdsRef.current.size === 0 &&
+            deletedProductIdsRef.current.size === 0
+          ) {
             const serverProds = data.products.filter((p: Product) => p && p.id);
+            productsRef.current = serverProds;
             setProducts(serverProds);
             setIsProductsLoaded(true);
           }
@@ -1153,6 +1174,22 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
           try {
             localStorage.setItem("athar_store_settings", JSON.stringify(serverSettings));
           } catch {}
+        }
+
+        // Admin only (they receive the full settings): if big inline images are still stored in the
+        // database, move them to storage once. Customers then stop downloading them.
+        if (
+          !imageMigrationTriedRef.current &&
+          (authHeaders["Authorization"] || authHeaders["x-orma-admin-token"]) &&
+          hasInlineImage(data.settings)
+        ) {
+          imageMigrationTriedRef.current = true;
+          fetch("/api/admin/migrate-images", { method: "POST", headers: authHeaders })
+            .then((r) => r.json())
+            .then((r) => {
+              if (r && r.success && r.migrated > 0) syncWithServer(true);
+            })
+            .catch(() => {});
         }
 
         if (typeof data.lastOrderSeq === "number") {
@@ -1322,6 +1359,17 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     };
   }, [syncWithServer, initialStore]);
 
+  // Keep the products ref aligned with state whenever no admin edit is pending.
+  useEffect(() => {
+    if (
+      dirtyProductIdsRef.current.size === 0 &&
+      deletedProductIdsRef.current.size === 0 &&
+      !isProductSyncingRef.current
+    ) {
+      productsRef.current = products;
+    }
+  }, [products]);
+
   // Instant cross-tab sync on same device (0ms latency between admin tab & storefront tab)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -1441,7 +1489,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     }
   };
 
-  // Helper to sync products to server
+  // Replace the WHOLE catalog on the server. Only used for "reset to default products".
   const syncProductsToServer = (prods: Product[]) => {
     productSaveInFlightRef.current += 1;
     let failed = false;
@@ -1466,10 +1514,75 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       })
       .finally(() => {
         productSaveInFlightRef.current = Math.max(0, productSaveInFlightRef.current - 1);
-        // After ANY save, re-read what the server really holds so the admin screen shows the
-        // truth. On failure this reverts the optimistic edit instead of leaving a phantom state.
-        if (failed || productSaveInFlightRef.current === 0) syncWithServer(true);
+        if (failed) syncWithServer(true);
       });
+  };
+
+  // Delta sync: sends only the products that were added/edited plus the ids that were deleted.
+  const flushProductsSync = () => {
+    if (isProductSyncingRef.current) {
+      hasPendingProductSyncRef.current = true;
+      return;
+    }
+    const ids = Array.from(dirtyProductIdsRef.current);
+    const deleted = Array.from(deletedProductIdsRef.current);
+    if (ids.length === 0 && deleted.length === 0) return;
+
+    isProductSyncingRef.current = true;
+    hasPendingProductSyncRef.current = false;
+    dirtyProductIdsRef.current.clear();
+    deletedProductIdsRef.current.clear();
+    productSaveInFlightRef.current += 1;
+
+    const idSet = new Set(ids);
+    const upserts = productsRef.current.filter((p) => p && idSet.has(p.id));
+    let failed = false;
+
+    fetch("/api/products", {
+      method: "POST",
+      headers: getAdminAuthHeaders(),
+      body: JSON.stringify({ upserts, deletedIds: deleted }),
+    })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          failed = true;
+          reportSaveFailure("المنتجات", res.status, data?.error);
+          return;
+        }
+        if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+      })
+      .catch((err) => {
+        failed = true;
+        console.warn("Could not sync products to server:", err);
+        reportSaveFailure("المنتجات", 0);
+      })
+      .finally(() => {
+        productSaveInFlightRef.current = Math.max(0, productSaveInFlightRef.current - 1);
+        isProductSyncingRef.current = false;
+        if (failed) {
+          // Revert to what the server really holds instead of showing an unsaved phantom state.
+          dirtyProductIdsRef.current.clear();
+          deletedProductIdsRef.current.clear();
+          syncWithServer(true);
+          return;
+        }
+        if (
+          hasPendingProductSyncRef.current ||
+          dirtyProductIdsRef.current.size > 0 ||
+          deletedProductIdsRef.current.size > 0
+        ) {
+          flushProductsSync();
+        }
+      });
+  };
+
+  const scheduleProductsSync = () => {
+    if (productSyncTimerRef.current) clearTimeout(productSyncTimerRef.current);
+    productSyncTimerRef.current = setTimeout(() => {
+      productSyncTimerRef.current = null;
+      flushProductsSync();
+    }, 80);
   };
 
   // High-performance concurrency engine for orders:
@@ -1663,44 +1776,40 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       });
   };
 
-  // Products CRUD
+  // Products CRUD. State updates instantly; only the touched product is sent to the server.
   const addProduct = (newProduct: Product) => {
-    setProducts((prev) => {
-      const updated = [newProduct, ...prev];
-      try {
-        localStorage.setItem("athar_custom_products", JSON.stringify(updated));
-      } catch {}
-      syncProductsToServer(updated);
-      return updated;
-    });
+    const updated = [newProduct, ...productsRef.current];
+    productsRef.current = updated;
+    dirtyProductIdsRef.current.add(newProduct.id);
+    deletedProductIdsRef.current.delete(newProduct.id);
+    setProducts(updated);
+    scheduleProductsSync();
     addToast("إدارة المنتجات", `تمت إضافة القطعة "${newProduct.arabicName}" بنجاح`, "info");
   };
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
-    setProducts((prev) => {
-      const updatedList = prev.map((p) => (p.id === id ? { ...p, ...updated } : p));
-      try {
-        localStorage.setItem("athar_custom_products", JSON.stringify(updatedList));
-      } catch {}
-      syncProductsToServer(updatedList);
-      return updatedList;
-    });
+    const updatedList = productsRef.current.map((p) => (p.id === id ? { ...p, ...updated } : p));
+    productsRef.current = updatedList;
+    dirtyProductIdsRef.current.add(id);
+    setProducts(updatedList);
+    scheduleProductsSync();
     addToast("إدارة المنتجات", "تم تحديث بيانات القطعة بنجاح", "info");
   };
 
   const deleteProduct = (id: string) => {
-    setProducts((prev) => {
-      const updated = prev.filter((p) => p.id !== id);
-      try {
-        localStorage.setItem("athar_custom_products", JSON.stringify(updated));
-      } catch {}
-      syncProductsToServer(updated);
-      return updated;
-    });
+    const updated = productsRef.current.filter((p) => p.id !== id);
+    productsRef.current = updated;
+    dirtyProductIdsRef.current.delete(id);
+    deletedProductIdsRef.current.add(id);
+    setProducts(updated);
+    scheduleProductsSync();
     addToast("إدارة المنتجات", "تم حذف القطعة من المتجر", "info");
   };
 
   const resetProductsToDefault = () => {
+    productsRef.current = PRODUCTS;
+    dirtyProductIdsRef.current.clear();
+    deletedProductIdsRef.current.clear();
     setProducts(PRODUCTS);
     localStorage.removeItem("athar_custom_products");
     syncProductsToServer(PRODUCTS);

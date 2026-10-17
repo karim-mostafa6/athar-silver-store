@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Product, PRODUCTS, DEFAULT_CATEGORIES } from "@/data/products";
 import { StoreSettings, Order } from "@/context/StoreContext";
 import { getSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
+import { externalizeInlineImages } from "./imageStorage";
 
 export interface ServerStoreData {
   products: Product[];
@@ -516,8 +517,17 @@ export async function saveServerStoreData(
     combinedDeletedIds
   );
 
-  const updatedProducts = updates.products !== undefined ? updates.products : current.products;
-  const updatedSettings = updates.settings !== undefined ? { ...current.settings, ...updates.settings } : current.settings;
+  let updatedProducts = updates.products !== undefined ? updates.products : current.products;
+  let updatedSettings = updates.settings !== undefined ? { ...current.settings, ...updates.settings } : current.settings;
+
+  // Keep large inline images out of the database: move them to Storage and store URLs only.
+  // Runs on the merged settings, so any settings save also migrates images already stored inline.
+  if (updates.settings !== undefined) {
+    updatedSettings = (await externalizeInlineImages(updatedSettings, "site")).value;
+  }
+  if (updates.products !== undefined) {
+    updatedProducts = (await externalizeInlineImages(updatedProducts, "products")).value;
+  }
 
   const updated: ServerStoreData = {
     products: updatedProducts,
@@ -537,11 +547,11 @@ export async function saveServerStoreData(
       const supabase = getSupabaseAdminClient();
 
       if (updates.products !== undefined) {
-        const dbProducts = updates.products.map(mapModelProductToDb);
+        const dbProducts = updatedProducts.map(mapModelProductToDb);
         if (dbProducts.length > 0) {
           const { error: upsertErr } = await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
           if (upsertErr) throw new Error(`خطأ Supabase في جدول المنتجات: ${upsertErr.message}`);
-          const activeIds = new Set(updates.products.map((p) => p.id));
+          const activeIds = new Set(updatedProducts.map((p) => p.id));
           // Delete any products in Supabase that are no longer in the active catalog.
           // Explicit id list (instead of a negated IN filter) and a hard failure: if the delete
           // does not happen the admin must be told, otherwise removed products keep showing to
@@ -610,6 +620,50 @@ export async function saveServerStoreData(
   }
 
   return updated;
+  });
+}
+
+
+// ----------------------------------------------------
+// FAST PATH: save only the products that changed (add / edit / delete one product)
+// ----------------------------------------------------
+// Sending and rewriting the whole catalog for a single edit was slow, and let a stale admin tab
+// overwrite edits made elsewhere. Only the touched rows are written here.
+export async function saveProductsDelta(input: {
+  upserts?: Product[];
+  deletedIds?: string[];
+}): Promise<{ catalogVersion: string; savedCount: number; deletedCount: number }> {
+  const deletedIds = Array.from(new Set((input.deletedIds || []).filter(Boolean).map(String)));
+  const deletedSet = new Set(deletedIds);
+  const upserts = (input.upserts || []).filter((p) => p && p.id && !deletedSet.has(p.id));
+
+  if (!isSupabaseConfigured()) {
+    const current = await getServerStoreData();
+    const map = new Map(current.products.map((p) => [p.id, p]));
+    for (const id of deletedIds) map.delete(id);
+    for (const p of upserts) map.set(p.id, p);
+    const saved = await saveServerStoreData({ products: Array.from(map.values()) });
+    return { catalogVersion: saved.updatedAt, savedCount: upserts.length, deletedCount: deletedIds.length };
+  }
+
+  return serverStoreSaveLock.acquire(async () => {
+    const supabase = getSupabaseAdminClient();
+    const { value: cleanUpserts } = await externalizeInlineImages(upserts, "products");
+
+    if (cleanUpserts.length > 0) {
+      const { error } = await supabase
+        .from("products")
+        .upsert(cleanUpserts.map(mapModelProductToDb), { onConflict: "id" });
+      if (error) throw new Error(`خطأ Supabase في جدول المنتجات: ${error.message}`);
+    }
+    if (deletedIds.length > 0) {
+      const { error } = await supabase.from("products").delete().in("id", deletedIds);
+      if (error) throw new Error(`خطأ Supabase في حذف المنتجات: ${error.message}`);
+    }
+
+    const catalogVersion = await getCatalogVersion();
+    cachedLastUpdated = catalogVersion || cachedLastUpdated;
+    return { catalogVersion, savedCount: cleanUpserts.length, deletedCount: deletedIds.length };
   });
 }
 
