@@ -375,7 +375,7 @@ function CollectionPageContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in-up">
         {/* Breadcrumb Bar */}
         <nav className="flex items-center gap-2 text-xs text-[#705e4d] mb-8 font-light">
-          <Link href="/" className="hover:text-[#1c1815] transition-colors">
+          <Link href="/" className="py-3 -my-3 hover:text-[#1c1815] transition-colors">
             الرئيسية
           </Link>
           <span className="text-[#c4b5a5]">/</span>

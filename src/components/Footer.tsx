@@ -40,19 +40,19 @@ export const Footer: React.FC<FooterProps> = () => {
 
           {/* Center: Essential Navigation Links */}
           <nav className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm font-medium text-[#F5F0E7]/75 font-tajawal">
-            <Link href="/page/contact" className="hover:text-[#F5F0E7] transition-colors">
+            <Link href="/page/contact" className="py-3 -my-3 hover:text-[#F5F0E7] transition-colors">
               تواصل معنا
             </Link>
-            <Link href="/page/care" className="hover:text-[#F5F0E7] transition-colors">
+            <Link href="/page/care" className="py-3 -my-3 hover:text-[#F5F0E7] transition-colors">
               العناية بالفضة
             </Link>
-            <Link href="/page/about" className="hover:text-[#F5F0E7] transition-colors">
+            <Link href="/page/about" className="py-3 -my-3 hover:text-[#F5F0E7] transition-colors">
               عن ORMA
             </Link>
-            <Link href="/page/returns" className="hover:text-[#F5F0E7] transition-colors">
+            <Link href="/page/returns" className="py-3 -my-3 hover:text-[#F5F0E7] transition-colors">
               الاستبدال والاسترجاع
             </Link>
-            <Link href="/page/warranty" className="hover:text-[#F5F0E7] transition-colors">
+            <Link href="/page/warranty" className="py-3 -my-3 hover:text-[#F5F0E7] transition-colors">
               سياسة الضمان
             </Link>
 
@@ -68,7 +68,7 @@ export const Footer: React.FC<FooterProps> = () => {
                 <Link
                   key={p.slug}
                   href={`/page/${p.slug}`}
-                  className="hover:text-[#F5F0E7] transition-colors"
+                  className="py-3 -my-3 hover:text-[#F5F0E7] transition-colors"
                 >
                   {p.footerLabel || p.title}
                 </Link>
@@ -81,7 +81,7 @@ export const Footer: React.FC<FooterProps> = () => {
               href={instagram}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-mono font-medium text-[#B7A078] hover:text-[#F5F0E7] transition-colors dir-ltr"
+              className="py-3 -my-3 text-xs font-mono font-medium text-[#B7A078] hover:text-[#F5F0E7] transition-colors dir-ltr"
             >
               @ormasilver
             </a>

@@ -157,7 +157,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={handleHeartClick}
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.85 }}
-            className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-md transition-all duration-300 ${
+            className={`absolute top-3 right-3 z-10 p-2 rounded-full backdrop-blur-md transition-all duration-300 before:content-[''] before:absolute before:-inset-[7px] ${
               effectivelyWishlisted
                 ? "bg-rose-50 text-rose-500 scale-105 shadow-sm"
                 : "bg-[#F5F0E7]/85 text-[#292722] opacity-0 group-hover:opacity-100 hover:bg-[#F5F0E7] hover:text-rose-500 hover:scale-110 shadow-xs"

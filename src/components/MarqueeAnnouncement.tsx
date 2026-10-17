@@ -90,7 +90,7 @@ export const MarqueeAnnouncement: React.FC<MarqueeAnnouncementProps> = ({ onNoti
           </span>
           <button
             onClick={handleCopyCode}
-            className="inline-flex items-center gap-1 bg-[#1c1815] hover:bg-[#382f28] text-white px-2 py-0.5 rounded-full font-mono text-[11px] font-bold transition-transform active:scale-90 border border-amber-500/30 shadow-sm"
+            className="relative before:content-[''] before:absolute before:-inset-y-2 before:inset-x-0 inline-flex items-center gap-1 bg-[#1c1815] hover:bg-[#382f28] text-white px-2 py-0.5 rounded-full font-mono text-[11px] font-bold transition-transform active:scale-90 border border-amber-500/30 shadow-sm"
             title="انقر لنسخ الكوبون"
           >
             <span>{storeSettings.promoCode}</span>
