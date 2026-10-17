@@ -8,9 +8,9 @@ const SAND = "#D8C8B3";
 const SKIN = "#E9D5BD";
 const IVORY = "#F5F0E7";
 
-function Frame({ children, label }: { children: React.ReactNode; label: string }) {
+function Frame({ children, label, h = 170 }: { children: React.ReactNode; label: string; h?: number }) {
   return (
-    <svg viewBox="0 0 320 170" role="img" aria-label={label} className="w-full h-auto rounded-xl bg-[#F5F0E7] border border-[#292722]/10">
+    <svg viewBox={`0 0 320 ${h}`} role="img" aria-label={label} className="w-full h-auto rounded-xl bg-[#F5F0E7] border border-[#292722]/10">
       {children}
     </svg>
   );
@@ -39,29 +39,56 @@ export const IllustrationPrepare = () => (
   </Frame>
 );
 
-/** Step 2: thread wrapped around the finger base, mark where it overlaps. */
+/** Step 2: strip wrapped around the base of a finger, pencil marks where the ends meet. */
+const Badge = ({ x, y, n }: { x: number; y: number; n: number }) => (
+  <g>
+    <circle cx={x} cy={y} r="8" fill={GOLD} stroke={IVORY} strokeWidth="1.5" />
+    <text x={x} y={y + 3.4} fontSize="10" fill="#fff" textAnchor="middle" fontWeight="800">{n}</text>
+  </g>
+);
+
 export const IllustrationWrap = () => (
-  <Frame label="لف الخيط حول قاعدة الإصبع وعلّمي نقطة التقاء الطرفين">
-    {/* hand: palm + finger */}
-    <path d="M110 170 L110 70 Q110 52 128 52 L156 52 Q174 52 174 70 L174 170 Z" fill={SKIN} stroke={INK} strokeWidth="1.4" />
-    <path d="M128 52 Q142 40 156 52" fill="none" stroke={INK} strokeWidth="1.2" />
-    {/* nail */}
-    <path d="M130 56 Q142 44 154 56 Q154 66 142 68 Q130 66 130 56Z" fill="#F6E4D2" stroke={INK} strokeWidth="0.8" />
-    {/* wrapped thread at finger base */}
-    <path d="M106 112 Q142 128 178 112" fill="none" stroke={GOLD} strokeWidth="3" strokeLinecap="round" />
-    <path d="M108 118 Q142 134 176 118" fill="none" stroke={GOLD} strokeWidth="1.2" strokeOpacity="0.5" />
-    {/* overlap mark */}
-    <circle cx="168" cy="114" r="5" fill="none" stroke={INK} strokeWidth="1.6" />
-    <circle cx="168" cy="114" r="1.8" fill={INK} />
-    {/* tail */}
-    <path d="M178 112 Q196 106 210 96" fill="none" stroke={GOLD} strokeWidth="2.2" strokeLinecap="round" />
-    {/* callouts */}
-    <line x1="214" y1="124" x2="174" y2="116" stroke={CHAMP} strokeWidth="1" strokeDasharray="3 2" />
-    <rect x="200" y="124" width="104" height="24" rx="12" fill={INK} />
-    <text x="252" y="140" fontSize="9.5" fill={IVORY} textAnchor="middle" fontWeight="700">علّمي نقطة الالتقاء</text>
-    <rect x="16" y="44" width="78" height="22" rx="11" fill="#fff" stroke={CHAMP} />
-    <text x="55" y="59" fontSize="9" fill={INK} textAnchor="middle">قاعدة الإصبع</text>
-    <line x1="94" y1="58" x2="108" y2="104" stroke={CHAMP} strokeWidth="1" strokeDasharray="3 2" />
+  <Frame label="لف الشريط حول قاعدة الإصبع وعلّمي بالقلم مكان التقاء الطرفين" h={215}>
+    {/* thumb */}
+    <path d="M102 156 Q60 146 48 118 Q42 100 58 96 Q72 96 98 124 Z" fill={SKIN} stroke={INK} strokeWidth="1.4" strokeLinejoin="round" />
+    {/* four fingers */}
+    <rect x="100" y="38" width="26" height="92" rx="13" fill={SKIN} stroke={INK} strokeWidth="1.4" />
+    <rect x="127" y="20" width="26" height="110" rx="13" fill={SKIN} stroke={INK} strokeWidth="1.4" />
+    <rect x="154" y="32" width="26" height="98" rx="13" fill={SKIN} stroke={INK} strokeWidth="1.4" />
+    <rect x="181" y="54" width="26" height="76" rx="13" fill={SKIN} stroke={INK} strokeWidth="1.4" />
+    {/* palm: fill hides the finger bottoms, then only the outer sides are stroked */}
+    <path d="M101 116 H207 V160 Q207 208 154 208 Q101 208 101 160 Z" fill={SKIN} />
+    <path d="M100 116 V160 Q100 209 154 209 Q208 209 208 160 V116" fill="none" stroke={INK} strokeWidth="1.4" strokeLinecap="round" />
+    <path d="M118 158 Q152 174 192 150" fill="none" stroke={INK} strokeOpacity="0.16" strokeWidth="1.2" strokeLinecap="round" />
+    {/* paper strip around the ring finger base */}
+    <path d="M154 86 Q167 98 180 86 L180 100 Q167 112 154 100 Z" fill="#fff" stroke={INK} strokeWidth="1.3" strokeLinejoin="round" />
+    <path d="M154 93 Q167 105 180 93" fill="none" stroke={CHAMP} strokeWidth="1" strokeOpacity="0.7" />
+    {/* overlapping tail */}
+    <path d="M175 92 L232 76 L235 86 L179 103 Z" fill="#fff" stroke={INK} strokeWidth="1.3" strokeLinejoin="round" />
+    {/* pencil marks the meeting point */}
+    <g transform="translate(179 96) rotate(-54)">
+      <rect x="0" y="-4.5" width="56" height="9" rx="1.5" fill={CHAMP} stroke={INK} strokeWidth="1.2" />
+      <rect x="0" y="-4.5" width="10" height="9" fill={SAND} stroke={INK} strokeWidth="1.2" />
+      <path d="M0 -4.5 L-14 0 L0 4.5 Z" fill={SKIN} stroke={INK} strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M-9 -1.5 L-14 0 L-9 1.5 Z" fill={INK} />
+    </g>
+    <circle cx="179" cy="96" r="2.2" fill={INK} />
+    {/* numbered markers */}
+    <Badge x={166} y={126} n={1} />
+    <Badge x={196} y={108} n={2} />
+    {/* legend */}
+    <g>
+      <rect x="214" y="116" width="100" height="40" rx="12" fill={INK} />
+      <circle cx="226" cy="136" r="7" fill={GOLD} />
+      <text x="226" y="139.4" fontSize="10" fill="#fff" textAnchor="middle" fontWeight="800">2</text>
+      <text x="274" y="132" fontSize="9.5" fill={IVORY} textAnchor="middle" fontWeight="700">علّمي مكان</text>
+      <text x="274" y="146" fontSize="9.5" fill={IVORY} textAnchor="middle" fontWeight="700">التقاء الطرفين</text>
+      <rect x="6" y="176" width="92" height="34" rx="12" fill="#fff" stroke={CHAMP} />
+      <circle cx="86" cy="193" r="7" fill={GOLD} />
+      <text x="86" y="196.4" fontSize="10" fill="#fff" textAnchor="middle" fontWeight="800">1</text>
+      <text x="42" y="190" fontSize="9.5" fill={INK} textAnchor="middle" fontWeight="700">لفّي الشريط حول</text>
+      <text x="42" y="203" fontSize="9.5" fill={INK} textAnchor="middle" fontWeight="700">قاعدة الإصبع</text>
+    </g>
   </Frame>
 );
 
