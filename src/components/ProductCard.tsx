@@ -17,6 +17,8 @@ interface ProductCardProps {
   onNotify?: (title: string, msg: string, type: "cart" | "wishlist" | "promo" | "info") => void;
   /** false = no entrance animation; "fade" = opacity only (no vertical movement, so nothing jumps). */
   animateIn?: boolean | "fade";
+  /** Load the image immediately (above-the-fold cards) so it doesn't pop in late. */
+  priority?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -26,6 +28,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
   onQuickView,
   animateIn = true,
+  priority = false,
 }) => {
   const store = useStore();
   const [selectedSize] = useState<string | undefined>(
@@ -113,8 +116,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 ? "opacity-0 scale-105"
                 : "opacity-100 scale-100 [@media(hover:hover)]:group-hover:scale-105"
             }`}
-            loading="lazy"
-            decoding="async"
+            loading={priority ? "eager" : "lazy"}
+            decoding={priority ? "sync" : "async"}
+            {...(priority ? { fetchPriority: "high" as const } : {})}
             onError={(e) => {
               (e.target as HTMLImageElement).src =
                 "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80";

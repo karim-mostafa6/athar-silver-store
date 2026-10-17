@@ -438,7 +438,7 @@ function CollectionPageContent() {
           <div className={`${filtersOpen ? "block" : "hidden"} lg:block mt-4 lg:mt-0`}>{filtersPanel}</div>
         </aside>
 
-        <div className="lg:col-span-9 min-w-0 animate-fade-in">
+        <div className="lg:col-span-9 min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div className="flex flex-wrap gap-2">
               {activeChips.map((c) => (
@@ -484,8 +484,8 @@ function CollectionPageContent() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 sm:gap-x-5 gap-y-8 sm:gap-y-9">
-              {pageProducts.map((p) => (
-                <ProductCard key={p.id} product={p} animateIn="fade" />
+              {pageProducts.map((p, i) => (
+                <ProductCard key={p.id} product={p} animateIn={false} priority={i < 6} />
               ))}
             </div>
           )}
