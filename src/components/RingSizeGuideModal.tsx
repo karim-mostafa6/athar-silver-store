@@ -5,6 +5,15 @@ import { X, Ruler, Check, Circle, Scissors, MoveHorizontal, Lightbulb } from "lu
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { OrmaLogo } from "./OrmaLogo";
 
+// Egyptian rulers are in cm, so everything the customer sees or types is in cm.
+const toLatinNumber = (raw: string) =>
+  parseFloat(
+    raw
+      .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+      .replace(/[٫,،]/g, ".")
+      .replace(/[^0-9.]/g, "")
+  );
+
 interface RingSizeGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,8 +52,9 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
-    const val = parseFloat(value);
-    if (!val || isNaN(val)) return;
+    const cm = toLatinNumber(value);
+    if (!cm || isNaN(cm)) return;
+    const val = cm * 10; // table is stored in mm
     const key = mode === "circ" ? "mmCircumference" : "mmDiameter";
     let closest = sizeTable[0];
     for (const row of sizeTable) {
@@ -119,8 +129,8 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: "circ" as Mode, label: "محيط الإصبع", sub: "قياس بالخيط أو الورقة", Icon: MoveHorizontal },
-                  { id: "diam" as Mode, label: "قطر خاتم عندك", sub: "القطر الداخلي بالمليمتر", Icon: Circle },
+                  { id: "circ" as Mode, label: "محيط الإصبع", sub: "قياس بالخيط ثم المسطرة", Icon: MoveHorizontal },
+                  { id: "diam" as Mode, label: "قطر خاتم عندك", sub: "القطر الداخلي بالسنتيمتر", Icon: Circle },
                 ].map(({ id, label, sub, Icon }) => (
                   <button
                     key={id}
@@ -143,17 +153,20 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
               </div>
 
               <form onSubmit={handleCalculate} className="space-y-3">
+                <p className="text-[12px] text-[#292722]/60 -mb-1">
+                  اكتبي الرقم بالسنتيمتر زي ما بتقرأيه من المسطرة، مثلاً <b className="text-[#292722]">5.4</b> يعني 5 سم و4 مم.
+                </p>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
                     inputMode="decimal"
-                    step="0.1"
+                    dir="ltr"
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    placeholder={mode === "circ" ? "مثال: 54.5" : "مثال: 17.3"}
-                    className="w-full bg-white border border-[#292722]/15 rounded-2xl py-3.5 pr-4 pl-14 text-lg font-bold text-[#292722] placeholder:text-[#292722]/30 placeholder:font-normal focus:outline-none focus:border-[#8E7545] focus:ring-2 focus:ring-[#8E7545]/20"
+                    placeholder={mode === "circ" ? "مثال: 5.4" : "مثال: 1.7"}
+                    className="w-full bg-white border border-[#292722]/15 rounded-2xl py-3.5 pl-4 pr-14 text-lg text-left font-bold text-[#292722] placeholder:text-[#292722]/30 placeholder:font-normal focus:outline-none focus:border-[#8E7545] focus:ring-2 focus:ring-[#8E7545]/20"
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8E7545]">مم</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8E7545]">سم</span>
                 </div>
                 <button
                   type="submit"
@@ -211,8 +224,8 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
                       <div className="text-[11px] text-[#292722]/60 truncate">{row.note}</div>
                     </div>
                     <div className="text-left shrink-0 font-mono text-[11px] leading-5 text-[#292722]/75" dir="ltr">
-                      <div>Ø {row.mmDiameter.toFixed(1)} mm</div>
-                      <div>⟲ {row.mmCircumference.toFixed(1)} mm</div>
+                      <div>Ø {(row.mmDiameter / 10).toFixed(2)} سم</div>
+                      <div>⟲ {(row.mmCircumference / 10).toFixed(2)} سم</div>
                     </div>
                   </li>
                 );
@@ -227,9 +240,9 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
           {tab === "how" && (
             <div className="space-y-3">
               {[
-                { Icon: Scissors, t: "جهّزي خيطاً أو شريطاً ورقياً", d: "قصّي شريطاً رفيعاً غير قابل للتمدد، وسطره مسطرة بالمليمتر." },
+                { Icon: Scissors, t: "جهّزي خيطاً أو شريطاً ورقياً", d: "قصّي شريطاً رفيعاً غير قابل للتمدد (خيط أو شريط ورقي)، وجهّزي مسطرة عادية بالسنتيمتر." },
                 { Icon: Circle, t: "لفّيه حول قاعدة الإصبع", d: "حول الإصبع الذي سترتدين فيه الخاتم، وعلّمي مكان التقاء الطرفين بالقلم." },
-                { Icon: Ruler, t: "قيسي الطول بالمسطرة", d: "هذا هو محيط إصبعك بالمليمتر. اكتبيه في «احسب مقاسي» أو طابقيه مع الجدول." },
+                { Icon: Ruler, t: "قيسي الطول بالمسطرة", d: "هذا هو محيط إصبعك بالسنتيمتر (مثلاً 5.4 سم). اكتبيه في «احسب مقاسي» أو طابقيه مع الجدول." },
               ].map(({ Icon, t, d }, i) => (
                 <div key={i} className="flex gap-3.5 p-3.5 rounded-2xl bg-white/80 border border-[#292722]/10">
                   <div className="w-10 h-10 rounded-full bg-[#292722] text-[#B7A078] flex items-center justify-center shrink-0 relative">
