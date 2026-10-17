@@ -97,6 +97,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       whileHover={canHover ? { y: -6 } : undefined}
+      whileTap={canHover ? undefined : { scale: 0.96, opacity: 0.85 }}
       className="group flex flex-col cursor-pointer select-none text-right block transition-all duration-300"
     >
       <Link
