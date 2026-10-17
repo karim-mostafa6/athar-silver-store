@@ -15,8 +15,8 @@ interface ProductCardProps {
   onAddToCart?: (product: Product, size?: string) => void;
   onQuickView?: (product: Product) => void;
   onNotify?: (title: string, msg: string, type: "cart" | "wishlist" | "promo" | "info") => void;
-  /** false = render in place with no fade/slide-in (used in the swipe row so a refresh never "jumps"). */
-  animateIn?: boolean;
+  /** false = no entrance animation; "fade" = opacity only (no vertical movement, so nothing jumps). */
+  animateIn?: boolean | "fade";
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -89,8 +89,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <motion.div
-      initial={animateIn ? { opacity: 0, y: 24 } : false}
-      whileInView={animateIn ? { opacity: 1, y: 0 } : undefined}
+      initial={animateIn === "fade" ? { opacity: 0 } : animateIn ? { opacity: 0, y: 24 } : false}
+      whileInView={animateIn === "fade" ? { opacity: 1 } : animateIn ? { opacity: 1, y: 0 } : undefined}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       whileHover={canHover ? { y: -6 } : undefined}
