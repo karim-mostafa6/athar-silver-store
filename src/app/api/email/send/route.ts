@@ -278,6 +278,29 @@ export async function POST(request: NextRequest) {
       ? `واتساب: <b>01143837730</b> · ${officialSenderEmail}`
       : `واتساب: <b>01143837730</b>`;
 
+    const plainText = [
+      `${headline}${firstName ? ` يا ${firstName}` : ""}`,
+      `طلب رقم #${orderId}`,
+      intro,
+      "",
+      ...items.map((i) => `- ${i.arabicName}${i.selectedSize ? ` (مقاس ${i.selectedSize})` : ""} × ${i.quantity} — ${money(i.price * i.quantity)}`),
+      "",
+      `المجموع الفرعي: ${money(computedSubtotal)}`,
+      computedDiscount > 0 ? `الخصم: -${money(computedDiscount)}` : "",
+      `الشحن: ${computedShipping === 0 ? "مجاني" : money(computedShipping)}`,
+      `الإجمالي: ${money(finalTotal)}`,
+      "",
+      `الاسم: ${customerName}`,
+      `الموبايل: ${phone}`,
+      addressLine ? `العنوان: ${addressLine}` : "",
+      `الدفع: ${paymentMethodLabel}`,
+      "",
+      `للمتابعة على واتساب: 01143837730`,
+      `${effectiveBrandNameEnglish}`,
+    ]
+      .filter((l, i, a) => l !== "" || a[i - 1] !== "")
+      .join("\n");
+
     const htmlContent = `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>${subject}</title></head>
@@ -355,6 +378,7 @@ export async function POST(request: NextRequest) {
           replyTo: officialSenderEmail,
           subject,
           html: htmlContent,
+          text: plainText,
         });
 
         deliveryStatus = "sent_via_gmail_smtp";
