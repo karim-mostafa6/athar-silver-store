@@ -7,21 +7,28 @@ import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
 import { DEFAULT_CATEGORIES } from "@/data/products";
 
+// Reads ?gender= without making the whole page wait (useSearchParams would otherwise force the
+// page to render empty on the server and pop in after load, which looked like a jump on phones).
+function GenderParamSync({ onChange }: { onChange: (g: string | null) => void }) {
+  const searchParams = useSearchParams();
+  const g = searchParams.get("gender");
+  useEffect(() => {
+    onChange(g);
+  }, [g, onChange]);
+  return null;
+}
+
 function CollectionPageContent() {
   const { products: allStoreProducts, storeSettings } = useStore();
   const params = useParams();
-  const searchParams = useSearchParams();
   const slug = (params?.slug as string) || "all";
-  const genderQuery = searchParams.get("gender"); // "men" | "women" | null
+  const [genderQuery, setGenderQuery] = useState<string | null>(null); // "men" | "women" | null (set by <GenderParamSync/>)
 
   const isGenderPage = slug === "men" || slug === "women";
   const isAllPage = slug === "all";
   const isCategoryPage = !isGenderPage && !isAllPage;
 
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string>(() => {
-    if (genderQuery === "men" || genderQuery === "women") return genderQuery;
-    return "all";
-  });
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("newest");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
@@ -397,6 +404,9 @@ function CollectionPageContent() {
 
   return (
     <div>
+      <Suspense fallback={null}>
+        <GenderParamSync onChange={setGenderQuery} />
+      </Suspense>
       {/* Title band */}
       <section className="border-b border-[#292722]/12">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-10 sm:pt-14 pb-8 sm:pb-10 flex items-end justify-between gap-6">
@@ -508,8 +518,6 @@ function CollectionPageContent() {
 
 export default function CollectionPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F5F0E7]" />}>
-      <CollectionPageContent />
-    </Suspense>
+    <CollectionPageContent />
   );
 }
