@@ -374,6 +374,10 @@ interface StoreContextType {
   updateProduct: (id: string, updated: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   resetProductsToDefault: () => void;
+  /** Product edits stay as a private draft until published. Number of unpublished changes: */
+  pendingProductChanges: number;
+  publishProducts: () => void;
+  discardProductChanges: () => void;
 
   // Settings
   storeSettings: StoreSettings;
@@ -1100,8 +1104,42 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
   const dirtyProductIdsRef = useRef<Set<string>>(new Set());
   const deletedProductIdsRef = useRef<Set<string>>(new Set());
   const isProductSyncingRef = useRef(false);
+  // Product edits are a DRAFT: they stay in this browser (and in localStorage) until the owner presses
+  // "publish". Nothing reaches the live catalog before that.
+  const PRODUCT_DRAFT_KEY = "orma_product_draft_v1";
+  const [pendingProductChanges, setPendingProductChanges] = useState(0);
+  const refreshPendingProducts = () =>
+    setPendingProductChanges(dirtyProductIdsRef.current.size + deletedProductIdsRef.current.size);
+  const saveProductDraft = () => {
+    try {
+      const ids = new Set(dirtyProductIdsRef.current);
+      const deleted = Array.from(deletedProductIdsRef.current);
+      if (ids.size === 0 && deleted.length === 0) {
+        localStorage.removeItem(PRODUCT_DRAFT_KEY);
+        return;
+      }
+      localStorage.setItem(
+        PRODUCT_DRAFT_KEY,
+        JSON.stringify({ upserts: productsRef.current.filter((p) => p && ids.has(p.id)), deleted })
+      );
+    } catch {}
+  };
+  // Server catalog + the owner's unpublished changes on top of it.
+  const mergeProductDraft = (serverProds: Product[]): Product[] => {
+    const dirty = dirtyProductIdsRef.current;
+    const deleted = deletedProductIdsRef.current;
+    if (dirty.size === 0 && deleted.size === 0) return serverProds;
+    const local = new Map(productsRef.current.map((p) => [p.id, p]));
+    const serverIds = new Set(serverProds.map((p) => p.id));
+    const merged = serverProds
+      .filter((p) => !deleted.has(p.id))
+      .map((p) => (dirty.has(p.id) && local.has(p.id) ? (local.get(p.id) as Product) : p));
+    const added = Array.from(dirty)
+      .filter((id) => !serverIds.has(id) && local.has(id))
+      .map((id) => local.get(id) as Product);
+    return [...added, ...merged];
+  };
   const hasPendingProductSyncRef = useRef(false);
-  const productSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ids of orders with changes the server has not confirmed yet (queued OR being sent).
   // Only these are sent to the server, and the periodic server refresh must not overwrite them.
   const dirtyOrderIdsRef = useRef<Set<string>>(new Set());
@@ -1185,12 +1223,8 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         if (Array.isArray(data.products)) {
           // While one of our own product saves is still in flight, the server list is about to
           // change; applying it now would flicker deleted items back. Skip until it finishes.
-          if (
-            productSaveInFlightRef.current === 0 &&
-            dirtyProductIdsRef.current.size === 0 &&
-            deletedProductIdsRef.current.size === 0
-          ) {
-            const serverProds = data.products.filter((p: Product) => p && p.id);
+          if (productSaveInFlightRef.current === 0 && !isProductSyncingRef.current) {
+            const serverProds = mergeProductDraft(data.products.filter((p: Product) => p && p.id));
             productsRef.current = serverProds;
             setProducts(serverProds);
             setIsProductsLoaded(true);
@@ -1401,6 +1435,32 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     };
   }, [syncWithServer, initialStore]);
 
+  // Restore an unpublished product draft after a refresh / reopening the dashboard.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PRODUCT_DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as { upserts?: Product[]; deleted?: string[] };
+      const upserts = Array.isArray(draft.upserts) ? draft.upserts.filter((p) => p && p.id) : [];
+      const deleted = Array.isArray(draft.deleted) ? draft.deleted : [];
+      if (upserts.length === 0 && deleted.length === 0) return;
+      const byId = new Map(productsRef.current.map((p) => [p.id, p]));
+      upserts.forEach((p) => {
+        byId.set(p.id, p);
+        dirtyProductIdsRef.current.add(p.id);
+      });
+      deleted.forEach((id) => deletedProductIdsRef.current.add(id));
+      const next = [
+        ...upserts.filter((p) => !productsRef.current.some((x) => x.id === p.id)),
+        ...productsRef.current.map((p) => byId.get(p.id) as Product),
+      ].filter((p) => !deletedProductIdsRef.current.has(p.id));
+      productsRef.current = next;
+      setProducts(next);
+      refreshPendingProducts();
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Keep the products ref aligned with state whenever no admin edit is pending.
   useEffect(() => {
     if (
@@ -1579,6 +1639,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     hasPendingProductSyncRef.current = false;
     dirtyProductIdsRef.current.clear();
     deletedProductIdsRef.current.clear();
+    refreshPendingProducts();
     productSaveInFlightRef.current += 1;
 
     const idSet = new Set(ids);
@@ -1594,50 +1655,57 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         const data = await res.json().catch(() => ({}));
         if (!res.ok || data.success === false) {
           failed = true;
-          reportSaveFailure("المنتجات", res.status, data?.error);
+          publishFailure(res.status, data?.error);
           return;
         }
         if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
-        if (deleted.length > 0) {
-          addToast(
-            "تم الحذف",
-            deleted.length === 1 ? "اتحذفت القطعة من المتجر وقاعدة البيانات ✓" : `اتحذفت ${deleted.length} قطع من المتجر وقاعدة البيانات ✓`,
-            "info"
-          );
-        }
+        addToast(
+          "تم النشر ✓",
+          `اتنشرت التعديلات على الموقع${deleted.length > 0 ? ` (منها ${deleted.length} حذف)` : ""}`,
+          "info"
+        );
       })
       .catch((err) => {
         failed = true;
         console.warn("Could not sync products to server:", err);
-        reportSaveFailure("المنتجات", 0);
+        publishFailure(0);
       })
       .finally(() => {
         productSaveInFlightRef.current = Math.max(0, productSaveInFlightRef.current - 1);
         isProductSyncingRef.current = false;
         if (failed) {
-          // Revert to what the server really holds instead of showing an unsaved phantom state.
-          dirtyProductIdsRef.current.clear();
-          deletedProductIdsRef.current.clear();
-          syncWithServer(true);
-          return;
+          // Nothing was published: keep every change as a draft so the owner can simply try again.
+          ids.forEach((id) => dirtyProductIdsRef.current.add(id));
+          deleted.forEach((id) => deletedProductIdsRef.current.add(id));
         }
-        if (
-          hasPendingProductSyncRef.current ||
-          dirtyProductIdsRef.current.size > 0 ||
-          deletedProductIdsRef.current.size > 0
-        ) {
-          flushProductsSync();
-        }
+        saveProductDraft();
+        refreshPendingProducts();
       });
   };
 
-  const scheduleProductsSync = () => {
-    if (productSyncTimerRef.current) clearTimeout(productSyncTimerRef.current);
-    productSyncTimerRef.current = setTimeout(() => {
-      productSyncTimerRef.current = null;
-      flushProductsSync();
-    }, 80);
+  const publishFailure = (status: number, serverMessage?: string) => {
+    const reason =
+      status === 401
+        ? "انتهت جلسة تسجيل الدخول. سجّل الدخول مرة أخرى ثم اضغط نشر."
+        : status === 0
+        ? "تعذّر الاتصال بالسيرفر. تأكد من الإنترنت ثم اضغط نشر مرة أخرى."
+        : serverMessage || `خطأ من السيرفر (${status}).`;
+    alertDialog(`ما اتنشرش حاجة على الموقع، وتعديلاتك لسه محفوظة عندك كمسودة.\n${reason}`, { title: "⚠️ فشل النشر" });
   };
+
+  const publishProducts = () => {
+    if (dirtyProductIdsRef.current.size + deletedProductIdsRef.current.size === 0) return;
+    flushProductsSync();
+  };
+
+  const discardProductChanges = () => {
+    dirtyProductIdsRef.current.clear();
+    deletedProductIdsRef.current.clear();
+    saveProductDraft();
+    refreshPendingProducts();
+    syncWithServer(true);
+  };
+
 
   // High-performance concurrency engine for orders:
   // 1. Instant optimistic state mutation (0ms)
@@ -1847,8 +1915,9 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     dirtyProductIdsRef.current.add(newProduct.id);
     deletedProductIdsRef.current.delete(newProduct.id);
     setProducts(updated);
-    scheduleProductsSync();
-    addToast("إدارة المنتجات", `تمت إضافة القطعة "${newProduct.arabicName}" بنجاح`, "info");
+    saveProductDraft();
+    refreshPendingProducts();
+    addToast("مسودة", `تمت إضافة "${newProduct.arabicName}" — لن تظهر للعملاء إلا بعد "نشر على الموقع"`, "info");
   };
 
   const updateProduct = (id: string, updated: Partial<Product>) => {
@@ -1856,8 +1925,9 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     productsRef.current = updatedList;
     dirtyProductIdsRef.current.add(id);
     setProducts(updatedList);
-    scheduleProductsSync();
-    addToast("إدارة المنتجات", "تم تحديث بيانات القطعة بنجاح", "info");
+    saveProductDraft();
+    refreshPendingProducts();
+    addToast("مسودة", "اتحفظ التعديل عندك — لن يظهر للعملاء إلا بعد \"نشر على الموقع\"", "info");
   };
 
   const deleteProduct = (id: string) => {
@@ -1866,13 +1936,17 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     dirtyProductIdsRef.current.delete(id);
     deletedProductIdsRef.current.add(id);
     setProducts(updated);
-    scheduleProductsSync();
+    saveProductDraft();
+    refreshPendingProducts();
+    addToast("مسودة", "اتشالت القطعة من القائمة — الحذف الفعلي من الموقع بعد \"نشر على الموقع\"", "info");
   };
 
   const resetProductsToDefault = () => {
     productsRef.current = PRODUCTS;
     dirtyProductIdsRef.current.clear();
     deletedProductIdsRef.current.clear();
+    refreshPendingProducts();
+    saveProductDraft();
     setProducts(PRODUCTS);
     localStorage.removeItem("athar_custom_products");
     syncProductsToServer(PRODUCTS);
@@ -2233,6 +2307,9 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         updateProduct,
         deleteProduct,
         resetProductsToDefault,
+        pendingProductChanges,
+        publishProducts,
+        discardProductChanges,
         storeSettings,
         updateStoreSettings,
         orders,

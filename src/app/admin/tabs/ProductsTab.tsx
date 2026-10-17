@@ -1,7 +1,8 @@
 "use client";
 import { confirmDialog } from "@/lib/dialog";
 
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2, UploadCloud } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
 import type { StoreSettings } from "@/context/StoreContext";
 import { DEFAULT_CATEGORIES } from "@/data/products";
 import type { Product } from "@/data/products";
@@ -23,8 +24,43 @@ interface Props {
 }
 
 export default function ProductsTab({ settingsForm, filteredProductsList, categoryFilter, setCategoryFilter, productSearch, setProductSearch, updateProduct, deleteProduct, handleOpenNewProduct, handleOpenEditProduct, addToast }: Props) {
+  const { pendingProductChanges, publishProducts, discardProductChanges } = useStore();
   return (
     <div className="space-y-6">
+      {/* Unpublished-changes bar: nothing reaches the live site until "publish" is pressed */}
+      <div
+        className={`sticky top-2 z-20 rounded-xl border p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm ${
+          pendingProductChanges > 0 ? "bg-amber-50 border-amber-300" : "bg-emerald-50 border-emerald-200"
+        }`}
+      >
+        <div className="text-xs font-bold text-[#292722]">
+          {pendingProductChanges > 0
+            ? `عندك ${pendingProductChanges} تعديل على المنتجات لسه ما اتنشرش على الموقع (العملاء مش شايفينه)`
+            : "كل تعديلات المنتجات منشورة على الموقع ✓"}
+        </div>
+        {pendingProductChanges > 0 && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                if (await confirmDialog("هتتجاهل كل التعديلات اللي لسه ما اتنشرتش وترجع المنتجات زي ما هي على الموقع. متأكد؟", { title: "تجاهل التعديلات", confirmText: "تجاهل", danger: true })) {
+                  discardProductChanges();
+                }
+              }}
+              className="px-4 py-2 rounded-lg border border-[#d8c8b4] bg-white text-xs font-bold text-[#292722] hover:bg-[#F5F0E7]"
+            >
+              تجاهل التعديلات
+            </button>
+            <button
+              onClick={publishProducts}
+              className="px-5 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] shadow-md flex items-center gap-2"
+            >
+              <UploadCloud className="w-4 h-4 text-[#c5a880]" />
+              <span>نشر على الموقع</span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Top Controls */}
       <div className="bg-white rounded-xl p-4 border border-[#e8ded0] flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <button

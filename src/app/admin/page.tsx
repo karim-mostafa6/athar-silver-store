@@ -936,13 +936,11 @@ export default function AdminPage() {
 
     if (editingProductId) {
       updateProduct(editingProductId, updatedData);
-      addToast("تم التعديل", `تم تحديث بيانات "${productForm.arabicName}" بنجاح`, "info");
     } else {
       addProduct({
         ...updatedData,
         id: `orm-${Date.now()}`,
       });
-      addToast("تمت الإضافة", `تمت إضافة "${productForm.arabicName}" إلى المتجر`, "info");
     }
 
     setIsProductModalOpen(false);
