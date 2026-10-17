@@ -21,7 +21,6 @@ import MarqueeTab from "./tabs/MarqueeTab";
 import NavTab from "./tabs/NavTab";
 import LogoTab from "./tabs/LogoTab";
 import StoryTab from "./tabs/StoryTab";
-import BannersTab from "./tabs/BannersTab";
 import HeroTab from "./tabs/HeroTab";
 import PromosTab from "./tabs/PromosTab";
 import ContactTab from "./tabs/ContactTab";
@@ -1390,7 +1389,6 @@ export default function AdminPage() {
     { id: "products", label: "إدارة المنتجات", icon: <Package className="w-4 h-4" /> },
     { id: "collections", label: "الكولكشن والمجموعات", icon: <Layers className="w-4 h-4" /> },
     { id: "pages", label: "الصفحات المستقلة", icon: <BookOpen className="w-4 h-4" /> },
-    { id: "banners", label: "البانرات الإعلانية ومواقعها", icon: <Sparkles className="w-4 h-4" /> },
     { id: "checkout", label: "صفحة الدفع (Checkout)", icon: <ShoppingBag className="w-4 h-4" /> },
     { id: "hero", label: "البانر الرئيسي", icon: <ImageIcon className="w-4 h-4" /> },
     { id: "marquee", label: "شريط الإعلانات", icon: <Megaphone className="w-4 h-4" /> },
@@ -1876,10 +1874,6 @@ export default function AdminPage() {
           {/* ========================================================
               TAB: CUSTOM PROMOTIONAL BANNERS & PLACEMENT
               ======================================================== */}
-          {activeTab === "banners" && (
-            <BannersTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} addToast={addToast} isSavingSettings={isSavingSettings} />
-          )}
-
           {/* ========================================================
               TAB 3: HERO BANNER & MULTI-IMAGE CAROUSEL SLIDER
               ======================================================== */}

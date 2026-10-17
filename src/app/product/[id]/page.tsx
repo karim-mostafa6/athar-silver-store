@@ -6,18 +6,11 @@ import { useParams } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/ProductCard";
 import {
-  ShieldCheck,
-  Truck,
-  RotateCcw,
-  Gift,
   Heart,
   ShoppingBag,
   MessageCircle,
   Sparkles,
-  ChevronDown,
-  ChevronUp,
   Check,
-  Ruler,
   Share2,
   Scale,
   AlertCircle,
@@ -64,13 +57,13 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="py-24 max-w-xl mx-auto text-center px-4 space-y-4">
-        <h1 className="text-2xl font-bold text-[#1c1815]">القطعة غير متوفرة حالياً</h1>
+        <h1 className="text-2xl font-bold text-[#292722]">القطعة غير متوفرة حالياً</h1>
         <p className="text-xs text-[#705e4d]">
           عذراً، لم نتمكن من العثور على هذه القطعة. يمكنك استكشاف بقية تشكيلة أورما الفاخرة.
         </p>
         <Link
           href="/collection/all"
-          className="inline-block px-8 py-3 rounded-full bg-[#1c1815] text-[#faf8f5] text-xs font-bold"
+          className="inline-block px-8 py-3 rounded-full bg-[#292722] text-[#F5F0E7] text-xs font-bold"
         >
           العودة للمتجر
         </Link>
@@ -172,30 +165,30 @@ export default function ProductDetailPage() {
 
   return (
     <>
-    <div className="pt-8 sm:pt-12 pb-28 lg:pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
+    <div className="pt-8 sm:pt-12 pb-28 lg:pb-12 max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 animate-fade-in-up">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-[#7d6c5c] mb-8 font-light">
-        <Link href="/" className="hover:text-[#1c1815] transition-colors">
+      <nav className="flex items-center gap-2 text-[13px] text-[#7d6c5c] mb-6 font-tajawal">
+        <Link href="/" className="hover:text-[#292722] transition-colors">
           الرئيسية
         </Link>
         <span className="text-[#c4b5a5]">/</span>
         <Link
           href={`/collection/${product.gender === "women" ? "women" : product.gender === "men" ? "men" : "all"}`}
-          className="hover:text-[#1c1815] transition-colors"
+          className="hover:text-[#292722] transition-colors"
         >
           {product.gender === "women" ? "تشكيلة نسائية" : product.gender === "men" ? "تشكيلة رجالية" : "كافة القطع"}
         </Link>
         <span className="text-[#c4b5a5]">/</span>
-        <span className="text-[#1c1815] font-normal line-clamp-1">{product.arabicName}</span>
+        <span className="text-[#292722] font-normal line-clamp-1">{product.arabicName}</span>
       </nav>
 
       {/* Main 2-Column Product Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
         {/* Right Column (Image Gallery) */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex flex-col lg:flex-row-reverse gap-4">
           {/* Main Large Display Image */}
-          <div className="relative aspect-square w-full lg:flex-1 min-w-0 rounded-3xl overflow-hidden bg-[#f5f1eb] border border-[#ece4d8] shadow-sm">
+          <div className="relative aspect-square w-full lg:flex-1 min-w-0 rounded-[24px] overflow-hidden bg-[#E3D6C2]">
             <img
               key={activeImageIdx}
               src={product.images[activeImageIdx] || product.images[0]}
@@ -210,18 +203,18 @@ export default function ProductDetailPage() {
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
               {isOutOfStock ? (
-                <span className="bg-[#1c1815]/95 backdrop-blur-md text-[#f7d7d7] border border-rose-500/50 text-[11px] font-sans font-bold px-3.5 py-1 rounded-full shadow-md flex items-center gap-1.5 tracking-wider">
+                <span className="bg-[#292722]/95 backdrop-blur-md text-[#f7d7d7] border border-rose-500/50 text-[11px] font-sans font-bold px-3.5 py-1 rounded-full shadow-md flex items-center gap-1.5 tracking-wider">
                   <span className="w-2 h-2 rounded-full bg-rose-500 inline-block animate-pulse" />
                   SOLD OUT • نفد من المخزون
                 </span>
               ) : (
-                <span className="bg-white/95 backdrop-blur-md text-[#1c1815] border border-[#ded1be] text-[11px] font-sans font-medium px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 tracking-wider">
+                <span className="bg-[#F5F0E7] text-[#292722] border border-[#292722]/14 text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 tracking-[0.06em]">
                   <Sparkles className="w-3 h-3 text-amber-600" />
                   925 STERLING SILVER
                 </span>
               )}
               {discountPercent > 0 && !isOutOfStock && (
-                <span className="bg-[#1c1815] text-[#faf8f5] text-[10px] font-medium px-2.5 py-0.5 rounded-full shadow-sm tracking-wider">
+                <span className="bg-[#292722] text-[#F5F0E7] text-xs px-3.5 py-1.5 rounded-full">
                   خصم {discountPercent}%
                 </span>
               )}
@@ -243,7 +236,7 @@ export default function ProductDetailPage() {
 
               <button
                 onClick={handleShare}
-                className="p-3 rounded-full bg-white/90 backdrop-blur-md border border-[#ded1be] text-[#544639] hover:bg-white hover:text-[#1c1815] transition-all shadow-md active:scale-90"
+                className="p-3 rounded-full bg-white/90 backdrop-blur-md border border-[#ded1be] text-[#544639] hover:bg-white hover:text-[#292722] transition-all shadow-md active:scale-90"
                 aria-label="مشاركة"
               >
                 <Share2 className="w-4 h-4" />
@@ -258,10 +251,10 @@ export default function ProductDetailPage() {
                 <button
                   key={idx}
                   onClick={() => setActiveImageIdx(idx)}
-                  className={`relative w-20 h-20 lg:w-full lg:h-auto lg:aspect-square rounded-2xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
+                  className={`relative w-20 h-20 lg:w-full lg:h-auto lg:aspect-square rounded-[14px] overflow-hidden shrink-0 border transition-all duration-300 ${
                     activeImageIdx === idx
-                      ? "border-[#1c1815] scale-105 shadow-md"
-                      : "border-[#e8ded0] opacity-70 hover:opacity-100"
+                      ? "border-[#292722] border-2"
+                      : "border-[#292722]/12 opacity-80 hover:opacity-100"
                   }`}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" width={80} height={80} loading="lazy" decoding="async" />
@@ -272,37 +265,6 @@ export default function ProductDetailPage() {
 
           </div>
 
-          {/* 4 Mini Trust Badges Below Gallery */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#eee5d8] text-center">
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
-              <ShieldCheck className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-medium text-[#1c1815]">فضة 925 أصلية</div>
-              <div className="text-[10px] text-[#705e4d] font-light truncate" title={product.warrantyDuration || storeSettings.warrantyPolicyText}>
-                {product.warrantyDuration || storeSettings.warrantyPolicyText || "ضمان رسمي معتمد"}
-              </div>
-            </div>
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
-              <Truck className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-medium text-[#1c1815]">شحن لجميع مصر</div>
-              <div className="text-[10px] text-[#705e4d] font-light truncate" title={storeSettings.shippingPolicyTimeline}>
-                {storeSettings.shippingPolicyTimeline || "2-4 أيام عمل"}
-              </div>
-            </div>
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
-              <RotateCcw className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-medium text-[#1c1815]">
-                استرجاع واستبدال
-              </div>
-              <div className="text-[10px] text-[#705e4d] font-light">
-                خلال {storeSettings.returnPolicyDays || 14} يوماً
-              </div>
-            </div>
-            <div className="p-3 rounded-2xl bg-white border border-[#ece4d8] space-y-1 hover-lift transition-all">
-              <Gift className="w-4 h-4 text-[#705e4d] mx-auto" />
-              <div className="text-[11px] font-medium text-[#1c1815]">تغليف ملكي مجاني</div>
-              <div className="text-[10px] text-[#705e4d] font-light">علبة وكارت إهداء</div>
-            </div>
-          </div>
         </div>
 
         {/* Left Column (Product Details & Actions) */}
@@ -329,13 +291,13 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Pricing Section */}
-          <div className="p-5 rounded-2xl bg-white border border-[#ece4d8] shadow-[0_2px_15px_rgba(28,24,21,0.02)]">
+          <div className="py-5 border-y border-[#292722]/12">
             <div className="flex items-baseline justify-between flex-wrap gap-2">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-light text-[#1c1815] font-cairo tracking-tight">
+                <span className="text-3xl sm:text-4xl font-semibold text-[#292722] font-cairo">
                   {product.price.toLocaleString("en-US")}
                 </span>
-                <span className="text-xs font-normal text-[#8c7865] tracking-wider">ج.م</span>
+                <span className="text-[15px] font-normal text-[#292722]">ج.م</span>
                 {product.originalPrice && (
                   <span className="text-xs text-[#9e8d7c] line-through mr-2 font-light">
                     {product.originalPrice.toLocaleString("en-US")} ج.م
@@ -348,8 +310,8 @@ export default function ProductDetailPage() {
                     نفد من المخزون مؤقتاً
                   </span>
                 ) : (
-                  <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                    متوفر بالمخزن وجاهز للشحن
+                  <span className="text-[13px] text-[#2f6b4a] bg-[#e6efe8] px-3 py-1 rounded-full">
+                    متوفر بالمخزن
                   </span>
                 )}
                 {discountPercent > 0 && (
@@ -365,14 +327,13 @@ export default function ProductDetailPage() {
           {isRingProduct && product.sizes && product.sizes.length > 0 ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-[#1c1815]">اختر المقاس:</span>
+                <span className="font-bold text-sm text-[#292722]">المقاس</span>
                 <button
                   type="button"
                   onClick={() => setIsSizeGuideOpen(true)}
-                  className="text-[#7d6852] hover:text-[#1c1815] underline decoration-[#d8c8b4] flex items-center gap-1 font-normal transition-colors"
+                  className="text-[#8E7545] border-b border-[#8E7545] flex items-center gap-1 font-normal transition-colors"
                 >
-                  <Ruler className="w-3.5 h-3.5" />
-                  <span>دليل مقاسات الخواتم</span>
+                  <span>دليل المقاسات</span>
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -381,10 +342,10 @@ export default function ProductDetailPage() {
                     key={s}
                     type="button"
                     onClick={() => setSelectedSize(s)}
-                    className={`min-w-[46px] py-2 px-3.5 rounded-xl text-xs font-medium border transition-all duration-300 active:scale-95 ${
+                    className={`min-w-[56px] h-12 px-4 rounded-xl text-[15px] border transition-all duration-300 active:scale-95 ${
                       selectedSize === s
-                        ? "bg-[#1c1815] text-[#faf8f5] border-[#1c1815] shadow-sm"
-                        : "bg-white text-[#5c4d3f] border-[#ded2c0] hover:border-[#8f7a62]"
+                        ? "bg-[#292722] text-[#F5F0E7] border-[#292722]"
+                        : "bg-transparent text-[#292722] border-[#292722]/25 hover:border-[#292722]"
                     }`}
                   >
                     {s}
@@ -398,7 +359,7 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2 text-[#524436]">
                 <Scale className="w-4 h-4 text-[#8c7865]" />
                 <span className="font-medium">الوزن الصافي:</span>
-                <span className="font-bold text-[#1c1815]">~{product.weightGrams || 5} جرام فضة 925</span>
+                <span className="font-bold text-[#292722]">~{product.weightGrams || 5} جرام فضة 925</span>
               </div>
               <span className="text-[11px] text-[#8c7865] bg-white px-2.5 py-0.5 rounded-full border border-[#ded1be]">
                 مقاس مريح قياسي
@@ -408,11 +369,10 @@ export default function ProductDetailPage() {
 
           {/* Custom Laser Engraving Input Card */}
           {product.customEngravingAvailable && (
-            <div className="p-4 rounded-2xl bg-[#faf6f0] border border-[#e2d5c2] space-y-2 text-right">
+            <div className="space-y-2 text-right">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-[#1c1815] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#8c7865]" />
-                  <span>خدمة النقش والحفر بالليزر على الفضة:</span>
+                <span className="text-sm font-bold text-[#292722] flex items-center gap-1.5">
+                  <span>نقش ليزر مجاني (اختياري)</span>
                 </span>
                 <span className="text-[10px] text-[#8c7865] font-sans">
                   {(product.customEngravingMaxChars || 12) - engravingText.length} حرف متبقي
@@ -423,12 +383,9 @@ export default function ProductDetailPage() {
                 maxLength={product.customEngravingMaxChars || 12}
                 value={engravingText}
                 onChange={(e) => setEngravingText(e.target.value)}
-                placeholder="اكتب الاسم أو التاريخ أو الحرف المطلوب نقشه..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#d8c8b4] text-xs font-normal text-[#1c1815] placeholder:text-[#a09080] placeholder:font-light focus:outline-none focus:border-[#1c1815] transition-colors"
+                placeholder="اسم أو تاريخ - حتى 12 حرف"
+                className="w-full h-[50px] px-4 rounded-xl bg-[#fbf8f3] border border-[#292722]/25 text-[15px] font-normal text-[#292722] placeholder:text-[#a09080] placeholder:font-light focus:outline-none focus:border-[#292722] transition-colors"
               />
-              <p className="text-[10px] text-[#705e4d] font-light">
-                ✨ حفر دقيق عالي الجودة داخل أو على جسم القطعة يخلد ذكرياتك.
-              </p>
             </div>
           )}
 
@@ -443,7 +400,7 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={handleWhatsAppOrder}
-                  className="w-full py-3.5 px-6 rounded-2xl bg-[#1c1815] hover:bg-[#2c241e] text-white text-xs font-medium tracking-wide transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-6 rounded-2xl bg-[#292722] hover:bg-[#2c241e] text-white text-xs font-medium tracking-wide transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4 text-[#d8c8b4]" />
                   <span>تواصل معنا للاستفسار عن توفره عبر واتساب</span>
@@ -451,39 +408,23 @@ export default function ProductDetailPage() {
               </div>
             ) : (
               <>
-                {/* Trust strip right above the buy buttons */}
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-white/70 border border-[#ece4d8]">
-                    <ShieldCheck className="w-4 h-4 text-[#8E7545]" />
-                    <span className="text-[10.5px] leading-tight text-[#1c1815]">فضة 925 أصلية بضمان</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-white/70 border border-[#ece4d8]">
-                    <Truck className="w-4 h-4 text-[#8E7545]" />
-                    <span className="text-[10.5px] leading-tight text-[#1c1815]">شحن لكل المحافظات</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-white/70 border border-[#ece4d8]">
-                    <RotateCcw className="w-4 h-4 text-[#8E7545]" />
-                    <span className="text-[10.5px] leading-tight text-[#1c1815]">استبدال خلال {storeSettings.returnPolicyDays || 14} يوماً</span>
-                  </div>
-                </div>
-
                 <div className="flex items-center gap-3">
                   {/* Quantity */}
-                  <div className="flex items-center bg-white border border-[#ded2c0] rounded-2xl p-1 shadow-sm">
+                  <div className="flex items-center border border-[#292722]/25 rounded-full h-14">
                     <button
                       type="button"
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
+                      className="w-12 h-14 rounded-full flex items-center justify-center text-xl text-[#292722] active:scale-90 transition-colors"
                     >
                       -
                     </button>
-                    <span className="w-10 text-center font-normal text-sm text-[#1c1815] font-sans">
+                    <span className="min-w-[28px] text-center font-bold text-[#292722]">
                       {quantity}
                     </span>
                     <button
                       type="button"
                       onClick={() => setQuantity((q) => q + 1)}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-normal text-[#5c4d3f] hover:bg-[#f4ece0] active:scale-90 transition-colors"
+                      className="w-12 h-14 rounded-full flex items-center justify-center text-xl text-[#292722] active:scale-90 transition-colors"
                     >
                       +
                     </button>
@@ -495,10 +436,10 @@ export default function ProductDetailPage() {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={isAdded}
-                    className={`flex-1 py-4 px-6 rounded-2xl font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-lg hover-lift flex items-center justify-center gap-2 ${
+                    className={`flex-1 h-14 px-6 rounded-full font-bold text-[15px] transition-all duration-300 active:scale-95 btn-shine flex items-center justify-center gap-2 ${
                       isAdded
-                        ? "bg-emerald-600 text-white"
-                        : "bg-[#1c1815] hover:bg-[#2c241e] text-[#faf8f5] shadow-[#1c1815]/15"
+                        ? "bg-[#2f6b4a] text-white"
+                        : "bg-[#292722] hover:bg-[#1E1C18] text-[#F5F0E7]"
                     }`}
                   >
                     {isAdded ? (
@@ -508,8 +449,7 @@ export default function ProductDetailPage() {
                       </>
                     ) : (
                       <>
-                        <ShoppingBag className="w-4 h-4 text-[#d8c8b4]" />
-                        <span>أضف إلى السلة • ADD TO BAG</span>
+                        <span>أضف إلى السلة</span>
                       </>
                     )}
                   </button>
@@ -519,38 +459,53 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="w-full py-4 px-6 rounded-2xl bg-[#8E7545] hover:bg-[#7a6439] text-white font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-lg flex items-center justify-center gap-2"
+                  className="w-full h-14 px-6 rounded-full bg-[#8E7545] hover:bg-[#7a6439] text-white font-bold text-[15px] transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
                 >
-                  <span>اشتري الآن • BUY IT NOW</span>
+                  <span>اشتري الآن</span>
                 </button>
 
                 {/* Direct WhatsApp Order Button */}
                 <button
                   type="button"
                   onClick={handleWhatsAppOrder}
-                  className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700/95 hover:bg-emerald-700 text-white text-xs font-medium tracking-wide transition-all shadow-md active:scale-95 hover-lift flex items-center justify-center gap-2"
+                  className="w-full h-[52px] px-6 rounded-full border border-[#2f6b4a] text-[#2f6b4a] hover:bg-[#2f6b4a] hover:text-white font-bold text-[15px] transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>اطلب فوراً عبر واتساب • ORDER VIA WHATSAPP</span>
+                  <span>اطلب عبر واتساب</span>
                 </button>
               </>
             )}
           </div>
 
+          {/* Trust grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              ["فضة 925 أصلية", product.warrantyDuration || "ضمان رسمي معتمد"],
+              ["شحن لكل مصر", "2–4 أيام عمل"],
+              ["استرجاع واستبدال", `خلال ${storeSettings.returnPolicyDays || 14} يوماً`],
+              ["تغليف هدية مجاني", "علبة وكارت إهداء"],
+            ].map(([t, d]) => (
+              <div key={t} className="p-4 rounded-[14px] border border-[#292722]/12 text-[13px] leading-[1.7] text-[#5c5346]">
+                <b className="block text-sm text-[#292722]">{t}</b>
+                {d}
+              </div>
+            ))}
+          </div>
+
           {/* Expandable Accordions */}
-          <div className="border-t border-[#eee5d8] pt-4 space-y-3">
+          <div className="border-t border-[#292722]/12">
             {/* Spec Accordion */}
-            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden transition-all duration-300">
+            <div className="border-b border-[#292722]/12 overflow-hidden">
               <button
                 type="button"
                 onClick={() => setOpenAccordion(openAccordion === "specs" ? null : "specs")}
-                className="w-full p-4 text-right flex items-center justify-between text-xs sm:text-sm font-medium text-[#1c1815]"
+                className="w-full min-h-[56px] text-right flex items-center justify-between text-[15px] font-bold text-[#292722]"
               >
-                <span>مواصفات القطعة وتفاصيل الصياغة</span>
-                {openAccordion === "specs" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <span>المواصفات وتفاصيل الصياغة</span>
+                <span aria-hidden="true">{openAccordion === "specs" ? "−" : "+"}</span>
               </button>
               {openAccordion === "specs" && (
-                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed font-light animate-fade-in">
+                <div className="pb-5 text-sm text-[#5c5346] space-y-2 leading-[2] animate-fade-in">
                   <p>{product.description}</p>
                   <ul className="list-disc list-inside space-y-1 pt-1 text-[#5c4b3a]">
                     {product.features.map((f, i) => (
@@ -567,27 +522,27 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Shipping Accordion */}
-            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden transition-all duration-300">
+            <div className="border-b border-[#292722]/12 overflow-hidden">
               <button
                 type="button"
                 onClick={() => setOpenAccordion(openAccordion === "shipping" ? null : "shipping")}
-                className="w-full p-4 text-right flex items-center justify-between text-xs sm:text-sm font-medium text-[#1c1815]"
+                className="w-full min-h-[56px] text-right flex items-center justify-between text-[15px] font-bold text-[#292722]"
               >
-                <span>الشحن وسياسة الاستبدال</span>
-                {openAccordion === "shipping" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <span>الشحن والتوصيل</span>
+                <span aria-hidden="true">{openAccordion === "shipping" ? "−" : "+"}</span>
               </button>
               {openAccordion === "shipping" && (
-                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed font-light animate-fade-in">
+                <div className="pb-5 text-sm text-[#5c5346] space-y-2 leading-[2] animate-fade-in">
                   <p>
-                    • <strong className="font-medium text-[#1c1815]">تغليف محكم ومؤمن:</strong>{" "}
+                    • <strong className="font-medium text-[#292722]">تغليف محكم ومؤمن:</strong>{" "}
                     تصلك الشحنة في بوكس ORMA المخملي الملكي ومغلفة بشرائط أمان محكمة لضمان وصول القطعة جديدة وبأعلى درجات الخصوصية.
                   </p>
                   <p>
-                    • <strong className="font-medium text-[#1c1815]">مدة التوصيل:</strong>{" "}
+                    • <strong className="font-medium text-[#292722]">مدة التوصيل:</strong>{" "}
                     {storeSettings.shippingPolicyTimeline || "24-48 ساعة للقاهرة والجيزة، و2-4 أيام لباقي محافظات مصر."}
                   </p>
                   <p>
-                    • <strong className="font-medium text-[#1c1815]">الاستبدال والاسترجاع:</strong>{" "}
+                    • <strong className="font-medium text-[#292722]">الاستبدال والاسترجاع:</strong>{" "}
                     {product.returnPolicyNote ||
                       storeSettings.returnPolicyText ||
                       `متاح مجاناً خلال ${storeSettings.returnPolicyDays || 14} يوماً من الاستلام.`}
@@ -597,17 +552,17 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Care Accordion */}
-            <div className="border border-[#ece4d8] rounded-2xl bg-white overflow-hidden transition-all duration-300">
+            <div className="border-b border-[#292722]/12 overflow-hidden">
               <button
                 type="button"
                 onClick={() => setOpenAccordion(openAccordion === "care" ? null : "care")}
-                className="w-full p-4 text-right flex items-center justify-between text-xs sm:text-sm font-medium text-[#1c1815]"
+                className="w-full min-h-[56px] text-right flex items-center justify-between text-[15px] font-bold text-[#292722]"
               >
-                <span>إرشادات الحفاظ على لمعان الفضة</span>
-                {openAccordion === "care" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <span>العناية بالقطعة</span>
+                <span aria-hidden="true">{openAccordion === "care" ? "−" : "+"}</span>
               </button>
               {openAccordion === "care" && (
-                <div className="px-4 pb-4 text-xs text-[#6e5d4d] space-y-2 border-t border-[#f4eee4] pt-3 leading-relaxed font-light animate-fade-in">
+                <div className="pb-5 text-sm text-[#5c5346] space-y-2 leading-[2] animate-fade-in">
                   <p>• تجنب رش العطور أو مستحضرات التجميل الكيميائية المباشرة على الفضة.</p>
                   <p>• احفظ قطعتك في علبة مخملية جافة أو كيس محكم لحمايتها من الرطوبة عند عدم ارتدائها.</p>
                   <p>• استخدم منديل تلميع الفضة المجاني المرفق في شحنتك لاستعادة البريق فوراً.</p>
@@ -620,18 +575,10 @@ export default function ProductDetailPage() {
 
       {/* Related Products Carousel/Grid */}
       {relatedProducts.length > 0 && (
-        <section className="mt-20 pt-16 border-t border-[#e8ded0]">
-          <div className="text-center mb-10 space-y-2">
-            <span className="eyebrow">
-              Recommended for you
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-light text-[#1c1815] font-cairo tracking-tight">
-              قطع أخرى قد تنال إعجابك
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-10">
-            {relatedProducts.map((p) => (
+        <section className="mt-16 pt-4">
+          <h2 className="mb-8 text-3xl sm:text-4xl font-light text-[#292722] font-cairo">قطع تكمّل إطلالتك</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-5">
+            {relatedProducts.slice(0, 4).map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
@@ -642,7 +589,7 @@ export default function ProductDetailPage() {
       {/* Sticky mobile buy bar */}
       {!isOutOfStock && (
         <div
-          className={`lg:hidden fixed inset-x-0 bottom-0 z-30 bg-[#faf8f5]/95 backdrop-blur border-t border-[#e8ded0] pl-4 pr-[84px] pt-3 transition-transform duration-300 ${
+          className={`lg:hidden fixed inset-x-0 bottom-0 z-30 bg-[#F5F0E7]/95 backdrop-blur border-t border-[#e8ded0] pl-4 pr-[84px] pt-3 transition-transform duration-300 ${
             showStickyBar ? "translate-y-0" : "translate-y-full pointer-events-none"
           }`}
           style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
@@ -650,7 +597,7 @@ export default function ProductDetailPage() {
         >
           <div className="flex items-center gap-3">
             <div className="shrink-0 text-right leading-tight">
-              <div className="text-base font-bold text-[#1c1815]">{(product.price * quantity).toLocaleString("en-US")} ج.م</div>
+              <div className="text-base font-bold text-[#292722]">{(product.price * quantity).toLocaleString("en-US")} ج.م</div>
               {quantity > 1 && <div className="text-[10px] text-[#8a7663]">{quantity} قطع</div>}
             </div>
             <button
@@ -659,7 +606,7 @@ export default function ProductDetailPage() {
               disabled={isAdded}
               tabIndex={showStickyBar ? 0 : -1}
               className={`flex-1 min-h-[48px] rounded-2xl text-xs font-bold tracking-wide active:scale-95 transition-all flex items-center justify-center gap-2 ${
-                isAdded ? "bg-emerald-600 text-white" : "bg-[#1c1815] text-[#faf8f5]"
+                isAdded ? "bg-emerald-600 text-white" : "bg-[#292722] text-[#F5F0E7]"
               }`}
             >
               {isAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4 text-[#d8c8b4]" />}

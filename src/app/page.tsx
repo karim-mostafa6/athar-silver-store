@@ -1,13 +1,9 @@
 "use client";
 
 import React, { useState, useMemo, useRef } from "react";
-import { HeroSlider, HeroSlide } from "@/components/HeroSlider";
 import { HeroSection } from "@/components/HeroSection";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandStorySection } from "@/components/BrandStorySection";
-import { SilverCareSection } from "@/components/SilverCareSection";
-import { CustomPromoBanner } from "@/components/CustomPromoBanner";
-import { GenderSplitShowcase } from "@/components/GenderSplitShowcase";
 import { CategoryShowcase } from "@/components/CategoryShowcase";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useStore } from "@/context/StoreContext";
@@ -50,52 +46,14 @@ export default function Home() {
     return filteredProducts.slice(0, 8);
   }, [filteredProducts, showAllProducts, selectedCategory, searchQuery]);
 
-  // Build hero slides from settings (only if explicit slider slides are configured)
-  const heroSlides: HeroSlide[] = useMemo(() => {
-    const settingsSlides = storeSettings?.heroSlides?.filter((s) => s.enabled);
-    if (settingsSlides && settingsSlides.length > 0) {
-      return settingsSlides.map((s) => ({
-        id: s.id,
-        imageUrl: s.imageUrl,
-        badge: s.badge,
-        title: s.title,
-        titleLine2: s.titleLine2,
-        subtitle: s.subtitle,
-        primaryButtonText: s.primaryButtonText,
-        primaryButtonLink: s.primaryButtonLink,
-        secondaryButtonText: s.secondaryButtonText,
-        secondaryButtonLink: s.secondaryButtonLink,
-        overlayDarkness: s.overlayDarkness || "medium",
-        contentAlign: s.contentAlign || "right",
-      }));
-    }
-    return [];
-  }, [storeSettings]);
-
-  const hasSlider = heroSlides.length > 0;
-
   return (
     <>
-      {/* Position 1: Top of page (below navbar) */}
-      <CustomPromoBanner settings={storeSettings} position="top" />
 
-      {/* Hero: Either multi-slide carousel OR classic split hero matching mockup */}
-      {hasSlider ? (
-        <HeroSlider
-          slides={heroSlides}
-          autoPlayInterval={5000}
-          onExploreClick={scrollToProducts}
-        />
-      ) : (
-        <HeroSection
-          onExploreClick={scrollToProducts}
-          onOpenSizeGuide={() => setIsSizeGuideOpen(true)}
-          onNotify={addToast}
-        />
-      )}
-
-      {/* Position 2: After Hero */}
-      <CustomPromoBanner settings={storeSettings} position="after_hero" />
+      <HeroSection
+        onExploreClick={scrollToProducts}
+        onOpenSizeGuide={() => setIsSizeGuideOpen(true)}
+        onNotify={addToast}
+      />
 
       <CategoryShowcase />
 
@@ -185,29 +143,11 @@ export default function Home() {
         </ScrollReveal>
       </section>
 
-      {/* Gender Split Showcase (التشكيلة الرجالية والنسائية) */}
-      <ScrollReveal direction="up" threshold={0.08}>
-        <GenderSplitShowcase />
-      </ScrollReveal>
-
-      {/* Position 3: Between Products and Story */}
-      <CustomPromoBanner settings={storeSettings} position="between_products" />
-
       {/* Brand Story */}
       <ScrollReveal direction="up" threshold={0.08}>
         <BrandStorySection />
       </ScrollReveal>
 
-      {/* Position 4: Before Care Guide */}
-      <CustomPromoBanner settings={storeSettings} position="before_care" />
-
-      {/* Silver Care Guide */}
-      <ScrollReveal direction="up" threshold={0.08}>
-        <SilverCareSection />
-      </ScrollReveal>
-
-      {/* Position 5: Before Footer */}
-      <CustomPromoBanner settings={storeSettings} position="before_footer" />
     </>
   );
 }

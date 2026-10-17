@@ -24,7 +24,6 @@ const GROUP_OF: Record<string, string> = {
   products: "الكتالوج",
   collections: "الكتالوج",
   pages: "الكتالوج",
-  banners: "واجهة المتجر",
   hero: "واجهة المتجر",
   marquee: "واجهة المتجر",
   nav: "واجهة المتجر",
