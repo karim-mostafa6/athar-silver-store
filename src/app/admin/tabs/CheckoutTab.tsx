@@ -39,21 +39,6 @@ export default function CheckoutTab({ settingsForm, setSettingsForm, handleSaveS
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div>
             <label className="block font-bold text-[#292722] mb-1">
-              اسم طريقة الشحن الافتراضية
-            </label>
-            <input
-              type="text"
-              value={settingsForm.checkoutShippingMethodTitle || ""}
-              onChange={(e) =>
-                setSettingsForm({ ...settingsForm, checkoutShippingMethodTitle: e.target.value })
-              }
-              placeholder="شحن قياسي سريع (خلال 2-4 أيام عمل)"
-              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-[#292722] mb-1">
               نص شارة الأمان والخصوصية أسفل طرق الدفع
             </label>
             <input

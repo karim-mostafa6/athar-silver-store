@@ -222,6 +222,42 @@ export default function CheckoutPage() {
     addToast("تم النسخ", "تم نسخ الرقم إلى الحافظة بنجاح", "info");
   };
 
+  // 3-stage navigation
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const fullNameStr = `${firstName.trim()} ${lastName.trim()}`.trim();
+  const paymentLabel =
+    paymentMethod === "cod"
+      ? "الدفع عند الاستلام"
+      : paymentMethod === "wallet"
+      ? "محفظة إلكترونية (إنستاباي / فودافون كاش)"
+      : "بطاقة دفع إلكتروني";
+  const goToStep = (n: number) => {
+    setStep(n as 1 | 2 | 3);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const handleFormSubmit = (e: React.FormEvent) => {
+    if (step === 1) {
+      e.preventDefault();
+      if (cartItems.length === 0) {
+        addToast("السلة فارغة", "يرجى إضافة قطع للسلة أولاً قبل إتمام الطلب", "info");
+        return;
+      }
+      goToStep(2);
+      return;
+    }
+    if (step === 2) {
+      e.preventDefault();
+      if (paymentMethod === "wallet" && storeSettings.requireReceiptUpload && !receiptImage) {
+        setReceiptError("يرجى إرفاق صورة إيصال التحويل لتأكيد الطلب");
+        addToast("إيصال التحويل مطلوب", "يرجى رفع لقطة شاشة لإيصال التحويل", "info");
+        return;
+      }
+      goToStep(3);
+      return;
+    }
+    handleSubmitOrder(e);
+  };
+
   // Submit Order Handler
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -608,14 +644,34 @@ export default function CheckoutPage() {
         </div>
       </header>
 
-      {/* Steps (visual guide, like the approved design) */}
-      <div className="hidden sm:flex justify-center gap-4 pt-8 text-sm text-[#8a7d6c]" aria-hidden="true">
-        <span className="text-[#292722] font-bold">1 · البيانات</span>
-        <span>—</span>
-        <span>2 · الشحن والدفع</span>
-        <span>—</span>
-        <span>3 · التأكيد</span>
-      </div>
+      {/* Steps: real 3-stage navigation */}
+      <nav className="flex justify-center items-center gap-2 sm:gap-4 pt-6 sm:pt-8 px-4" aria-label="مراحل إتمام الطلب">
+        {[
+          { n: 1, t: "البيانات" },
+          { n: 2, t: "الشحن والدفع" },
+          { n: 3, t: "التأكيد" },
+        ].map((st, i) => {
+          const done = st.n < step;
+          const cur = st.n === step;
+          return (
+            <div key={st.n} className="flex items-center gap-2 sm:gap-4">
+              <button
+                type="button"
+                disabled={!done}
+                onClick={() => goToStep(st.n)}
+                aria-current={cur ? "step" : undefined}
+                className={`flex items-center gap-2 text-xs sm:text-[15px] ${cur ? "font-bold text-[#292722]" : done ? "font-medium text-[#292722] cursor-pointer" : "text-[#8a7d6c] cursor-default"}`}
+              >
+                <span className={`w-7 h-7 sm:w-[34px] sm:h-[34px] rounded-full border flex items-center justify-center text-xs sm:text-sm font-bold ${done || cur ? "bg-[#292722] text-[#F5F0E7] border-[#292722]" : "border-[#292722]/30"}`}>
+                  {done ? <Check className="w-3.5 h-3.5" /> : st.n}
+                </span>
+                <span className={cur ? "" : "hidden sm:inline"}>{st.t}</span>
+              </button>
+              {i < 2 && <span className={`w-6 sm:w-20 h-0.5 ${done ? "bg-[#292722]" : "bg-[#292722]/25"}`} />}
+            </div>
+          );
+        })}
+      </nav>
 
       {/* Mobile Collapsible Order Summary Bar */}
       <div className="lg:hidden border-b border-[#e8ded0] bg-[#F5F0E7]">
@@ -752,11 +808,12 @@ export default function CheckoutPage() {
 
       {/* Main Container - 2 Columns Desktop */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-8 sm:py-10">
-        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        <form onSubmit={handleFormSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* =========================================================
               LEFT COLUMN: CHECKOUT FORM (Shopify Pattern)
               ========================================================= */}
           <div className="lg:col-span-7 space-y-8">
+            {step === 1 && (<>
             {/* 1. Contact Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -954,33 +1011,24 @@ export default function CheckoutPage() {
                 <span>حفظ هذه البيانات لتسريع عمليات الشراء القادمة</span>
               </label>
             </div>
+            <div className="pt-4 flex justify-end">
+              <button type="submit" className="h-[58px] px-10 rounded-full bg-[#292722] hover:bg-[#1E1C18] text-[#F5F0E7] font-bold text-base btn-shine flex items-center gap-2">
+                <span>التالي: الشحن والدفع</span>
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+            </div>
+            </>)}
 
-            {/* 3. Shipping Method Section */}
-            <div className="space-y-3 pt-4 border-t border-[#e8ded0]">
-              <h2 className="font-cairo text-xl sm:text-2xl font-semibold text-[#292722]">
-                طريقة الشحن والتوصيل
-              </h2>
-
-              <div className="border-2 border-[#292722] bg-[#fdfbf7] rounded-2xl p-4 flex items-center justify-between shadow-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full border-4 border-[#292722] bg-white flex items-center justify-center shrink-0" />
-                  <div>
-                    <span className="text-xs font-bold text-[#292722] block">
-                      {storeSettings.checkoutShippingMethodTitle || "شحن قياسي سريع (خلال 2-4 أيام عمل)"}
-                    </span>
-                    <span className="text-[11px] text-[#756555] block">
-                      توصيل مباشر لباب منزلك مع التنسيق المسبق هاتفياً
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-left font-mono font-bold text-xs sm:text-sm text-[#292722]">
-                  {shippingFee === 0 ? (
-                    <span className="text-emerald-700 font-bold font-cairo">مجاناً 🚚</span>
-                  ) : (
-                    <span>{shippingFee} ج.م</span>
-                  )}
-                </div>
+            {step === 2 && (<>
+            <div className="rounded-2xl border border-[#292722]/14 bg-[#fbf8f3] p-4 sm:p-5 text-sm leading-relaxed">
+              <div className="flex items-center justify-between mb-1">
+                <b className="font-cairo">بيانات التوصيل</b>
+                <button type="button" onClick={() => goToStep(1)} className="text-[#8E7545] font-bold underline text-sm">تعديل</button>
+              </div>
+              <div className="text-[#5c5346]">{fullNameStr} · {phone}{email.trim() ? ` · ${email.trim()}` : ""}</div>
+              <div className="text-[#5c5346]">{governorate}، {city} — {address}{apartment ? ` - ${apartment}` : ""}</div>
+              <div className="mt-2 text-[#292722]">
+                الشحن: {shippingFee === 0 ? <span className="text-[#2f6b4a] font-bold">مجاني</span> : <b>{shippingFee} ج.م</b>}
               </div>
             </div>
 
@@ -1280,6 +1328,47 @@ export default function CheckoutPage() {
                 </div>
               </div>
             )}
+            <div className="pt-4 flex items-center justify-between">
+              <button type="button" onClick={() => goToStep(1)} className="h-[58px] px-2 font-bold text-[#5c5346] flex items-center gap-2">
+                <ArrowRight className="w-4 h-4" />
+                <span>رجوع</span>
+              </button>
+              <button type="submit" className="h-[58px] px-10 rounded-full bg-[#292722] hover:bg-[#1E1C18] text-[#F5F0E7] font-bold text-base btn-shine flex items-center gap-2">
+                <span>مراجعة وتأكيد الطلب</span>
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+            </div>
+            </>)}
+
+            {step === 3 && (<>
+            <div className="space-y-2">
+              <h2 className="font-cairo text-xl sm:text-2xl font-semibold text-[#292722]">راجع طلبك قبل التأكيد</h2>
+              <p className="text-sm text-[#5c5346]">تأكد من البيانات، ولما تضغط تأكيد هنسجّل الطلب ونبعتلك رقمه فوراً.</p>
+            </div>
+            {[
+              { title: "بيانات التواصل", go: 1, rows: [["الاسم", fullNameStr], ["الموبايل", phone], ["البريد الإلكتروني", email.trim() || "—"]] },
+              { title: "عنوان التوصيل", go: 1, rows: [["المحافظة", governorate], ["العنوان", `${city} — ${address}${apartment ? ` - ${apartment}` : ""}`]] },
+              { title: "الشحن والدفع", go: 2, rows: [["الشحن", shippingFee === 0 ? "مجاني" : `${shippingFee} ج.م`], ["طريقة الدفع", paymentLabel], ...(isGift ? [["هدية", giftMessage.trim() || "تغليف هدية"]] : []), ...(orderNotes.trim() ? [["ملاحظات", orderNotes.trim()]] : [])] },
+            ].map((c) => (
+              <div key={c.title} className="rounded-[20px] border border-[#292722]/14 bg-[#fbf8f3] px-5 sm:px-7 py-5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-cairo font-semibold text-lg">{c.title}</h3>
+                  <button type="button" onClick={() => goToStep(c.go)} className="text-[#8E7545] font-bold text-sm underline">تعديل</button>
+                </div>
+                {c.rows.map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-4 py-3 border-b border-[#292722]/10 last:border-0 text-sm">
+                    <span className="text-[#7d6c5c] shrink-0">{k}</span>
+                    <span className="font-medium text-left">{v}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+            {email.trim() && (
+              <div className="flex items-center gap-3 rounded-2xl bg-[#8E7545]/10 px-5 py-4 text-sm text-[#5c5346]">
+                <Mail className="w-5 h-5 text-[#8E7545] shrink-0" />
+                <span>هيوصلك إيميل بتفاصيل الطلب على <b dir="ltr">{email.trim()}</b></span>
+              </div>
+            )}
 
             {/* 6. Submit Button & Trust Strip */}
             <div className="pt-4 border-t border-[#e8ded0] space-y-3">
@@ -1311,6 +1400,13 @@ export default function CheckoutPage() {
                 </span>
               </div>
             </div>
+            <div className="flex">
+              <button type="button" onClick={() => goToStep(2)} className="h-12 px-2 font-bold text-[#5c5346] flex items-center gap-2">
+                <ArrowRight className="w-4 h-4" />
+                <span>رجوع</span>
+              </button>
+            </div>
+            </>)}
           </div>
 
           {/* =========================================================
