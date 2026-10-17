@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { getCacheBustedImageUrl } from "@/lib/version";
+import { resolveHomeTiles } from "@/lib/homeTiles";
 
 /**
  * "Shop by category" tiles. Read-only: categories come from store settings and each tile shows the
@@ -14,30 +15,9 @@ import { getCacheBustedImageUrl } from "@/lib/version";
 export const CategoryShowcase: React.FC = () => {
   const { storeSettings, products } = useStore();
 
-  const tiles = useMemo(() => {
-    const list =
-      storeSettings?.categories && storeSettings.categories.length > 0
-        ? storeSettings.categories
-        : [
-            { id: "rings", label: "خواتم" },
-            { id: "chains", label: "سلاسل" },
-            { id: "bracelets", label: "أساور" },
-            { id: "earrings", label: "أقراط" },
-          ];
-    const pool = products.map((p) => p.images?.[0]).filter(Boolean) as string[];
-    return list
-      .map((c, idx) => {
-        const inCat = products.filter((p) => p.category === c.id);
-        const page = storeSettings?.collectionPages?.[c.id];
-        const image =
-          (page?.showBanner !== false && page?.bannerImage) || inCat.find((p) => p.images?.[0])?.images?.[0] || (pool.length ? pool[(idx * 3 + 1) % pool.length] : "");
-        return { id: c.id, label: page?.title || c.label, count: inCat.length, image };
-      })
-      .sort((a, b) => Number(b.count > 0) - Number(a.count > 0))
-      .slice(0, 4);
-  }, [storeSettings?.categories, storeSettings?.collectionPages, products]);
+  const tiles = useMemo(() => resolveHomeTiles(storeSettings, products), [storeSettings, products]);
 
-  if (tiles.length < 2) return null;
+  if (tiles.length < 1) return null;
 
   return (
     <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-14 sm:pt-20">
@@ -51,9 +31,9 @@ export const CategoryShowcase: React.FC = () => {
       </ScrollReveal>
       <div className={`grid grid-cols-2 ${tiles.length >= 4 ? "lg:grid-cols-4" : tiles.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-3 sm:gap-5`}>
         {tiles.map((t, i) => (
-          <ScrollReveal key={t.id} direction="up" delay={i * 90}>
+          <ScrollReveal key={t.key} direction="up" delay={i * 90}>
             <Link
-              href={`/collection/${t.id}`}
+              href={t.href}
               className="group relative block overflow-hidden rounded-2xl sm:rounded-[20px] h-[240px] sm:h-[340px] lg:h-[420px] bg-gradient-to-br from-[#D8C8B3] to-[#8E7545]"
             >
               {t.image && (

@@ -3,18 +3,99 @@
 import { Package, Save, Sparkles, Trash2, Upload } from "lucide-react";
 import type { StoreSettings } from "@/context/StoreContext";
 import { compressImageFile } from "@/lib/adminImages";
+import { tileCandidates, resolveHomeTiles } from "@/lib/homeTiles";
 
 interface Props {
   settingsForm: StoreSettings;
   setSettingsForm: React.Dispatch<React.SetStateAction<StoreSettings>>;
   handleSaveSettings: () => void;
+  products?: { category?: string; gender?: string; images?: string[] }[];
   addToast: (title: string, message: string, type: "cart" | "wishlist" | "promo" | "info") => void;
 
 }
 
-export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSettings, addToast }: Props) {
+export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSettings, addToast, products = [] }: Props) {
+  const candidates = tileCandidates(settingsForm, products);
+  const savedTiles = settingsForm.homeTiles && settingsForm.homeTiles.length > 0 ? settingsForm.homeTiles : null;
+  const defaultKeys = resolveHomeTiles({ ...settingsForm, homeTiles: undefined }, products).map((t) => t.key);
+  // Working list: saved order first, then any collection not yet in it (hidden).
+  const tileRows = (() => {
+    const base = savedTiles
+      ? savedTiles.filter((t) => candidates.some((c) => c.key === t.key))
+      : defaultKeys.map((key) => ({ key, show: true, image: "" as string | undefined }));
+    const rest = candidates
+      .filter((c) => !base.some((b) => b.key === c.key))
+      .map((c) => ({ key: c.key, show: false, image: "" as string | undefined }));
+    return [...base, ...rest];
+  })();
+  const setTiles = (rows: { key: string; show: boolean; image?: string }[]) => setSettingsForm({ ...settingsForm, homeTiles: rows });
+  const moveTile = (i: number, d: number) => {
+    const rows = [...tileRows];
+    const j = i + d;
+    if (j < 0 || j >= rows.length) return;
+    [rows[i], rows[j]] = [rows[j], rows[i]];
+    setTiles(rows);
+  };
+
   return (
     <div className="space-y-6 max-w-4xl">
+      {/* Home: Shop by category tiles */}
+      <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+          <Package className="w-4 h-4 text-[#c5a880]" />
+          <span>أقسام &quot;تسوّق حسب الفئة&quot; في الرئيسية</span>
+        </div>
+        <p className="text-xs text-[#756555]">اختر اللي يظهر ورتّبهم بالأسهم. أي كولكشن جديدة بتظهر هنا تلقائياً وتقدر تفعّلها. الصورة بتتاخد من صورة الكولكشن أو أول منتج، ولو عايز صورة خاصة ارفعها.</p>
+        <div className="space-y-2">
+          {tileRows.map((row, i) => {
+            const c = candidates.find((x) => x.key === row.key);
+            if (!c) return null;
+            const img = row.image || c.image;
+            return (
+              <div key={row.key} className="flex items-center gap-3 p-2.5 rounded-xl border border-[#ded2c0] bg-[#F5F0E7]">
+                <input
+                  type="checkbox"
+                  checked={row.show}
+                  onChange={(e) => setTiles(tileRows.map((r) => (r.key === row.key ? { ...r, show: e.target.checked } : r)))}
+                  aria-label={`إظهار ${c.label}`}
+                />
+                <div className="w-12 h-12 rounded-lg overflow-hidden border bg-white shrink-0">
+                  {img && <img src={img} alt="" className="w-full h-full object-cover" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold truncate">{c.label}</div>
+                  <div className="text-[10px] text-[#756555]">{c.count} قطعة</div>
+                </div>
+                <label className="px-2.5 py-1.5 rounded bg-[#292722] text-[#F5F0E7] text-[11px] font-bold cursor-pointer whitespace-nowrap">
+                  صورة
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const dataUrl = await compressImageFile(file);
+                        if (dataUrl) setTiles(tileRows.map((r) => (r.key === row.key ? { ...r, image: dataUrl } : r)));
+                      }
+                    }}
+                  />
+                </label>
+                {row.image && (
+                  <button type="button" aria-label="إزالة الصورة" onClick={() => setTiles(tileRows.map((r) => (r.key === row.key ? { ...r, image: "" } : r)))} className="text-[#8c7865] hover:text-rose-600 p-1">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <div className="flex flex-col">
+                  <button type="button" aria-label="لأعلى" onClick={() => moveTile(i, -1)} className="px-2 text-xs leading-none h-5">▲</button>
+                  <button type="button" aria-label="لأسفل" onClick={() => moveTile(i, 1)} className="px-2 text-xs leading-none h-5">▼</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Products Section on Homepage */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
         <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">

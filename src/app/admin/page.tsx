@@ -1393,7 +1393,7 @@ export default function AdminPage() {
     { id: "hero", label: "البانر الرئيسي", icon: <ImageIcon className="w-4 h-4" /> },
     { id: "marquee", label: "شريط الإعلانات", icon: <Megaphone className="w-4 h-4" /> },
     { id: "nav", label: "قائمة التنقل", icon: <Layers className="w-4 h-4" /> },
-    { id: "story", label: "القصة والعناية", icon: <Star className="w-4 h-4" /> },
+    { id: "story", label: "الرئيسية والقصة", icon: <Star className="w-4 h-4" /> },
     { id: "footer", label: "الفوتر", icon: <FileText className="w-4 h-4" /> },
     { id: "payment", label: "طرق الدفع", icon: <CreditCard className="w-4 h-4" /> },
     { id: "shipping", label: "الشحن والمحافظات", icon: <Truck className="w-4 h-4" /> },
@@ -1899,7 +1899,7 @@ export default function AdminPage() {
               TAB 6: STORY & CARE (القصة والعناية)
               ======================================================== */}
           {activeTab === "story" && (
-            <StoryTab settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} addToast={addToast} />
+            <StoryTab products={products} settingsForm={settingsForm} setSettingsForm={setSettingsForm} handleSaveSettings={handleSaveSettings} addToast={addToast} />
           )}
 
           {/* ========================================================

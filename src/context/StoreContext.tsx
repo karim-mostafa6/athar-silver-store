@@ -204,6 +204,7 @@ export interface StoreSettings {
   storySectionShow?: boolean;
   storyBadge?: string;
   storyImageUrl?: string;
+  homeTiles?: { key: string; show: boolean; image?: string }[];
   storyTitle?: string;
   storySubtitle?: string;
   storyPillar1Title?: string;
