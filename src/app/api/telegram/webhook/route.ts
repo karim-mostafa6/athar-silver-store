@@ -478,6 +478,51 @@ export async function POST(request: NextRequest) {
       const chatId = body.message.chat.id;
       const text = String(body.message.text).trim();
 
+      const reply = (t: string) =>
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: t }),
+        }).catch(() => null);
+
+      if (/^\/id(@\w+)?$/i.test(text)) {
+        await reply(`رقم الشات ده: ${chatId}`);
+        return NextResponse.json({ ok: true });
+      }
+
+      // /setcart (sent inside the new group) routes abandoned-cart alerts to THAT chat.
+      // Only the shop owner (a member of the main orders chat) may do this, otherwise a stranger who
+      // finds the bot could redirect customer data to themselves.
+      if (/^\/setcart(@\w+)?$/i.test(text)) {
+        const mainChat = (process.env.TELEGRAM_CHAT_ID || "").trim().replace(/^["']|["']$/g, "");
+        const fromId = body.message.from?.id;
+        let allowed = Boolean(mainChat && fromId && String(fromId) === mainChat);
+        if (!allowed && mainChat && fromId) {
+          try {
+            const r = await fetch(`https://api.telegram.org/bot${botToken}/getChatMember`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: mainChat, user_id: fromId }),
+            });
+            const j = await r.json();
+            allowed = Boolean(j?.ok && ["creator", "administrator", "member"].includes(j.result?.status));
+          } catch {}
+        }
+        if (!allowed) {
+          await reply("⛔ الأمر ده لصاحب المتجر بس.");
+          return NextResponse.json({ ok: true });
+        }
+        try {
+          await getSupabaseAdminClient()
+            .from("app_config")
+            .upsert({ key: "telegram_cart_chat_id", value: String(chatId) });
+          await reply("✅ تمام. من دلوقتي تنبيهات السلات المتروكة هتيجي في الشات ده، والطلبات هتفضل في شاتها الأصلي.");
+        } catch {
+          await reply("⚠️ تعذر الحفظ، جرّب تاني بعد شوية.");
+        }
+        return NextResponse.json({ ok: true });
+      }
+
       if (text.startsWith("/start") || text.startsWith("/help")) {
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
           method: "POST",

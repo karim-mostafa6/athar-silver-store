@@ -87,10 +87,18 @@ export async function processAbandonedCarts(): Promise<{ notified: number }> {
   let notified = 0;
   if (!isSupabaseConfigured()) return { notified };
   const botToken = cleanEnv(process.env.TELEGRAM_BOT_TOKEN);
-  const chatId = cleanEnv(process.env.TELEGRAM_CHAT_ID);
-  if (!botToken || !chatId) return { notified };
+  if (!botToken) return { notified };
   try {
     const supabase = getSupabaseAdminClient();
+    // Abandoned-cart alerts go to their own chat when one is set (via /setcart in that group, or the
+    // TELEGRAM_CART_CHAT_ID env var); otherwise they fall back to the orders chat.
+    let chatId = "";
+    try {
+      const { data: cfg } = await supabase.from("app_config").select("value").eq("key", "telegram_cart_chat_id").maybeSingle();
+      chatId = cleanEnv(cfg?.value as string | undefined);
+    } catch {}
+    chatId = chatId || cleanEnv(process.env.TELEGRAM_CART_CHAT_ID) || cleanEnv(process.env.TELEGRAM_CHAT_ID);
+    if (!chatId) return { notified };
     const now = Date.now();
     const { data } = await supabase
       .from("abandoned_carts")
