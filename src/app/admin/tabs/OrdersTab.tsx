@@ -42,19 +42,6 @@ function WaChip({ order }: { order: Order }) {
   const time = order.waSentAt
     ? new Date(order.waSentAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })
     : "";
-  const resend = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setBusy(true);
-    try {
-      await fetch("/api/whatsapp/resend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: order.id }),
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
   const base = "text-[10px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap inline-flex items-center gap-1";
   const sendManual = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -85,18 +72,7 @@ function WaChip({ order }: { order: Order }) {
     );
   if (st === "sent")
     return <span className={`${base} bg-emerald-50 text-emerald-800 border-emerald-300`}>✓ تأكيد واتساب اتبعت{time ? ` ${time}` : ""}</span>;
-  if (st === "pending")
-    return <span className={`${base} bg-sky-50 text-sky-800 border-sky-300`}>⏳ واتساب هيتبعت بعد 3 دقايق</span>;
-  if (st === "sending")
-    return <span className={`${base} bg-sky-50 text-sky-800 border-sky-300`}>جاري إرسال واتساب…</span>;
-  return (
-    <span title={order.waError || ""} className={`${base} bg-rose-50 text-rose-800 border-rose-300`}>
-      {st === "not_configured" ? "واتساب غير مفعّل" : "⚠ واتساب فشل"}
-      <button type="button" onClick={resend} disabled={busy} className="underline disabled:opacity-50">
-        {busy ? "..." : "إعادة الإرسال"}
-      </button>
-    </span>
-  );
+  return null;
 }
 
 export default function OrdersTab({ orders, filteredOrders, selectedOrderIds, setSelectedOrderIds, orderDatePreset, setOrderDatePreset, orderCustomDate, setOrderCustomDate, isRefreshingOrders, bulkStatusToApply, setBulkStatusToApply, orderStatusFilter, setOrderStatusFilter, orderSearchQuery, setOrderSearchQuery, setSelectedOrderForDetails, setManualOrderForm, setIsCreateOrderModalOpen, formatOrderDateYMD, updateOrderStatus, bulkUpdateOrderStatus, handleManualRefreshOrders, handlePrintMultipleOrders, exportOrdersToCSV }: Props) {

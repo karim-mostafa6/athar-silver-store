@@ -11,7 +11,7 @@ import {
 import { Order, OrderItem } from "@/context/StoreContext";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { sendTelegramOrderNotification } from "@/lib/telegram";
-import { reconcilePendingWhatsAppConfirmations, normalizeEgyptianPhone, waAutoEnabled } from "@/lib/whatsapp";
+import { normalizeEgyptianPhone, waAutoEnabled } from "@/lib/whatsapp";
 import { evaluateOrderReview } from "@/lib/orderReview";
 import { patchOrderFields } from "@/lib/serverStore";
 import { recordFunnelEvent, markCartRecovered, sanitizeSource } from "@/lib/funnel";
@@ -63,19 +63,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await getServerStoreData({ ordersOnly: true });
-
-    // Vercel Resilience: Trigger background reconciliation for any pending delayed WhatsApp confirmations
-    const origin =
-      request.headers.get("origin") ||
-      (request.headers.get("host")?.startsWith("localhost")
-        ? "http://localhost:3000"
-        : `https://${request.headers.get("host") || "orma-silver.vercel.app"}`);
-
-    (async () => {
-      try {
-        await reconcilePendingWhatsAppConfirmations(origin);
-      } catch {}
-    })();
 
     return NextResponse.json(
       {
