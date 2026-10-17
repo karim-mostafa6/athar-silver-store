@@ -24,7 +24,7 @@ export default function CollectionsTab({ settingsForm, handleSaveSettings, produ
       {/* Header & Controls */}
       <div className="bg-white rounded-xl p-5 border border-[#e8ded0] flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div>
-          <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+          <h3 className="font-bold text-sm text-[#292722] flex items-center gap-2">
             <Layers className="w-4 h-4 text-[#c5a880]" />
             <span>إدارة الكولكشن والمجموعات (Collections & Categories)</span>
           </h3>
@@ -36,7 +36,7 @@ export default function CollectionsTab({ settingsForm, handleSaveSettings, produ
         <div className="flex items-center gap-2">
           <button
             onClick={handleOpenAddCollection}
-            className="px-5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
+            className="px-5 py-2.5 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
           >
             <Plus className="w-4 h-4 text-[#c5a880]" />
             <span>إضافة كولكشن جديد</span>
@@ -44,7 +44,7 @@ export default function CollectionsTab({ settingsForm, handleSaveSettings, produ
           <button
             onClick={handleSaveSettings}
             disabled={isSavingSettings}
-            className="px-4 py-2.5 rounded-lg bg-[#c5a880] text-[#161412] text-xs font-bold hover:bg-[#b8996e] transition-all shadow-sm flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-lg bg-[#c5a880] text-[#292722] text-xs font-bold hover:bg-[#b8996e] transition-all shadow-sm flex items-center gap-1.5"
           >
             <Save className="w-4 h-4" />
             <span>حفظ السحابة</span>
@@ -112,7 +112,7 @@ export default function CollectionsTab({ settingsForm, handleSaveSettings, produ
                 <Link
                   href={`/collection/${col.slug || col.id}`}
                   target="_blank"
-                  className="px-3 py-1.5 rounded-lg bg-white border border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3] text-xs font-medium flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-lg bg-white border border-[#ded2c0] text-[#292722] hover:bg-[#ede3d3] text-xs font-medium flex items-center gap-1"
                 >
                   <ExternalLink className="w-3.5 h-3.5 text-[#c5a880]" />
                   <span>معاينة في المتجر</span>
@@ -121,7 +121,7 @@ export default function CollectionsTab({ settingsForm, handleSaveSettings, produ
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleOpenEditCollection(col)}
-                    className="p-1.5 rounded text-[#5c4f42] hover:text-[#161412] hover:bg-white"
+                    className="p-1.5 rounded text-[#5c4f42] hover:text-[#292722] hover:bg-white"
                     title="تعديل الكولكشن"
                   >
                     <Edit className="w-4 h-4" />

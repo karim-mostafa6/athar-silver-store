@@ -81,7 +81,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -6 }}
-      className="group flex flex-col cursor-pointer select-none text-center block transition-all duration-300"
+      className="group flex flex-col cursor-pointer select-none text-right block transition-all duration-300"
     >
       <Link
         href={`/product/${product.id}`}
@@ -90,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         className="flex flex-col h-full"
       >
         {/* Product Image Container: Beige #D8C8B3 with Charcoal 12% border */}
-        <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-[#D8C8B3] mb-3.5 transition-all duration-500 border border-[#292722]/12 group-hover:border-[#8E7545] group-hover:shadow-[0_18px_36px_-8px_rgba(41,39,34,0.16)]">
+        <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-[#D8C8B3] mb-3.5 transition-all duration-500 border border-[#292722]/12 group-hover:border-[#8E7545] group-hover:shadow-[0_18px_36px_-8px_rgba(41,39,34,0.16)]">
           {/* Primary Image */}
           <img
             src={primaryImage}
@@ -228,18 +228,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Centered Minimal Product Details */}
-        <div className="flex flex-col items-center space-y-1.5 px-1 mt-auto">
+        <div className="flex flex-col items-start space-y-1.5 px-1 mt-auto">
           {/* Product Title: Charcoal #292722 */}
-          <h3 className="text-xs sm:text-sm font-tajawal font-medium text-[#292722] group-hover:text-[#8E7545] transition-colors duration-300 line-clamp-1 max-w-[95%] leading-relaxed">
+          <h3 className="text-sm sm:text-[15px] font-cairo font-semibold text-[#292722] group-hover:text-[#8E7545] transition-colors duration-300 line-clamp-2 w-full leading-relaxed">
             {product.arabicName}
           </h3>
 
           {/* Centered Minimal Price: Gold #8E7545 */}
-          <div className="flex items-center justify-center gap-1.5 pt-0.5">
-            <span className="text-sm sm:text-base font-tajawal font-bold text-[#8E7545] tracking-tight">
+          <div className="flex items-baseline justify-start gap-1.5 pt-0.5">
+            <span className="text-sm sm:text-base font-tajawal font-bold text-[#292722] tracking-tight">
               {product.price.toLocaleString("en-US")}
             </span>
-            <span className="text-[11px] text-[#8E7545] font-tajawal font-medium">ج.م</span>
+            <span className="text-[11px] text-[#292722] font-tajawal font-medium">ج.م</span>
             {product.originalPrice && (
               <span className="text-[11px] text-[#292722]/40 line-through font-tajawal font-normal mr-1">
                 {product.originalPrice.toLocaleString("en-US")} ج.م

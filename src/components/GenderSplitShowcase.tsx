@@ -60,7 +60,7 @@ export const GenderSplitShowcase: React.FC = () => {
               </h3>
 
               <div>
-                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 border border-white/85 bg-black/25 group-hover:bg-white text-white group-hover:text-[#161412] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
+                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 border border-white/85 bg-black/25 group-hover:bg-white text-white group-hover:text-[#292722] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
                   {womenButtonText}
                 </span>
               </div>
@@ -90,7 +90,7 @@ export const GenderSplitShowcase: React.FC = () => {
               </h3>
 
               <div>
-                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 border border-white/85 bg-black/25 group-hover:bg-white text-white group-hover:text-[#161412] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
+                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 border border-white/85 bg-black/25 group-hover:bg-white text-white group-hover:text-[#292722] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
                   {menButtonText}
                 </span>
               </div>

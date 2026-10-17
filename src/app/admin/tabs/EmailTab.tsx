@@ -13,7 +13,7 @@ export default function EmailTab({ settingsForm, setSettingsForm, handleSaveSett
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Mail className="w-4 h-4 text-[#c5a880]" />
           <span>إعدادات البريد الإلكتروني الرسمي (Gmail SMTP)</span>
         </div>
@@ -33,7 +33,7 @@ export default function EmailTab({ settingsForm, setSettingsForm, handleSaveSett
               type="text"
               value={settingsForm.senderEmailName || "متجر ORMA للفضة"}
               onChange={(e) => setSettingsForm({ ...settingsForm, senderEmailName: e.target.value })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722]"
             />
           </div>
 
@@ -46,7 +46,7 @@ export default function EmailTab({ settingsForm, setSettingsForm, handleSaveSett
               value={settingsForm.senderEmail || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, senderEmail: e.target.value })}
               placeholder="theorma.eg@gmail.com"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr"
             />
           </div>
         </div>
@@ -60,14 +60,14 @@ export default function EmailTab({ settingsForm, setSettingsForm, handleSaveSett
             value={settingsForm.gmailAppPassword || ""}
             onChange={(e) => setSettingsForm({ ...settingsForm, gmailAppPassword: e.target.value })}
             placeholder="xxxx xxxx xxxx xxxx"
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr font-mono"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr font-mono"
           />
         </div>
       </div>
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ إعدادات البريد الإلكتروني</span>

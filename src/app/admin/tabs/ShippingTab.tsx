@@ -21,7 +21,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
     <div className="space-y-6 max-w-4xl">
       {/* Regional & Free Shipping */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Truck className="w-4 h-4 text-[#c5a880]" />
           <span>المناطق الإقليمية الرئيسية وحد الشحن المجاني</span>
         </div>
@@ -35,7 +35,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
               type="number"
               value={settingsForm.freeShippingThreshold || 1500}
               onChange={(e) => setSettingsForm({ ...settingsForm, freeShippingThreshold: Number(e.target.value) })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
             />
           </div>
 
@@ -47,7 +47,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
               type="number"
               value={settingsForm.shippingCairoGiza || 45}
               onChange={(e) => setSettingsForm({ ...settingsForm, shippingCairoGiza: Number(e.target.value) })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
             />
           </div>
 
@@ -59,7 +59,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
               type="number"
               value={settingsForm.shippingAlex || 55}
               onChange={(e) => setSettingsForm({ ...settingsForm, shippingAlex: Number(e.target.value) })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
             />
           </div>
 
@@ -71,7 +71,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
               type="number"
               value={settingsForm.shippingDeltaCanal || 65}
               onChange={(e) => setSettingsForm({ ...settingsForm, shippingDeltaCanal: Number(e.target.value) })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
             />
           </div>
 
@@ -83,7 +83,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
               type="number"
               value={settingsForm.shippingUpperEgypt || 80}
               onChange={(e) => setSettingsForm({ ...settingsForm, shippingUpperEgypt: Number(e.target.value) })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
             />
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
 
       {/* All 27 Governorates Rates Table */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
           <div className="flex items-center gap-2">
             <Truck className="w-4 h-4 text-[#c5a880]" />
             <span>جدول تسعير الشحن التفصيلي لكافة الـ 27 محافظة مصرية</span>
@@ -111,15 +111,15 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
             return (
               <div
                 key={gov.name}
-                className="flex items-center justify-between p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] text-xs"
+                className="flex items-center justify-between p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] text-xs"
               >
-                <span className="font-bold text-[#161412]">{gov.name}</span>
+                <span className="font-bold text-[#292722]">{gov.name}</span>
                 <div className="flex items-center gap-1.5">
                   <input
                     type="number"
                     value={currentRate}
                     onChange={(e) => updateGovRate(gov.name, Number(e.target.value))}
-                    className="w-20 bg-white border border-[#ded2c0] rounded px-2.5 py-1 text-xs text-center font-bold text-[#161412] focus:outline-none focus:border-[#161412]"
+                    className="w-20 bg-white border border-[#ded2c0] rounded px-2.5 py-1 text-xs text-center font-bold text-[#292722] focus:outline-none focus:border-[#292722]"
                   />
                   <span className="text-[#8c7865] text-[11px]">ج.م</span>
                 </div>
@@ -131,7 +131,7 @@ export default function ShippingTab({ settingsForm, setSettingsForm, handleSaveS
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ أسعار الشحن والمحافظات في السحابة</span>

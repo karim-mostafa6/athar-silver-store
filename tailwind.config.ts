@@ -91,6 +91,7 @@ const config: Config = {
         tajawal: ["var(--font-tajawal)", "var(--font-cairo)", "sans-serif"],
         cairo: ["var(--font-cairo)", "var(--font-tajawal)", "sans-serif"],
         alexandria: ["var(--font-cairo)", "sans-serif"],
+        cormorant: ["var(--font-cormorant)", "Georgia", "serif"],
         amiri: ["'Amiri'", "serif"],
         aref: ["'Aref Ruqaa'", "'Amiri'", "serif"],
         lora: ["'Lora'", "serif"],

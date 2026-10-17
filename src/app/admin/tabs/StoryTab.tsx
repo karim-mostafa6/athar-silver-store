@@ -17,7 +17,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
     <div className="space-y-6 max-w-4xl">
       {/* Products Section on Homepage */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Package className="w-4 h-4 text-[#c5a880]" />
           <span>نصوص قسم استعراض المنتجات بالصفحة الرئيسية</span>
         </div>
@@ -30,7 +30,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               value={settingsForm.productsSectionBadge || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, productsSectionBadge: e.target.value })}
               placeholder="تشكيلة الفضة الإسترليني"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
             />
           </div>
           <div>
@@ -40,7 +40,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               value={settingsForm.productsSectionTitle || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, productsSectionTitle: e.target.value })}
               placeholder="روائع الصياغة الإيطالية"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
             />
           </div>
           <div>
@@ -50,7 +50,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               value={settingsForm.productsSectionSubtitle || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, productsSectionSubtitle: e.target.value })}
               placeholder="قطع مختارة من الفضة عيار 925 النقية"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
             />
           </div>
         </div>
@@ -58,15 +58,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
 
       {/* Gender Split Section */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Star className="w-4 h-4 text-[#c5a880]" />
           <span>قسم التشكيلتين (نسائي / رجالي - Gender Split)</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Women */}
-          <div className="p-4 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-3">
-            <h5 className="font-bold text-xs text-[#161412] border-b border-[#d8c8b4] pb-2">التشكيلة النسائية</h5>
+          <div className="p-4 bg-[#F5F0E7] rounded-xl border border-[#ded2c0] space-y-3">
+            <h5 className="font-bold text-xs text-[#292722] border-b border-[#d8c8b4] pb-2">التشكيلة النسائية</h5>
             <input
               type="text"
               value={settingsForm.splitWomenTitle || ""}
@@ -122,7 +122,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
                   placeholder="رابط الصورة أو رفع ملف"
                   className="flex-1 bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs dir-ltr"
                 />
-                <label className="px-2.5 py-1.5 rounded bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                <label className="px-2.5 py-1.5 rounded bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap">
                   <Upload className="w-3 h-3 text-[#c5a880]" />
                   <span>رفع</span>
                   <input
@@ -146,8 +146,8 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           </div>
 
           {/* Men */}
-          <div className="p-4 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-3">
-            <h5 className="font-bold text-xs text-[#161412] border-b border-[#d8c8b4] pb-2">التشكيلة الرجالية</h5>
+          <div className="p-4 bg-[#F5F0E7] rounded-xl border border-[#ded2c0] space-y-3">
+            <h5 className="font-bold text-xs text-[#292722] border-b border-[#d8c8b4] pb-2">التشكيلة الرجالية</h5>
             <input
               type="text"
               value={settingsForm.splitMenTitle || ""}
@@ -204,7 +204,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
                   placeholder="رابط الصورة أو رفع ملف"
                   className="flex-1 bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs dir-ltr"
                 />
-                <label className="px-2.5 py-1.5 rounded bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                <label className="px-2.5 py-1.5 rounded bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap">
                   <Upload className="w-3 h-3 text-[#c5a880]" />
                   <span>رفع</span>
                   <input
@@ -231,7 +231,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
 
       {/* Brand Story & 4 Pillars */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Sparkles className="w-4 h-4 text-[#c5a880]" />
           <span>قصة البراند وأركان التميز الـ 4 (Brand Story)</span>
         </div>
@@ -242,7 +242,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               type="checkbox"
               checked={settingsForm.storySectionShow !== false}
               onChange={(e) => setSettingsForm({ ...settingsForm, storySectionShow: e.target.checked })}
-              className="rounded border-[#ded2c0] text-[#161412]"
+              className="rounded border-[#ded2c0] text-[#292722]"
             />
             <span>إظهار قسم القصة في المتجر</span>
           </label>
@@ -256,7 +256,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               value={settingsForm.storyBadge || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, storyBadge: e.target.value })}
               placeholder="أصالة وحرفية"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
             />
           </div>
           <div>
@@ -266,7 +266,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               value={settingsForm.storyTitle || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, storyTitle: e.target.value })}
               placeholder="القطعة اللي بتفضل بعد ما اللحظة تعدّي"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
             />
           </div>
         </div>
@@ -278,22 +278,22 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
             value={settingsForm.storySubtitle || ""}
             onChange={(e) => setSettingsForm({ ...settingsForm, storySubtitle: e.target.value })}
             placeholder="نصنع كل قطعة في ORMA من الفضة الإسترليني عيار 925..."
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
           />
         </div>
 
         {/* 4 Pillars */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[#f0e8dc]">
           {/* Pillar 1 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">الركيزة 1</span>
+              <span className="text-xs font-bold text-[#292722]">الركيزة 1</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.storyPillar1Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar1Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -315,15 +315,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           </div>
 
           {/* Pillar 2 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">الركيزة 2</span>
+              <span className="text-xs font-bold text-[#292722]">الركيزة 2</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.storyPillar2Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar2Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -345,15 +345,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           </div>
 
           {/* Pillar 3 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">الركيزة 3</span>
+              <span className="text-xs font-bold text-[#292722]">الركيزة 3</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.storyPillar3Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar3Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -375,15 +375,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           </div>
 
           {/* Pillar 4 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">الركيزة 4</span>
+              <span className="text-xs font-bold text-[#292722]">الركيزة 4</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.storyPillar4Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, storyPillar4Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -408,7 +408,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
 
       {/* Silver Care Section & 4 Tips */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <ShieldCheck className="w-4 h-4 text-[#c5a880]" />
           <span>دليل العناية بالفضة والنصائح الـ 4 (Silver Care)</span>
         </div>
@@ -419,7 +419,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               type="checkbox"
               checked={settingsForm.careSectionShow !== false}
               onChange={(e) => setSettingsForm({ ...settingsForm, careSectionShow: e.target.checked })}
-              className="rounded border-[#ded2c0] text-[#161412]"
+              className="rounded border-[#ded2c0] text-[#292722]"
             />
             <span>إظهار قسم العناية بالفضة</span>
           </label>
@@ -433,7 +433,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
               value={settingsForm.careTitle || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, careTitle: e.target.value })}
               placeholder="كيف تحافظ على بريق فضتك للأبد؟"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs font-bold"
             />
           </div>
         </div>
@@ -441,15 +441,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
         {/* 4 Care Tips */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[#f0e8dc]">
           {/* Tip 1 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">النصيحة 1</span>
+              <span className="text-xs font-bold text-[#292722]">النصيحة 1</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.careTip1Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, careTip1Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -471,15 +471,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           </div>
 
           {/* Tip 2 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">النصيحة 2</span>
+              <span className="text-xs font-bold text-[#292722]">النصيحة 2</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.careTip2Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, careTip2Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -501,15 +501,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           </div>
 
           {/* Tip 3 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">النصيحة 3</span>
+              <span className="text-xs font-bold text-[#292722]">النصيحة 3</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.careTip3Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, careTip3Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -531,15 +531,15 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           </div>
 
           {/* Tip 4 */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#161412]">النصيحة 4</span>
+              <span className="text-xs font-bold text-[#292722]">النصيحة 4</span>
               <label className="flex items-center gap-1 text-[11px] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settingsForm.careTip4Show !== false}
                   onChange={(e) => setSettingsForm({ ...settingsForm, careTip4Show: e.target.checked })}
-                  className="rounded border-[#ded2c0] text-[#161412]"
+                  className="rounded border-[#ded2c0] text-[#292722]"
                 />
                 <span>ظاهر</span>
               </label>
@@ -564,7 +564,7 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ نصوص القصة والعناية</span>

@@ -92,7 +92,7 @@ function ConfirmOrderContent() {
   // If no orderId or order not found
   if (!orderIdFromUrl || !order) {
     return (
-      <div className="min-h-screen bg-[#faf8f5] text-[#1c1815] flex flex-col justify-between py-12 px-4 dir-rtl text-right">
+      <div className="min-h-screen bg-[#F5F0E7] text-[#1c1815] flex flex-col justify-between py-12 px-4 dir-rtl text-right">
         <div className="max-w-lg mx-auto w-full bg-white border border-[#ebdcca] rounded-3xl p-8 shadow-sm text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
             <Package className="w-8 h-8" />
@@ -130,7 +130,7 @@ function ConfirmOrderContent() {
   const isCancelled = order.status === "cancelled" || hasJustCancelled;
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-[#1c1815] py-8 sm:py-12 px-4 dir-rtl text-right selection:bg-[#ebdcca]">
+    <div className="min-h-screen bg-[#F5F0E7] text-[#1c1815] py-8 sm:py-12 px-4 dir-rtl text-right selection:bg-[#ebdcca]">
       <div className="max-w-xl mx-auto space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-1.5">
@@ -341,7 +341,7 @@ function ConfirmOrderContent() {
             <span className="font-bold text-[#8c7865] block uppercase tracking-wider text-[10px]">
               بيانات المستلم وعنوان التوصيل:
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#faf8f5] p-4 rounded-2xl border border-[#ebdcca]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#F5F0E7] p-4 rounded-2xl border border-[#ebdcca]">
               <div>
                 <span className="text-[#8c7865] block text-[11px]">اسم العميل:</span>
                 <span className="font-bold text-sm text-[#1c1815]">{order.customerName}</span>
@@ -370,7 +370,7 @@ function ConfirmOrderContent() {
               {order.items.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-[#faf8f5] border border-[#ebdcca] text-xs"
+                  className="flex items-center justify-between p-3 rounded-2xl bg-[#F5F0E7] border border-[#ebdcca] text-xs"
                 >
                   <div className="flex items-center gap-3">
                     {item.image && (
@@ -442,7 +442,7 @@ function ConfirmOrderContent() {
           <div className="flex items-center justify-center gap-3 pt-1">
             <a
               href={`tel:${storeSettings.contactPhone || storeSettings.whatsappNumber}`}
-              className="px-3.5 py-1.5 rounded-lg bg-[#faf8f5] border border-[#ebdcca] text-[#1c1815] font-bold text-[11px] hover:bg-[#f5efe6] flex items-center gap-1"
+              className="px-3.5 py-1.5 rounded-lg bg-[#F5F0E7] border border-[#ebdcca] text-[#1c1815] font-bold text-[11px] hover:bg-[#f5efe6] flex items-center gap-1"
             >
               <Phone className="w-3 h-3 text-[#8c7865]" />
               <span>اتصال هاتفي</span>
@@ -467,7 +467,7 @@ export default function ConfirmOrderPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center text-center p-4">
+        <div className="min-h-screen bg-[#F5F0E7] flex items-center justify-center text-center p-4">
           <div className="text-xs text-[#8c7865]">جاري تحميل بيانات الطلب...</div>
         </div>
       }

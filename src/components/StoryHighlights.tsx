@@ -104,7 +104,7 @@ export const StoryHighlights: React.FC<StoryHighlightsProps> = ({
   ];
 
   return (
-    <div className="w-full py-6 border-b border-[#e8ded0] bg-[#faf8f5]">
+    <div className="w-full py-6 border-b border-[#e8ded0] bg-[#F5F0E7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-6 overflow-x-auto pb-2 scrollbar-none">
           {highlights.map((item) => (
@@ -121,7 +121,7 @@ export const StoryHighlights: React.FC<StoryHighlightsProps> = ({
                     : "bg-[#e5dacb] group-hover:bg-gradient-to-tr group-hover:from-[#baa68e] group-hover:to-[#5c4a37]"
                 }`}
               >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full p-[2px] bg-[#faf8f5] overflow-hidden">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full p-[2px] bg-[#F5F0E7] overflow-hidden">
                   <div className="w-full h-full rounded-full overflow-hidden relative">
                     <img
                       src={item.image}
@@ -133,7 +133,7 @@ export const StoryHighlights: React.FC<StoryHighlightsProps> = ({
                 </div>
 
                 {/* Badge Overlay */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1c1815] text-[#faf8f5] text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shadow-sm border border-[#e5dacb]/40">
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1c1815] text-[#F5F0E7] text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shadow-sm border border-[#e5dacb]/40">
                   {item.badge}
                 </div>
               </div>

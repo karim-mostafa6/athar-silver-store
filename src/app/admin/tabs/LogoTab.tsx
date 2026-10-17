@@ -17,7 +17,7 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Globe className="w-4 h-4 text-[#c5a880]" />
           <span>الشعار والهوية البصرية (Logo & Brand Identity)</span>
         </div>
@@ -35,7 +35,7 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
                   logoType: e.target.value as "text" | "image" | "both",
                 })
               }
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2.5 text-xs text-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2.5 text-xs text-[#292722]"
             >
               <option value="text">نص خطي فقط (ORMA)</option>
               <option value="image">صورة شعار مخصصة (Image)</option>
@@ -53,7 +53,7 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
               max={80}
               value={settingsForm.logoHeight || 40}
               onChange={(e) => setSettingsForm({ ...settingsForm, logoHeight: Number(e.target.value) })}
-              className="w-full accent-[#161412]"
+              className="w-full accent-[#292722]"
             />
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
           </label>
 
           {settingsForm.logoImageUrl && (
-            <div className="flex items-center gap-3 p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0]">
+            <div className="flex items-center gap-3 p-3 bg-[#F5F0E7] rounded-xl border border-[#ded2c0]">
               <div className="h-12 w-28 bg-white rounded border border-[#d8c8b4] p-1 flex items-center justify-center overflow-hidden">
                 <img
                   src={settingsForm.logoImageUrl}
@@ -103,9 +103,9 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
                 }));
               }}
               placeholder="https://... أو اضغط زر الرفع من جهازك"
-              className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+              className="flex-1 min-w-0 bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr focus:outline-none"
             />
-            <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
+            <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
               <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
               <span>رفع من جهازك</span>
               <input
@@ -140,7 +140,7 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
               type="text"
               value={settingsForm.brandNameArabic || "أورما"}
               onChange={(e) => setSettingsForm({ ...settingsForm, brandNameArabic: e.target.value })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold text-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold text-[#292722]"
             />
           </div>
 
@@ -152,7 +152,7 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
               type="text"
               value={settingsForm.brandNameEnglish || "ORMA"}
               onChange={(e) => setSettingsForm({ ...settingsForm, brandNameEnglish: e.target.value })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold font-mono text-[#161412] dir-ltr"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold font-mono text-[#292722] dir-ltr"
             />
           </div>
         </div>
@@ -165,12 +165,12 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
             type="text"
             value={settingsForm.brandSubtitle || "مش بتتهدي.. بتتساب"}
             onChange={(e) => setSettingsForm({ ...settingsForm, brandSubtitle: e.target.value })}
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722]"
           />
         </div>
 
         {/* Live Logo Preview Box */}
-        <div className="p-6 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] flex flex-col items-center justify-center gap-2">
+        <div className="p-6 bg-[#F5F0E7] rounded-xl border border-[#ded2c0] flex flex-col items-center justify-center gap-2">
           <span className="text-[10px] text-[#8c7865] uppercase tracking-wider mb-2">معاينة مباشرة للشعار:</span>
           <OrmaLogo variant="light" size="lg" showSlogan />
         </div>
@@ -178,7 +178,7 @@ export default function LogoTab({ settingsForm, setSettingsForm, handleSaveSetti
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ الشعار والهوية البصرية</span>

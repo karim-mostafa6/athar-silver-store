@@ -8,6 +8,7 @@ import { BrandStorySection } from "@/components/BrandStorySection";
 import { SilverCareSection } from "@/components/SilverCareSection";
 import { CustomPromoBanner } from "@/components/CustomPromoBanner";
 import { GenderSplitShowcase } from "@/components/GenderSplitShowcase";
+import { CategoryShowcase } from "@/components/CategoryShowcase";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useStore } from "@/context/StoreContext";
 import { X } from "lucide-react";
@@ -114,6 +115,8 @@ export default function Home() {
       {/* Position 2: After Hero */}
       <CustomPromoBanner settings={storeSettings} position="after_hero" />
 
+      <CategoryShowcase />
+
       {/* Products Section (المجموعات والمصوغات) */}
       <section
         ref={productsSectionRef}
@@ -123,12 +126,10 @@ export default function Home() {
         {/* Section Header */}
         <ScrollReveal direction="up" delay={0}>
           <div className="text-center mb-12 sm:mb-16">
-            {storeSettings.productsSectionBadge && (
-              <span className="inline-block text-[10px] font-mono tracking-[0.3em] uppercase text-[#8E7545] mb-3 border border-[#292722]/12 px-4 py-1.5 rounded-full bg-[#F5F0E7]">
-                {storeSettings.productsSectionBadge}
-              </span>
-            )}
-            <h2 className="font-aref text-4xl sm:text-6xl font-bold text-[#292722]">
+            <div className="eyebrow text-lg sm:text-xl mb-1">
+              {storeSettings.productsSectionBadge || "The Collection"}
+            </div>
+            <h2 className="font-cairo font-light text-4xl sm:text-5xl text-[#292722]">
               {storeSettings.productsSectionTitle || "المجموعة"}
             </h2>
             {storeSettings.productsSectionSubtitle && (
@@ -136,7 +137,7 @@ export default function Home() {
                 {storeSettings.productsSectionSubtitle}
               </p>
             )}
-            <div className="w-12 h-[2px] bg-[#8E7545] mx-auto mt-4 rounded-full" />
+            <div className="w-12 h-[1px] bg-[#8E7545] mx-auto mt-5" />
           </div>
         </ScrollReveal>
 

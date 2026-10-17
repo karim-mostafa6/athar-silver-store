@@ -76,7 +76,7 @@ export function AdminMobileNav({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full min-h-[44px] flex items-center justify-between gap-2 px-3.5 rounded-xl bg-white border border-[#ded2c0] text-[#161412] active:scale-[0.99]"
+        className="w-full min-h-[44px] flex items-center justify-between gap-2 px-3.5 rounded-xl bg-white border border-[#ded2c0] text-[#292722] active:scale-[0.99]"
         aria-haspopup="dialog"
         aria-expanded={open}
       >
@@ -86,7 +86,7 @@ export function AdminMobileNav({
         </span>
         <span className="flex items-center gap-2 text-[11px] text-[#756555] shrink-0">
           {pending > 0 && activeId !== "orders" && (
-            <span className="px-1.5 rounded-full bg-amber-500 text-[#161412] font-black">{pending}</span>
+            <span className="px-1.5 rounded-full bg-amber-500 text-[#292722] font-black">{pending}</span>
           )}
           كل الأقسام
           <ChevronDown className="w-4 h-4" />
@@ -96,9 +96,9 @@ export function AdminMobileNav({
       {open && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[80] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="أقسام لوحة التحكم">
           <button type="button" aria-label="إغلاق" className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <div className="relative bg-[#f7f4ee] rounded-t-3xl max-h-[88dvh] flex flex-col shadow-2xl">
+          <div className="relative bg-[#F5F0E7] rounded-t-3xl max-h-[88dvh] flex flex-col shadow-2xl">
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#e8ded0]">
-              <span className="font-amiri text-lg font-bold text-[#161412]">أقسام لوحة التحكم</span>
+              <span className="font-amiri text-lg font-bold text-[#292722]">أقسام لوحة التحكم</span>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -125,7 +125,7 @@ export function AdminMobileNav({
                           }}
                           className={`min-h-[48px] w-full flex items-center justify-between gap-3 px-3.5 rounded-xl text-sm text-right transition-colors ${
                             active
-                              ? "bg-[#161412] text-[#f7f4ee] font-bold"
+                              ? "bg-[#292722] text-[#F5F0E7] font-bold"
                               : "bg-white border border-[#e8ded0] text-[#3d342b] active:bg-[#ede3d3]"
                           }`}
                         >
@@ -135,7 +135,7 @@ export function AdminMobileNav({
                           </span>
                           <span className="flex items-center gap-2 shrink-0">
                             {it.badge ? (
-                              <span className="px-1.5 rounded-full bg-amber-500 text-[#161412] text-[10px] font-black">{it.badge}</span>
+                              <span className="px-1.5 rounded-full bg-amber-500 text-[#292722] text-[10px] font-black">{it.badge}</span>
                             ) : null}
                             {locked && !["orders", "customers", "analytics"].includes(it.id) && (
                               <Lock className="w-3 h-3 text-[#baa996]" />

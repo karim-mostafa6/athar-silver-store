@@ -1436,13 +1436,13 @@ export default function AdminPage() {
   // ========================================================
   if (!isAuthenticated) {
     return (
-      <div dir="rtl" className="min-h-screen bg-[#f7f4ee] flex items-center justify-center p-4 selection:bg-[#dfd2bf] font-cairo">
+      <div dir="rtl" className="min-h-screen bg-[#F5F0E7] flex items-center justify-center p-4 selection:bg-[#dfd2bf] font-cairo">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#e8ded0] p-8 sm:p-10 text-center">
           <div className="mb-6 flex justify-center">
             <OrmaLogo variant="light" size="lg" customImageUrl={settingsForm.logoImageUrl} customHeight={settingsForm.logoHeight} customType={settingsForm.logoType} />
           </div>
 
-          <h1 className="font-amiri text-2xl font-bold text-[#161412] mb-1">
+          <h1 className="font-amiri text-2xl font-bold text-[#292722] mb-1">
             لوحة الإدارة السحابية
           </h1>
           <p className="text-xs text-[#756555] mb-8 font-light">
@@ -1457,7 +1457,7 @@ export default function AdminPage() {
 
           <form onSubmit={handleLogin} className="space-y-4 text-right">
             <div>
-              <label className="block text-xs font-medium text-[#161412] mb-1.5">
+              <label className="block text-xs font-medium text-[#292722] mb-1.5">
                 اسم المستخدم
               </label>
               <div className="relative">
@@ -1468,14 +1468,14 @@ export default function AdminPage() {
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   placeholder="اسم المستخدم"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] focus:bg-white"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] focus:bg-white"
                 />
                 <User className="w-4 h-4 text-[#8c7865] absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#161412] mb-1.5">
+              <label className="block text-xs font-medium text-[#292722] mb-1.5">
                 كلمة المرور
               </label>
               <div className="relative">
@@ -1486,12 +1486,12 @@ export default function AdminPage() {
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="كلمة المرور"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] focus:bg-white"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] focus:bg-white"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8c7865] hover:text-[#161412]"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8c7865] hover:text-[#292722]"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -1504,7 +1504,7 @@ export default function AdminPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-[#ded2c0] text-[#161412] focus:ring-0"
+                  className="rounded border-[#ded2c0] text-[#292722] focus:ring-0"
                 />
                 <span>تذكرني على هذا الجهاز</span>
               </label>
@@ -1513,7 +1513,7 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={isLoggingIn}
-              className="w-full py-3 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-colors shadow-md mt-4 disabled:opacity-50"
+              className="w-full py-3 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] transition-colors shadow-md mt-4 disabled:opacity-50"
             >
               {isLoggingIn ? "جارٍ التحقق والدخول..." : "تسجيل الدخول"}
             </button>
@@ -1527,15 +1527,15 @@ export default function AdminPage() {
   // MAIN DASHBOARD INTERFACE
   // ========================================================
   return (
-    <div dir="rtl" className="admin-root min-h-screen bg-[#f7f4ee] text-[#161412] flex flex-col font-cairo selection:bg-[#dfd2bf]">
+    <div dir="rtl" className="admin-root min-h-screen bg-[#F5F0E7] text-[#292722] flex flex-col font-cairo selection:bg-[#dfd2bf]">
       {/* TOP HEADER */}
-      <header className="sticky top-0 z-30 bg-[#f7f4ee]/95 backdrop-blur-md border-b border-[#e4dcce] px-4 sm:px-6 py-3">
+      <header className="sticky top-0 z-30 bg-[#F5F0E7]/95 backdrop-blur-md border-b border-[#e4dcce] px-4 sm:px-6 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Logo & Cloud Status */}
           <div className="flex items-center gap-4">
             <OrmaLogo variant="light" size="sm" customImageUrl={settingsForm.logoImageUrl} customHeight={settingsForm.logoHeight} customType={settingsForm.logoType} />
             <div className="border-r border-[#d8c8b4] pr-4 hidden sm:block">
-              <span className="text-xs font-bold text-[#161412] flex items-center gap-1.5">
+              <span className="text-xs font-bold text-[#292722] flex items-center gap-1.5">
                 <LayoutDashboard className="w-3.5 h-3.5 text-[#c5a880]" />
                 لوحة التحكم الإدارية
               </span>
@@ -1549,7 +1549,7 @@ export default function AdminPage() {
           {/* Action Buttons & Current User Info */}
           <div className="flex items-center gap-2 sm:gap-3">
             {currentUser && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#f7f4ee] border border-[#ded2c0] text-xs shadow-xs">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#F5F0E7] border border-[#ded2c0] text-xs shadow-xs">
                 {currentUser.role === "super_admin" ? (
                   <Crown className="w-3.5 h-3.5 text-amber-600" />
                 ) : currentUser.role === "orders_customers" ? (
@@ -1559,7 +1559,7 @@ export default function AdminPage() {
                 ) : (
                   <Shield className="w-3.5 h-3.5 text-emerald-600" />
                 )}
-                <span className="font-bold text-[#161412]">{currentUser.name}</span>
+                <span className="font-bold text-[#292722]">{currentUser.name}</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white border border-[#ded2c0] text-[#756555] font-bold">
                   {currentUser.role === "super_admin"
                     ? "المالك (Super Admin)"
@@ -1587,8 +1587,8 @@ export default function AdminPage() {
                 }}
                 className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 shadow-sm active:scale-95 ${
                   activeTab !== "orders"
-                    ? "bg-[#161412] text-[#c5a880] border-[#161412]"
-                    : "bg-white border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3]"
+                    ? "bg-[#292722] text-[#c5a880] border-[#292722]"
+                    : "bg-white border-[#ded2c0] text-[#292722] hover:bg-[#ede3d3]"
                 }`}
                 title="إعدادات وتخصيصات المتجر (محمية بكلمة مرور)"
               >
@@ -1608,7 +1608,7 @@ export default function AdminPage() {
               className={`px-4 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 active:scale-95 ${
                 saveSuccess
                   ? "bg-emerald-600 text-white"
-                  : "bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925]"
+                  : "bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925]"
               }`}
             >
               {saveSuccess ? (
@@ -1630,8 +1630,8 @@ export default function AdminPage() {
               onClick={() => setIsPreviewOpen(!isPreviewOpen)}
               className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 active:scale-95 shadow-sm ${
                 isPreviewOpen
-                  ? "bg-[#161412] text-[#f7f4ee] border-[#161412]"
-                  : "bg-white border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3]"
+                  ? "bg-[#292722] text-[#F5F0E7] border-[#292722]"
+                  : "bg-white border-[#ded2c0] text-[#292722] hover:bg-[#ede3d3]"
               }`}
               title="معاينة المتجر المباشرة جنباً إلى جنب (مثل شوبيفاي)"
             >
@@ -1644,7 +1644,7 @@ export default function AdminPage() {
             <Link
               href="/"
               target="_blank"
-              className="p-2 rounded-lg bg-white border border-[#ded2c0] text-[#5c4f42] hover:text-[#161412] text-xs transition-colors flex items-center gap-1"
+              className="p-2 rounded-lg bg-white border border-[#ded2c0] text-[#5c4f42] hover:text-[#292722] text-xs transition-colors flex items-center gap-1"
               title="معاينة المتجر"
             >
               <ExternalLink className="w-4 h-4" />
@@ -1673,7 +1673,7 @@ export default function AdminPage() {
       {/* DASHBOARD BODY: FIXED-WIDTH SIDEBAR + MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col md:flex-row w-full">
         {/* DESKTOP SIDEBAR (w-64, sticky, scrolls independently) */}
-        <aside className="hidden md:block w-64 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-l border-[#e8ded0] bg-[#f7f4ee]/80 p-3 space-y-3">
+        <aside className="admin-sidebar hidden md:block w-64 shrink-0 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto border-l border-[#e8ded0] bg-[#F5F0E7]/80 p-3 space-y-3">
           {/* Section 1: Orders, Customers & Analytics */}
           {canViewOrders && (
             <div className="space-y-1">
@@ -1687,8 +1687,8 @@ export default function AdminPage() {
                 onClick={() => setActiveTab("orders")}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
                   activeTab === "orders"
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                    ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:text-[#292722] hover:bg-white/60"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -1699,7 +1699,7 @@ export default function AdminPage() {
                 </div>
 
                 {orderMetrics.pending > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-[#161412]">
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-[#292722]">
                     {orderMetrics.pending}
                   </span>
                 )}
@@ -1710,8 +1710,8 @@ export default function AdminPage() {
                 onClick={() => setActiveTab("customers")}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
                   activeTab === "customers"
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                    ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:text-[#292722] hover:bg-white/60"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -1721,7 +1721,7 @@ export default function AdminPage() {
                   <span>قاعدة العملاء</span>
                 </div>
 
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#e8ded0] text-[#161412]">
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#e8ded0] text-[#292722]">
                   {customersList.length}
                 </span>
               </button>
@@ -1731,8 +1731,8 @@ export default function AdminPage() {
                 onClick={() => setActiveTab("analytics")}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-right ${
                   activeTab === "analytics"
-                    ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                    : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                    ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
+                    : "text-[#5c4f42] hover:text-[#292722] hover:bg-white/60"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -1748,7 +1748,7 @@ export default function AdminPage() {
           {/* Section 2: Store Settings with Gear Icon & Security Lock */}
           {canViewSettings && (
             <div className={`space-y-1 ${canViewOrders ? "pt-2 border-t border-[#e8ded0]" : ""}`}>
-              <div className="px-3 py-2 bg-white/90 rounded-xl border border-[#ded2c0] flex items-center justify-between shadow-xs">
+              <div className="px-3 py-2 bg-white/10 rounded-xl border border-white/10 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => {
@@ -1759,9 +1759,9 @@ export default function AdminPage() {
                     setIsSettingsPasswordModalOpen(true);
                   }
                 }}
-                className="flex items-center gap-2 text-xs font-bold text-[#161412] hover:text-[#8c6b3e] transition-colors"
+                className="flex items-center gap-2 text-xs font-bold text-[#292722] hover:text-[#8c6b3e] transition-colors"
               >
-                <div className="p-1 rounded-lg bg-[#f7f4ee] text-[#161412] border border-[#e4dcce]">
+                <div className="p-1 rounded-lg bg-[#F5F0E7] text-[#292722] border border-[#e4dcce]">
                   <Settings className={`w-3.5 h-3.5 ${isSettingsUnlocked ? "text-[#c5a880]" : "text-[#8c7865]"}`} />
                 </div>
                 <span>إعدادات المتجر</span>
@@ -1807,8 +1807,8 @@ export default function AdminPage() {
                     onClick={() => handleTabClick(tab.id)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all text-right ${
                       isActive
-                        ? "bg-[#161412] text-[#f7f4ee] font-bold shadow-sm"
-                        : "text-[#5c4f42] hover:text-[#161412] hover:bg-white/60"
+                        ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
+                        : "text-[#5c4f42] hover:text-[#292722] hover:bg-white/60"
                     } ${!isSettingsUnlocked ? "opacity-75" : ""}`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -1914,7 +1914,7 @@ export default function AdminPage() {
           {activeTab === "footer" && (
             <div className="space-y-6 max-w-3xl">
               <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3">
+                <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3">
                   <FileText className="w-4 h-4 text-[#c5a880]" />
                   <span>الفوتر (أسفل الصفحة)</span>
                 </div>
@@ -1932,7 +1932,7 @@ export default function AdminPage() {
                       onClick={() => handleTabClick(x.id as ActiveTab)}
                       className="w-full text-right min-h-[56px] px-4 py-3 rounded-xl border border-[#e8ded0] bg-[#fbf9f5] hover:bg-[#f3ece0] transition-colors"
                     >
-                      <span className="block text-sm font-bold text-[#161412]">{x.title}</span>
+                      <span className="block text-sm font-bold text-[#292722]">{x.title}</span>
                       <span className="block text-[11px] text-[#756555] mt-0.5">{x.desc}</span>
                     </button>
                   ))}
@@ -1955,7 +1955,7 @@ export default function AdminPage() {
             <div className="space-y-6 max-w-4xl">
               {/* Electronic Wallets */}
               <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+                <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
                   <CreditCard className="w-4 h-4 text-[#c5a880]" />
                   <span>المحافظ الإلكترونية وإنستاباي (InstaPay & Vodafone Cash)</span>
                 </div>
@@ -1970,7 +1970,7 @@ export default function AdminPage() {
                       value={settingsForm.instaPayNumber || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, instaPayNumber: e.target.value })}
                       placeholder="01143837730"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr focus:outline-none"
                     />
                   </div>
 
@@ -1983,7 +1983,7 @@ export default function AdminPage() {
                       value={settingsForm.instaPayAccountName || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, instaPayAccountName: e.target.value })}
                       placeholder="ORMA Silver Store"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
                     />
                   </div>
 
@@ -1996,7 +1996,7 @@ export default function AdminPage() {
                       value={settingsForm.instaPayUsername || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, instaPayUsername: e.target.value })}
                       placeholder="theorma@instapay"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr focus:outline-none"
                     />
                   </div>
                 </div>
@@ -2011,7 +2011,7 @@ export default function AdminPage() {
                       value={settingsForm.vodafoneCashNumber || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, vodafoneCashNumber: e.target.value })}
                       placeholder="01143837730"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr focus:outline-none"
                     />
                   </div>
 
@@ -2021,7 +2021,7 @@ export default function AdminPage() {
                         type="checkbox"
                         checked={settingsForm.requireReceiptUpload !== false}
                         onChange={(e) => setSettingsForm({ ...settingsForm, requireReceiptUpload: e.target.checked })}
-                        className="rounded border-[#ded2c0] text-[#161412]"
+                        className="rounded border-[#ded2c0] text-[#292722]"
                       />
                       <span>إلزام العميل برفع صورة إيصال التحويل عند الطلب</span>
                     </label>
@@ -2037,24 +2037,24 @@ export default function AdminPage() {
                     value={settingsForm.walletInstructions || ""}
                     onChange={(e) => setSettingsForm({ ...settingsForm, walletInstructions: e.target.value })}
                     placeholder="يرجى تحويل المبلغ الإجمالي ثم إرفاق لقطة شاشة للإيصال لتأكيد الطلب فوراً..."
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] focus:outline-none"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#292722] focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Paymob Gateway */}
               <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-                <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
+                <div className="text-sm font-bold text-[#292722] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-[#c5a880]" />
                     <span>بوابة الدفع الإلكتروني بالبطاقات (Paymob)</span>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#161412]">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#292722]">
                     <input
                       type="checkbox"
                       checked={settingsForm.paymobEnabled || false}
                       onChange={(e) => setSettingsForm({ ...settingsForm, paymobEnabled: e.target.checked })}
-                      className="rounded border-[#ded2c0] text-[#161412]"
+                      className="rounded border-[#ded2c0] text-[#292722]"
                     />
                     <span>تفعيل الدفع بالفيزا / ماستركارد</span>
                   </label>
@@ -2074,7 +2074,7 @@ export default function AdminPage() {
                       value={settingsForm.paymobApiKey || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, paymobApiKey: e.target.value })}
                       placeholder="ZXlKaGJHY2lPaUpJVXpJMU5p..."
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr focus:outline-none"
                     />
                   </div>
 
@@ -2085,7 +2085,7 @@ export default function AdminPage() {
                     <select
                       value={settingsForm.paymobMode || "test"}
                       onChange={(e) => setSettingsForm({ ...settingsForm, paymobMode: e.target.value as "test" | "live" })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
                     >
                       <option value="test">بيئة تجريبية (Test Sandbox)</option>
                       <option value="live">بيئة حية للإنتاج (Live Production)</option>
@@ -2101,7 +2101,7 @@ export default function AdminPage() {
                       value={settingsForm.paymobIntegrationId || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, paymobIntegrationId: e.target.value })}
                       placeholder="123456"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr focus:outline-none"
                     />
                   </div>
 
@@ -2114,7 +2114,7 @@ export default function AdminPage() {
                       value={settingsForm.paymobIframeId || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, paymobIframeId: e.target.value })}
                       placeholder="789012"
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] dir-ltr focus:outline-none"
                     />
                   </div>
                 </div>
@@ -2122,7 +2122,7 @@ export default function AdminPage() {
 
               <button
                 onClick={handleSaveSettings}
-                className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
               >
                 <Save className="w-4 h-4 text-[#c5a880]" />
                 <span>حفظ إعدادات بوابات الدفع</span>
@@ -2186,7 +2186,7 @@ export default function AdminPage() {
             {/* Preview Toolbar */}
             <div className="bg-white/95 backdrop-blur-md border-b border-[#ded2c0] px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs shadow-sm">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#161412] flex items-center gap-1.5 font-amiri text-sm">
+                <span className="font-bold text-[#292722] flex items-center gap-1.5 font-amiri text-sm">
                   <Eye className="w-4 h-4 text-[#c5a880]" />
                   المعاينة الحية للمتجر
                 </span>
@@ -2198,14 +2198,14 @@ export default function AdminPage() {
 
               <div className="flex items-center gap-2">
                 {/* Device Switcher */}
-                <div className="flex items-center bg-[#f7f4ee] rounded-lg p-0.5 border border-[#ded2c0]">
+                <div className="flex items-center bg-[#F5F0E7] rounded-lg p-0.5 border border-[#ded2c0]">
                   <button
                     type="button"
                     onClick={() => setPreviewDevice("desktop")}
                     className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
                       previewDevice === "desktop"
-                        ? "bg-white shadow-sm font-bold text-[#161412]"
-                        : "text-[#756555] hover:text-[#161412]"
+                        ? "bg-white shadow-sm font-bold text-[#292722]"
+                        : "text-[#756555] hover:text-[#292722]"
                     }`}
                   >
                     <Monitor className="w-3.5 h-3.5" />
@@ -2216,8 +2216,8 @@ export default function AdminPage() {
                     onClick={() => setPreviewDevice("mobile")}
                     className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
                       previewDevice === "mobile"
-                        ? "bg-white shadow-sm font-bold text-[#161412]"
-                        : "text-[#756555] hover:text-[#161412]"
+                        ? "bg-white shadow-sm font-bold text-[#292722]"
+                        : "text-[#756555] hover:text-[#292722]"
                     }`}
                   >
                     <Smartphone className="w-3.5 h-3.5" />
@@ -2229,7 +2229,7 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setPreviewKey((k) => k + 1)}
-                  className="p-1.5 rounded-lg border border-[#ded2c0] bg-white text-[#5c4f42] hover:text-[#161412] hover:bg-[#f7f4ee] transition-colors"
+                  className="p-1.5 rounded-lg border border-[#ded2c0] bg-white text-[#5c4f42] hover:text-[#292722] hover:bg-[#F5F0E7] transition-colors"
                   title="تحديث نافذة المعاينة"
                 >
                   <RotateCw className="w-3.5 h-3.5" />
@@ -2239,7 +2239,7 @@ export default function AdminPage() {
                 <Link
                   href="/"
                   target="_blank"
-                  className="p-1.5 rounded-lg border border-[#ded2c0] bg-white text-[#5c4f42] hover:text-[#161412] hover:bg-[#f7f4ee] transition-colors"
+                  className="p-1.5 rounded-lg border border-[#ded2c0] bg-white text-[#5c4f42] hover:text-[#292722] hover:bg-[#F5F0E7] transition-colors"
                   title="فتح في تبويب جديد"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -2262,7 +2262,7 @@ export default function AdminPage() {
               <div
                 className={`h-full transition-all duration-300 rounded-xl overflow-hidden shadow-xl border border-[#ded2c0] bg-white ${
                   previewDevice === "mobile"
-                    ? "w-[390px] max-w-full my-auto ring-8 ring-[#161412] rounded-[36px]"
+                    ? "w-[390px] max-w-full my-auto ring-8 ring-[#292722] rounded-[36px]"
                     : "w-full"
                 }`}
               >
@@ -2298,13 +2298,13 @@ export default function AdminPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 sm:p-8 border border-[#e8ded0] shadow-2xl text-right">
             <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-5">
-              <h3 className="font-amiri text-xl font-bold text-[#161412]">
+              <h3 className="font-amiri text-xl font-bold text-[#292722]">
                 {editingProductId ? "تعديل بيانات قطعة الفضة" : "إضافة قطعة فضة جديدة إلى المتجر"}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsProductModalOpen(false)}
-                className="text-[#8c7865] hover:text-[#161412] p-1 rounded-lg"
+                className="text-[#8c7865] hover:text-[#292722] p-1 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2320,7 +2320,7 @@ export default function AdminPage() {
                     value={productForm.arabicName}
                     onChange={(e) => setProductForm({ ...productForm, arabicName: e.target.value })}
                     placeholder="خاتم ORMA الملكي فضة 925"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                   />
                 </div>
 
@@ -2331,7 +2331,7 @@ export default function AdminPage() {
                     value={productForm.name || ""}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                     placeholder="Royal Orma Signet Ring"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                   />
                 </div>
               </div>
@@ -2344,7 +2344,7 @@ export default function AdminPage() {
                     required
                     value={productForm.price}
                     onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] font-bold focus:outline-none"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] font-bold focus:outline-none"
                   />
                 </div>
 
@@ -2355,7 +2355,7 @@ export default function AdminPage() {
                     value={productForm.originalPrice || ""}
                     onChange={(e) => setProductForm({ ...productForm, originalPrice: Number(e.target.value) || undefined })}
                     placeholder="1550"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                   />
                 </div>
 
@@ -2366,7 +2366,7 @@ export default function AdminPage() {
                     step="0.1"
                     value={productForm.weightGrams || 5}
                     onChange={(e) => setProductForm({ ...productForm, weightGrams: Number(e.target.value) })}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] font-bold focus:outline-none"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] font-bold focus:outline-none"
                   />
                 </div>
 
@@ -2391,7 +2391,7 @@ export default function AdminPage() {
                     className={`w-full border rounded-lg px-3 py-2 text-xs font-bold focus:outline-none transition-colors ${
                       (productForm.stockQuantity ?? 10) <= 0
                         ? "bg-rose-50 border-rose-300 text-rose-800"
-                        : "bg-[#f7f4ee] border-[#ded2c0] text-[#161412]"
+                        : "bg-[#F5F0E7] border-[#ded2c0] text-[#292722]"
                     }`}
                   />
                 </div>
@@ -2403,7 +2403,7 @@ export default function AdminPage() {
                   <select
                     value={productForm.category}
                     onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                   >
                     {(settingsForm.categories && settingsForm.categories.length > 0
                       ? settingsForm.categories
@@ -2421,7 +2421,7 @@ export default function AdminPage() {
                   <select
                     value={productForm.gender}
                     onChange={(e) => setProductForm({ ...productForm, gender: e.target.value as "men" | "women" | "unisex" })}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                   >
                     <option value="women">نسائي (Women)</option>
                     <option value="men">رجالي (Men)</option>
@@ -2436,15 +2436,15 @@ export default function AdminPage() {
                     value={productForm.purity}
                     onChange={(e) => setProductForm({ ...productForm, purity: e.target.value })}
                     placeholder="فضة إسترليني عيار 925 معتمدة"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Collection Assignment Section (Multi-select) */}
-              <div className="p-3.5 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-2">
+              <div className="p-3.5 bg-[#F5F0E7] rounded-xl border border-[#ded2c0] space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block font-bold text-xs text-[#161412] flex items-center gap-1.5">
+                  <label className="block font-bold text-xs text-[#292722] flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>الكولكشن والمجموعات التابعة لها القطعة (تحديد متعدد)</span>
                   </label>
@@ -2463,7 +2463,7 @@ export default function AdminPage() {
                         key={col.id}
                         className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
                           isChecked
-                            ? "bg-white border-[#161412] text-[#161412] font-bold shadow-xs"
+                            ? "bg-white border-[#292722] text-[#292722] font-bold shadow-xs"
                             : "bg-white/60 border-[#ded2c0] text-[#756555] hover:border-[#b8a490]"
                         }`}
                       >
@@ -2484,7 +2484,7 @@ export default function AdminPage() {
                               collections: Array.from(cur),
                             }));
                           }}
-                          className="rounded border-[#ded2c0] text-[#161412]"
+                          className="rounded border-[#ded2c0] text-[#292722]"
                         />
                         <span className="truncate">{col.label}</span>
                       </label>
@@ -2494,12 +2494,12 @@ export default function AdminPage() {
               </div>
 
               {/* Multi-Image Gallery Manager */}
-              <div className="space-y-3 p-3.5 bg-[#f7f4ee] rounded-xl border border-[#ded2c0]">
+              <div className="space-y-3 p-3.5 bg-[#F5F0E7] rounded-xl border border-[#ded2c0]">
                 <div className="flex items-center justify-between">
-                  <label className="block font-bold text-[#161412] text-xs flex items-center gap-1.5">
+                  <label className="block font-bold text-[#292722] text-xs flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>معرض صور القطعة (يمكنك إضافة صور متعددة)</span>
-                    <span className="text-[10px] bg-[#161412] text-[#f7f4ee] px-2 py-0.5 rounded-full font-sans">
+                    <span className="text-[10px] bg-[#292722] text-[#F5F0E7] px-2 py-0.5 rounded-full font-sans">
                       {productForm.images.filter(img => img && img.trim()).length} صور
                     </span>
                   </label>
@@ -2526,7 +2526,7 @@ export default function AdminPage() {
 
                         {/* Primary Badge */}
                         {idx === 0 && (
-                          <div className="absolute top-1 right-1 bg-[#161412] text-[#c5a880] text-[9px] font-bold px-1.5 py-0.5 rounded shadow z-10">
+                          <div className="absolute top-1 right-1 bg-[#292722] text-[#c5a880] text-[9px] font-bold px-1.5 py-0.5 rounded shadow z-10">
                             ⭐ رئيسية
                           </div>
                         )}
@@ -2544,7 +2544,7 @@ export default function AdminPage() {
                                   images: [selected, ...current],
                                 }));
                               }}
-                              className="px-2 py-1 rounded bg-[#c5a880] text-[#161412] font-bold hover:bg-[#d8c09a]"
+                              className="px-2 py-1 rounded bg-[#c5a880] text-[#292722] font-bold hover:bg-[#d8c09a]"
                             >
                               تعيين كرئيسية
                             </button>
@@ -2588,7 +2588,7 @@ export default function AdminPage() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="px-3.5 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
+                    className="px-3.5 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
                   >
                     <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>{isUploading ? "جاري الرفع..." : "رفع صور من جهازك (اختيار متعدد)"}</span>
@@ -2600,7 +2600,7 @@ export default function AdminPage() {
                       value={newImageUrlInput}
                       onChange={(e) => setNewImageUrlInput(e.target.value)}
                       placeholder="أو الصق رابط صورة https://..."
-                      className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                      className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                     />
                     <button
                       type="button"
@@ -2614,7 +2614,7 @@ export default function AdminPage() {
                           addToast("تمت الإضافة", "تمت إضافة رابط الصورة إلى المعرض", "info");
                         }
                       }}
-                      className="px-3 py-2 rounded-lg bg-white border border-[#ded2c0] text-[#161412] hover:bg-[#ede5d8] text-xs font-bold whitespace-nowrap"
+                      className="px-3 py-2 rounded-lg bg-white border border-[#ded2c0] text-[#292722] hover:bg-[#ede5d8] text-xs font-bold whitespace-nowrap"
                     >
                       إضافة رابط
                     </button>
@@ -2629,7 +2629,7 @@ export default function AdminPage() {
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   placeholder="صُنع بحرفية فائقة من الفضة الإسترليني عيار 925 الأصلية..."
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                 />
               </div>
 
@@ -2642,7 +2642,7 @@ export default function AdminPage() {
                   value={productFeaturesText}
                   onChange={(e) => setProductFeaturesText(e.target.value)}
                   placeholder="فضة إسترليني أصلية مختومة عيار 925&#10;علبة مخملية فاخرة وشهادة ضمان"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                 />
               </div>
 
@@ -2669,7 +2669,7 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-base">💍</span>
                         <div>
-                          <h5 className="font-bold text-xs text-[#161412]">
+                          <h5 className="font-bold text-xs text-[#292722]">
                             نظام مقاسات الخواتم والدبل الذكي
                           </h5>
                           <p className="text-[10px] text-[#756555]">
@@ -2677,7 +2677,7 @@ export default function AdminPage() {
                           </p>
                         </div>
                       </div>
-                      <span className="text-[10px] bg-[#161412] text-[#c5a880] px-2.5 py-0.5 rounded-full font-bold">
+                      <span className="text-[10px] bg-[#292722] text-[#c5a880] px-2.5 py-0.5 rounded-full font-bold">
                         {activeSizesList.length} مقاسات نشطة
                       </span>
                     </div>
@@ -2704,7 +2704,7 @@ export default function AdminPage() {
                             }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all active:scale-95 ${
                               isSelected
-                                ? "bg-[#161412] text-[#f7f4ee] border-[#161412] shadow-sm font-bold"
+                                ? "bg-[#292722] text-[#F5F0E7] border-[#292722] shadow-sm font-bold"
                                 : "bg-white text-[#756555] border-[#ded2c0] hover:border-[#b8a490]"
                             }`}
                           >
@@ -2724,7 +2724,7 @@ export default function AdminPage() {
                           value={productSizesText}
                           onChange={(e) => setProductSizesText(e.target.value)}
                           placeholder="مقاس 16, مقاس 17, مقاس 18"
-                          className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                          className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                         />
                       </div>
 
@@ -2735,7 +2735,7 @@ export default function AdminPage() {
                           value={productForm.defaultSize || ""}
                           onChange={(e) => setProductForm({ ...productForm, defaultSize: e.target.value })}
                           placeholder="مقاس 17"
-                          className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                          className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -2743,11 +2743,11 @@ export default function AdminPage() {
                 ) : (
                   <div className="p-4 rounded-xl bg-[#faf6f0] border border-[#ded2c0] flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#161412] text-[#c5a880] flex items-center justify-center font-bold shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-[#292722] text-[#c5a880] flex items-center justify-center font-bold shrink-0">
                         <Scale className="w-5 h-5" />
                       </div>
                       <div>
-                        <h5 className="font-bold text-xs text-[#161412] flex items-center gap-2">
+                        <h5 className="font-bold text-xs text-[#292722] flex items-center gap-2">
                           <span>الخصائص الذكية: سلاسل / أساور / أنسيالات (تعتمد على الوزن فقط)</span>
                           <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium">
                             تفعيل تلقائي
@@ -2771,13 +2771,13 @@ export default function AdminPage() {
                   value={productTagsText}
                   onChange={(e) => setProductTagsText(e.target.value)}
                   placeholder="فضة 925, إيطالي, كلاسيك, فاخر"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                 />
               </div>
 
               {/* Status Toggles */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-[#f0e8dc]">
-                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#161412]">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#292722]">
                   <input
                     type="checkbox"
                     checked={productForm.inStock}
@@ -2789,27 +2789,27 @@ export default function AdminPage() {
                         stockQuantity: next ? (productForm.stockQuantity && productForm.stockQuantity > 0 ? productForm.stockQuantity : 10) : 0,
                       });
                     }}
-                    className="rounded border-[#ded2c0] text-[#161412]"
+                    className="rounded border-[#ded2c0] text-[#292722]"
                   />
                   <span>متوفر بالمخزن للطلب</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#161412]">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#292722]">
                   <input
                     type="checkbox"
                     checked={productForm.isBestSeller || false}
                     onChange={(e) => setProductForm({ ...productForm, isBestSeller: e.target.checked })}
-                    className="rounded border-[#ded2c0] text-[#161412]"
+                    className="rounded border-[#ded2c0] text-[#292722]"
                   />
                   <span>تمييز كـ &quot;الأكثر مبيعاً&quot;</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#161412]">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#292722]">
                   <input
                     type="checkbox"
                     checked={productForm.isNew || false}
                     onChange={(e) => setProductForm({ ...productForm, isNew: e.target.checked })}
-                    className="rounded border-[#ded2c0] text-[#161412]"
+                    className="rounded border-[#ded2c0] text-[#292722]"
                   />
                   <span>تمييز كـ &quot;قطعة جديدة&quot;</span>
                 </label>
@@ -2826,7 +2826,7 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold shadow-md"
+                  className="px-6 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold shadow-md"
                 >
                   {editingProductId ? "حفظ التعديلات" : "إضافة القطعة"}
                 </button>
@@ -2843,13 +2843,13 @@ export default function AdminPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-lg w-full border border-[#e8ded0] shadow-2xl p-6 space-y-4 my-8">
             <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
-              <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+              <h3 className="font-bold text-sm text-[#292722] flex items-center gap-2">
                 <Layers className="w-4 h-4 text-[#c5a880]" />
                 <span>{editingCollectionId ? "تعديل الكولكشن" : "إضافة كولكشن جديد للمتجر"}</span>
               </h3>
               <button
                 onClick={() => setIsCollectionModalOpen(false)}
-                className="p-1 rounded-lg text-[#756555] hover:bg-[#f7f4ee]"
+                className="p-1 rounded-lg text-[#756555] hover:bg-[#F5F0E7]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2866,7 +2866,7 @@ export default function AdminPage() {
                   value={collectionForm.label}
                   onChange={(e) => setCollectionForm({ ...collectionForm, label: e.target.value })}
                   placeholder="مثال: روائع الشتاء أو هدايا الزفاف"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                 />
               </div>
 
@@ -2881,7 +2881,7 @@ export default function AdminPage() {
                     value={collectionForm.slug}
                     onChange={(e) => setCollectionForm({ ...collectionForm, slug: e.target.value })}
                     placeholder="winter-collection"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr font-mono"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr font-mono"
                   />
                   <span className="text-[10px] text-[#8c7865] mt-0.5 block">
                     سيكون الرابط: /collection/{collectionForm.slug || "slug"}
@@ -2897,7 +2897,7 @@ export default function AdminPage() {
                     value={collectionForm.englishTitle}
                     onChange={(e) => setCollectionForm({ ...collectionForm, englishTitle: e.target.value })}
                     placeholder="WINTER SILVER COLLECTION"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                   />
                 </div>
               </div>
@@ -2911,13 +2911,13 @@ export default function AdminPage() {
                   value={collectionForm.description}
                   onChange={(e) => setCollectionForm({ ...collectionForm, description: e.target.value })}
                   placeholder="تشكيلة مختارة من أرقى قطع الفضة الإسترليني عيار 925..."
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                 />
               </div>
 
               {/* Banner Image Uploader */}
-              <div className="p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-2">
-                <label className="block font-bold text-xs text-[#161412]">
+              <div className="p-3 bg-[#F5F0E7] rounded-xl border border-[#ded2c0] space-y-2">
+                <label className="block font-bold text-xs text-[#292722]">
                   صورة غلاف / بانر الكولكشن (Banner Image)
                 </label>
 
@@ -2950,7 +2950,7 @@ export default function AdminPage() {
                     type="button"
                     onClick={() => collectionFileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="px-3 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1.5 shadow-sm"
+                    className="px-3 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1.5 shadow-sm"
                   >
                     <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>{isUploading ? "جاري المعالجة..." : "رفع بانر من الكمبيوتر"}</span>
@@ -2960,7 +2960,7 @@ export default function AdminPage() {
                     value={collectionForm.bannerImage}
                     onChange={(e) => setCollectionForm({ ...collectionForm, bannerImage: e.target.value })}
                     placeholder="أو ضع رابط مباشر https://..."
-                    className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                    className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                   />
                 </div>
               </div>
@@ -2976,7 +2976,7 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold shadow-md"
+                  className="px-6 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold shadow-md"
                 >
                   {editingCollectionId ? "تحديث الكولكشن" : "إضافة الكولكشن"}
                 </button>
@@ -2993,13 +2993,13 @@ export default function AdminPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-xl w-full border border-[#e8ded0] shadow-2xl p-6 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
-              <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+              <h3 className="font-bold text-sm text-[#292722] flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#c5a880]" />
                 <span>{editingPageId ? "تعديل محتوى الصفحة" : "إنشاء صفحة جديدة مستقلة"}</span>
               </h3>
               <button
                 onClick={() => setIsPageModalOpen(false)}
-                className="p-1 rounded-lg text-[#756555] hover:bg-[#f7f4ee]"
+                className="p-1 rounded-lg text-[#756555] hover:bg-[#F5F0E7]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -3016,7 +3016,7 @@ export default function AdminPage() {
                   value={pageForm.title}
                   onChange={(e) => setPageForm({ ...pageForm, title: e.target.value })}
                   placeholder="مثال: قصة براند ORMA أو دليل اختيار المقاسات"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none font-bold"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none font-bold"
                 />
               </div>
 
@@ -3031,7 +3031,7 @@ export default function AdminPage() {
                     value={pageForm.slug}
                     onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value })}
                     placeholder="our-story"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr font-mono"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr font-mono"
                   />
                   <span className="text-[10px] text-[#8c7865] mt-0.5 block">
                     سيكون الرابط: /page/{pageForm.slug || "slug"}
@@ -3047,7 +3047,7 @@ export default function AdminPage() {
                     value={pageForm.englishTitle}
                     onChange={(e) => setPageForm({ ...pageForm, englishTitle: e.target.value })}
                     placeholder="THE ORMA STORY"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                   />
                 </div>
               </div>
@@ -3061,13 +3061,13 @@ export default function AdminPage() {
                   value={pageForm.subtitle}
                   onChange={(e) => setPageForm({ ...pageForm, subtitle: e.target.value })}
                   placeholder="مش بتتهدي.. بتتساب • Not Given, But Left"
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                 />
               </div>
 
               {/* Cover Banner Uploader */}
-              <div className="p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0] space-y-2">
-                <label className="block font-bold text-xs text-[#161412]">
+              <div className="p-3 bg-[#F5F0E7] rounded-xl border border-[#ded2c0] space-y-2">
+                <label className="block font-bold text-xs text-[#292722]">
                   صورة الغلاف / البانر العلوي للصفحة
                 </label>
 
@@ -3100,7 +3100,7 @@ export default function AdminPage() {
                     type="button"
                     onClick={() => pageFileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="px-3 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1.5 shadow-sm"
+                    className="px-3 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1.5 shadow-sm"
                   >
                     <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>{isUploading ? "جاري المعالجة..." : "رفع غلاف من الكمبيوتر"}</span>
@@ -3110,7 +3110,7 @@ export default function AdminPage() {
                     value={pageForm.bannerImage}
                     onChange={(e) => setPageForm({ ...pageForm, bannerImage: e.target.value })}
                     placeholder="أو ضع رابط مباشر https://..."
-                    className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                    className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                   />
                 </div>
               </div>
@@ -3125,28 +3125,28 @@ export default function AdminPage() {
                   value={pageForm.content}
                   onChange={(e) => setPageForm({ ...pageForm, content: e.target.value })}
                   placeholder="اكتب هنا محتوى صفحتك بالتفصيل...&#10;&#10;يمكنك كتابة مقدمة وعناوين فرعية ونقاط توضيحية لتظهر بشكل ملكي وأنيق للزوار."
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none font-sans leading-relaxed"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none font-sans leading-relaxed"
                 />
               </div>
 
               {/* Page Controls */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#f0e8dc]">
-                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#161412]">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#292722]">
                   <input
                     type="checkbox"
                     checked={pageForm.isPublished}
                     onChange={(e) => setPageForm({ ...pageForm, isPublished: e.target.checked })}
-                    className="rounded border-[#ded2c0] text-[#161412]"
+                    className="rounded border-[#ded2c0] text-[#292722]"
                   />
                   <span>نشر الصفحة وجعلها متاحة للزوار الآن</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#161412]">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-[#292722]">
                   <input
                     type="checkbox"
                     checked={pageForm.showInFooter}
                     onChange={(e) => setPageForm({ ...pageForm, showInFooter: e.target.checked })}
-                    className="rounded border-[#ded2c0] text-[#161412]"
+                    className="rounded border-[#ded2c0] text-[#292722]"
                   />
                   <span>إظهار رابط الصفحة في قائمة الفوتر</span>
                 </label>
@@ -3163,7 +3163,7 @@ export default function AdminPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold shadow-md"
+                  className="px-6 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold shadow-md"
                 >
                   {editingPageId ? "تحديث الصفحة" : "حفظ ونشر الصفحة"}
                 </button>
@@ -3186,7 +3186,7 @@ export default function AdminPage() {
               <Lock className="w-6 h-6" />
             </div>
 
-            <h3 className="font-amiri text-xl font-bold text-[#161412] text-center mb-1">
+            <h3 className="font-amiri text-xl font-bold text-[#292722] text-center mb-1">
               إعدادات المتجر محمية
             </h3>
             <p className="text-xs text-[#756555] text-center mb-6">
@@ -3201,7 +3201,7 @@ export default function AdminPage() {
 
             <form onSubmit={handleUnlockSettings} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[#161412] mb-1.5">
+                <label className="block text-xs font-medium text-[#292722] mb-1.5">
                   كلمة المرور
                 </label>
                 <div className="relative">
@@ -3212,12 +3212,12 @@ export default function AdminPage() {
                     value={settingsPasswordInput}
                     onChange={(e) => setSettingsPasswordInput(e.target.value)}
                     placeholder="أدخل كلمة المرور"
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] focus:bg-white"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] focus:bg-white"
                   />
                   <button
                     type="button"
                     onClick={() => setShowSettingsPassword(!showSettingsPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8c7865] hover:text-[#161412]"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8c7865] hover:text-[#292722]"
                   >
                     {showSettingsPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -3227,7 +3227,7 @@ export default function AdminPage() {
               <div className="flex items-center gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md"
+                  className="flex-1 py-2.5 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md"
                 >
                   تأكيد وفتح الإعدادات
                 </button>
@@ -3238,7 +3238,7 @@ export default function AdminPage() {
                     setSettingsPasswordError("");
                     setSettingsPasswordInput("");
                   }}
-                  className="px-4 py-2.5 rounded-lg bg-[#f7f4ee] hover:bg-[#ede3d3] text-xs font-semibold text-[#5c4f42] border border-[#ded2c0]"
+                  className="px-4 py-2.5 rounded-lg bg-[#F5F0E7] hover:bg-[#ede3d3] text-xs font-semibold text-[#5c4f42] border border-[#ded2c0]"
                 >
                   إلغاء
                 </button>
@@ -3264,13 +3264,13 @@ export default function AdminPage() {
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#faf8f5] rounded-3xl max-w-3xl w-full border border-[#d8c8b4] shadow-2xl p-5 sm:p-7 space-y-6 my-6 max-h-[92vh] overflow-y-auto text-right font-cairo custom-scrollbar"
+              className="bg-[#F5F0E7] rounded-3xl max-w-3xl w-full border border-[#d8c8b4] shadow-2xl p-5 sm:p-7 space-y-6 my-6 max-h-[92vh] overflow-y-auto text-right font-cairo custom-scrollbar"
             >
               {/* Modal Header */}
               <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#e8ded0]">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-[#161412] bg-white px-2.5 py-0.5 rounded-lg border border-[#ded2c0]">
+                    <span className="font-mono font-bold text-sm text-[#292722] bg-white px-2.5 py-0.5 rounded-lg border border-[#ded2c0]">
                       #{order.id}
                     </span>
                     <span className="text-xs text-[#8c7865]">
@@ -3283,7 +3283,7 @@ export default function AdminPage() {
                       })}
                     </span>
                   </div>
-                  <h3 className="font-amiri text-xl font-bold text-[#161412] mt-1.5 flex items-center gap-2">
+                  <h3 className="font-amiri text-xl font-bold text-[#292722] mt-1.5 flex items-center gap-2">
                     <ShoppingBag className="w-5 h-5 text-[#c5a880]" />
                     <span>تفاصيل الطلب الكاملة</span>
                   </h3>
@@ -3317,7 +3317,7 @@ export default function AdminPage() {
 
                   <button
                     onClick={() => setSelectedOrderForDetails(null)}
-                    className="p-1.5 rounded-xl bg-white border border-[#ded2c0] text-[#756555] hover:text-[#161412] hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded-xl bg-white border border-[#ded2c0] text-[#756555] hover:text-[#292722] hover:bg-gray-100 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -3326,7 +3326,7 @@ export default function AdminPage() {
 
               {/* Customer & Delivery Information Card with Inline Edit Mode */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-3">
-                <div className="text-xs font-bold text-[#161412] flex items-center justify-between pb-2 border-b border-[#f0e8dc]">
+                <div className="text-xs font-bold text-[#292722] flex items-center justify-between pb-2 border-b border-[#f0e8dc]">
                   <div className="flex items-center gap-2">
                     <User className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>بيانات العميل والشحن والتوصيل</span>
@@ -3336,7 +3336,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => setIsEditingCustomerInfo(true)}
-                      className="px-2.5 py-1 rounded-lg bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[#161412] font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs"
+                      className="px-2.5 py-1 rounded-lg bg-[#F5F0E7] hover:bg-[#ede3d3] border border-[#ded2c0] text-[#292722] font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs"
                       title="تعديل بيانات العميل لو كتب الاسم أو الهاتف أو العنوان بالخطأ"
                     >
                       <Edit className="w-3 h-3 text-[#c5a880]" />
@@ -3357,7 +3357,7 @@ export default function AdminPage() {
                           setIsEditingCustomerInfo(false);
                           addToast("بيانات العميل", "تم حفظ وتحديث بيانات العميل بنجاح", "info");
                         }}
-                        className="px-3 py-1 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                        className="px-3 py-1 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
                       >
                         <Save className="w-3 h-3 text-[#c5a880]" />
                         <span>حفظ التعديلات</span>
@@ -3384,16 +3384,16 @@ export default function AdminPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="block text-[11px] text-[#8c7865] mb-0.5">اسم العميل:</span>
-                      <span className="font-bold text-[#161412] text-sm">{order.customerName}</span>
+                      <span className="font-bold text-[#292722] text-sm">{order.customerName}</span>
                     </div>
 
                     <div>
                       <span className="block text-[11px] text-[#8c7865] mb-0.5">رقم الهاتف والتواصل:</span>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="font-bold text-[#161412] font-mono dir-ltr">{order.phone}</span>
+                        <span className="font-bold text-[#292722] font-mono dir-ltr">{order.phone}</span>
                         <a
                           href={`tel:${order.phone}`}
-                          className="px-2 py-0.5 rounded-md bg-[#f7f4ee] hover:bg-[#ede3d3] border border-[#ded2c0] text-[10px] font-bold text-[#161412] flex items-center gap-1"
+                          className="px-2 py-0.5 rounded-md bg-[#F5F0E7] hover:bg-[#ede3d3] border border-[#ded2c0] text-[10px] font-bold text-[#292722] flex items-center gap-1"
                           title="اتصال هاتفي"
                         >
                           <PhoneCall className="w-2.5 h-2.5 text-[#c5a880]" />
@@ -3414,18 +3414,18 @@ export default function AdminPage() {
 
                     <div>
                       <span className="block text-[11px] text-[#8c7865] mb-0.5">المحافظة:</span>
-                      <span className="font-semibold text-[#161412]">{order.governorate}</span>
+                      <span className="font-semibold text-[#292722]">{order.governorate}</span>
                     </div>
 
                     <div>
                       <span className="block text-[11px] text-[#8c7865] mb-0.5">العنوان التفصيلي:</span>
-                      <span className="font-medium text-[#161412]">{order.address}</span>
+                      <span className="font-medium text-[#292722]">{order.address}</span>
                     </div>
 
                     {order.notes && (
-                      <div className="sm:col-span-2 bg-[#f7f4ee] p-2.5 rounded-xl border border-[#ded2c0]">
+                      <div className="sm:col-span-2 bg-[#F5F0E7] p-2.5 rounded-xl border border-[#ded2c0]">
                         <span className="block text-[11px] font-bold text-[#756555] mb-0.5">ملاحظات العميل:</span>
-                        <p className="text-xs text-[#161412]">{order.notes}</p>
+                        <p className="text-xs text-[#292722]">{order.notes}</p>
                       </div>
                     )}
 
@@ -3439,33 +3439,33 @@ export default function AdminPage() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[#fdfbf7] p-3 rounded-xl border border-[#c5a880]/30">
                     <div>
-                      <label className="block text-[11px] font-bold text-[#161412] mb-1">اسم العميل:</label>
+                      <label className="block text-[11px] font-bold text-[#292722] mb-1">اسم العميل:</label>
                       <input
                         type="text"
                         value={editCustomerName}
                         onChange={(e) => setEditCustomerName(e.target.value)}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                         placeholder="اسم العميل الكامل"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#161412] mb-1">رقم الهاتف:</label>
+                      <label className="block text-[11px] font-bold text-[#292722] mb-1">رقم الهاتف:</label>
                       <input
                         type="tel"
                         value={editCustomerPhone}
                         onChange={(e) => setEditCustomerPhone(e.target.value)}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] font-mono dir-ltr focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#292722] font-mono dir-ltr focus:outline-none focus:border-[#292722]"
                         placeholder="01XXXXXXXXX"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#161412] mb-1">المحافظة:</label>
+                      <label className="block text-[11px] font-bold text-[#292722] mb-1">المحافظة:</label>
                       <select
                         value={editCustomerGovernorate}
                         onChange={(e) => setEditCustomerGovernorate(e.target.value)}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       >
                         {EGYPT_GOVERNORATES.map((gov) => (
                           <option key={gov.name} value={gov.name}>
@@ -3476,23 +3476,23 @@ export default function AdminPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#161412] mb-1">العنوان التفصيلي:</label>
+                      <label className="block text-[11px] font-bold text-[#292722] mb-1">العنوان التفصيلي:</label>
                       <input
                         type="text"
                         value={editCustomerAddress}
                         onChange={(e) => setEditCustomerAddress(e.target.value)}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                         placeholder="المنطقة، الشارع، رقم العمارة والشقة..."
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-[11px] font-bold text-[#161412] mb-1">ملاحظات الطلب أو التوصيل:</label>
+                      <label className="block text-[11px] font-bold text-[#292722] mb-1">ملاحظات الطلب أو التوصيل:</label>
                       <textarea
                         rows={2}
                         value={editCustomerNotes}
                         onChange={(e) => setEditCustomerNotes(e.target.value)}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-1.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                         placeholder="أي ملاحظات خاصة بالتوصيل أو تعديل العميل..."
                       />
                     </div>
@@ -3502,7 +3502,7 @@ export default function AdminPage() {
 
               {/* Payment Details Card */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-3">
-                <div className="text-xs font-bold text-[#161412] flex items-center gap-2 pb-2 border-b border-[#f0e8dc]">
+                <div className="text-xs font-bold text-[#292722] flex items-center gap-2 pb-2 border-b border-[#f0e8dc]">
                   <CreditCard className="w-3.5 h-3.5 text-[#c5a880]" />
                   <span>طريقة الدفع والتحويل</span>
                 </div>
@@ -3510,7 +3510,7 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="block text-[11px] text-[#8c7865] mb-0.5">طريقة الدفع المختارة:</span>
-                    <span className="font-bold text-[#161412]">
+                    <span className="font-bold text-[#292722]">
                       {order.paymentMethod === "cod"
                         ? "الدفع عند الاستلام (COD)"
                         : order.paymentMethod === "wallet"
@@ -3522,7 +3522,7 @@ export default function AdminPage() {
                   {order.senderWalletNumber && (
                     <div>
                       <span className="block text-[11px] text-[#8c7865] mb-0.5">رقم محفظة المحول:</span>
-                      <span className="font-mono font-bold text-[#161412] dir-ltr">{order.senderWalletNumber}</span>
+                      <span className="font-mono font-bold text-[#292722] dir-ltr">{order.senderWalletNumber}</span>
                     </div>
                   )}
 
@@ -3545,7 +3545,7 @@ export default function AdminPage() {
 
               {/* Ordered Products with Images & Shopify-style Edit/Add */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-4">
-                <div className="text-xs font-bold text-[#161412] flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#f0e8dc]">
+                <div className="text-xs font-bold text-[#292722] flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#f0e8dc]">
                   <div className="flex items-center gap-2">
                     <Package className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>القطع والمنتجات المطلوبة ({order.items.length})</span>
@@ -3558,7 +3558,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => setIsAddingItemToExistingOrder(!isAddingItemToExistingOrder)}
-                      className="px-2.5 py-1 rounded-lg bg-[#161412] hover:bg-[#2e2925] text-[#c5a880] text-[11px] font-bold flex items-center gap-1 transition-all shadow-xs"
+                      className="px-2.5 py-1 rounded-lg bg-[#292722] hover:bg-[#2e2925] text-[#c5a880] text-[11px] font-bold flex items-center gap-1 transition-all shadow-xs"
                     >
                       <Plus className="w-3 h-3" />
                       <span>{isAddingItemToExistingOrder ? "إغلاق قائمة الإضافة" : "+ إضافة قطعة للطلب"}</span>
@@ -3568,8 +3568,8 @@ export default function AdminPage() {
 
                 {/* Inline Product Adder from Inventory */}
                 {isAddingItemToExistingOrder && (
-                  <div className="bg-[#f7f4ee] rounded-xl p-3.5 border border-[#ded2c0] space-y-2.5 animate-fadeIn">
-                    <div className="flex items-center justify-between text-xs font-bold text-[#161412]">
+                  <div className="bg-[#F5F0E7] rounded-xl p-3.5 border border-[#ded2c0] space-y-2.5 animate-fadeIn">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#292722]">
                       <span className="flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-[#c5a880]" />
                         <span>اختر قطعة من المخزون لإضافتها للطلب الحالي:</span>
@@ -3577,7 +3577,7 @@ export default function AdminPage() {
                       <button
                         type="button"
                         onClick={() => setIsAddingItemToExistingOrder(false)}
-                        className="text-[11px] text-[#8c7865] hover:text-[#161412]"
+                        className="text-[11px] text-[#8c7865] hover:text-[#292722]"
                       >
                         إلغاء
                       </button>
@@ -3589,7 +3589,7 @@ export default function AdminPage() {
                         placeholder="ابحث عن قطعة بالاسم أو الصنف..."
                         value={existingOrderProductSearch}
                         onChange={(e) => setExistingOrderProductSearch(e.target.value)}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg pr-8 pl-3 py-1.5 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg pr-8 pl-3 py-1.5 text-xs text-[#292722] focus:outline-none"
                       />
                       <Search className="w-3.5 h-3.5 text-[#8c7865] absolute right-2.5 top-1/2 -translate-y-1/2" />
                     </div>
@@ -3614,7 +3614,7 @@ export default function AdminPage() {
                                 className="w-9 h-9 rounded object-cover border border-[#ded2c0] shrink-0"
                               />
                               <div className="min-w-0">
-                                <span className="font-bold text-[#161412] block truncate text-xs">
+                                <span className="font-bold text-[#292722] block truncate text-xs">
                                   {p.arabicName}
                                 </span>
                                 <span className="text-[10px] text-[#8c7865]">
@@ -3660,7 +3660,7 @@ export default function AdminPage() {
                                 setIsAddingItemToExistingOrder(false);
                                 addToast("إضافة منتج", `تمت إضافة "${p.arabicName}" إلى طلب العميل #${order.id}`, "info");
                               }}
-                              className="px-2.5 py-1 rounded bg-[#161412] hover:bg-[#2e2925] text-[#c5a880] text-[11px] font-bold shrink-0 transition-colors"
+                              className="px-2.5 py-1 rounded bg-[#292722] hover:bg-[#2e2925] text-[#c5a880] text-[11px] font-bold shrink-0 transition-colors"
                             >
                               + إضافة للطلب
                             </button>
@@ -3677,7 +3677,7 @@ export default function AdminPage() {
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between gap-3 p-3 bg-[#faf8f5] rounded-xl border border-[#e8ded0] text-xs"
+                        className="flex items-center justify-between gap-3 p-3 bg-[#F5F0E7] rounded-xl border border-[#e8ded0] text-xs"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           {/* Product Image */}
@@ -3690,7 +3690,7 @@ export default function AdminPage() {
                           </div>
 
                           <div className="min-w-0">
-                            <h5 className="font-bold text-[#161412] truncate text-xs sm:text-sm">
+                            <h5 className="font-bold text-[#292722] truncate text-xs sm:text-sm">
                               {item.arabicName}
                             </h5>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -3700,7 +3700,7 @@ export default function AdminPage() {
                                 </span>
                               )}
                               <span className="text-[#8c7865] text-[11px]">
-                                سعر القطعة: <b className="text-[#161412]">{item.price.toLocaleString("en-US")} ج.م</b>
+                                سعر القطعة: <b className="text-[#292722]">{item.price.toLocaleString("en-US")} ج.م</b>
                               </span>
                             </div>
                           </div>
@@ -3751,12 +3751,12 @@ export default function AdminPage() {
                                   }
                                 }
                               }}
-                              className="px-2 py-1 text-[#161412] hover:bg-[#f7f4ee] text-xs font-bold rounded-r-lg"
+                              className="px-2 py-1 text-[#292722] hover:bg-[#F5F0E7] text-xs font-bold rounded-r-lg"
                               title="تقليل الكمية"
                             >
                               -
                             </button>
-                            <span className="px-2.5 font-bold font-mono text-xs text-[#161412]">
+                            <span className="px-2.5 font-bold font-mono text-xs text-[#292722]">
                               {item.quantity}
                             </span>
                             <button
@@ -3778,14 +3778,14 @@ export default function AdminPage() {
                                   total: newTotal,
                                 });
                               }}
-                              className="px-2 py-1 text-[#161412] hover:bg-[#f7f4ee] text-xs font-bold rounded-l-lg"
+                              className="px-2 py-1 text-[#292722] hover:bg-[#F5F0E7] text-xs font-bold rounded-l-lg"
                               title="زيادة الكمية"
                             >
                               +
                             </button>
                           </div>
 
-                          <div className="text-left font-bold text-sm text-[#161412] font-mono min-w-[70px]">
+                          <div className="text-left font-bold text-sm text-[#292722] font-mono min-w-[70px]">
                             {(item.price * item.quantity).toLocaleString("en-US")} <span className="text-xs font-normal">ج.م</span>
                           </div>
 
@@ -3825,21 +3825,21 @@ export default function AdminPage() {
 
               {/* Financial Breakdown */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-2 text-xs">
-                <div className="text-xs font-bold text-[#161412] pb-2 border-b border-[#f0e8dc] flex items-center gap-1.5">
+                <div className="text-xs font-bold text-[#292722] pb-2 border-b border-[#f0e8dc] flex items-center gap-1.5">
                   <Tag className="w-3.5 h-3.5 text-[#c5a880]" />
                   <span>الفاتورة المالية والملخص</span>
                 </div>
 
                 <div className="flex justify-between items-center text-[#756555] py-1">
                   <span>مجموع المنتجات (المجموع الفرعي):</span>
-                  <span className="font-bold font-mono text-[#161412]">
+                  <span className="font-bold font-mono text-[#292722]">
                     {(order.subtotal || order.items.reduce((s, i) => s + (i.price * i.quantity), 0)).toLocaleString("en-US")} ج.م
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center text-[#756555] py-1">
                   <span>مصاريف الشحن ({order.governorate}):</span>
-                  <span className="font-bold font-mono text-[#161412]">
+                  <span className="font-bold font-mono text-[#292722]">
                     {order.shippingFee === 0 ? "شحن مجاني" : `${order.shippingFee.toLocaleString("en-US")} ج.م`}
                   </span>
                 </div>
@@ -3851,9 +3851,9 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                <div className="pt-2 border-t border-[#ded2c0] flex justify-between items-center text-sm font-bold text-[#161412]">
+                <div className="pt-2 border-t border-[#ded2c0] flex justify-between items-center text-sm font-bold text-[#292722]">
                   <span className="font-amiri text-base">الإجمالي النهائي المستحق:</span>
-                  <span className="text-lg text-[#161412] font-mono bg-[#f7f4ee] px-3 py-1 rounded-xl border border-[#ded2c0]">
+                  <span className="text-lg text-[#292722] font-mono bg-[#F5F0E7] px-3 py-1 rounded-xl border border-[#ded2c0]">
                     {order.total.toLocaleString("en-US")} ج.م
                   </span>
                 </div>
@@ -3875,7 +3875,7 @@ export default function AdminPage() {
                   <button
                     type="button"
                     onClick={() => handlePrintOrder(order)}
-                    className="px-4 py-2 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                    className="px-4 py-2 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#F5F0E7] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
                   >
                     <Printer className="w-4 h-4 text-[#c5a880]" />
                     <span>طباعة الفاتورة والبوليصة</span>
@@ -3930,7 +3930,7 @@ export default function AdminPage() {
                     setSelectedOrderForDetails(null);
                     setIsAddingItemToExistingOrder(false);
                   }}
-                  className="px-5 py-2 rounded-xl bg-[#e8ded0] hover:bg-[#ded2c0] text-[#161412] text-xs font-bold transition-all"
+                  className="px-5 py-2 rounded-xl bg-[#e8ded0] hover:bg-[#ded2c0] text-[#292722] text-xs font-bold transition-all"
                 >
                   إغلاق
                 </button>
@@ -3952,7 +3952,7 @@ export default function AdminPage() {
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[#ded2c0]">
               <div>
-                <h3 className="font-amiri text-lg sm:text-xl font-bold text-[#161412] flex items-center gap-2">
+                <h3 className="font-amiri text-lg sm:text-xl font-bold text-[#292722] flex items-center gap-2">
                   <UserPlus className="w-5 h-5 text-[#c5a880]" />
                   <span>إنشاء طلب جديد وإضافة عميل (Shopify Manual Order)</span>
                 </h3>
@@ -3963,7 +3963,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setIsCreateOrderModalOpen(false)}
-                className="p-1.5 rounded-lg text-[#756555] hover:text-[#161412] hover:bg-gray-100"
+                className="p-1.5 rounded-lg text-[#756555] hover:text-[#292722] hover:bg-gray-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -4025,13 +4025,13 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Customer Details Column */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-[#161412] border-b border-[#f0e8dc] pb-2 flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-[#292722] border-b border-[#f0e8dc] pb-2 flex items-center gap-2">
                     <User className="w-4 h-4 text-[#c5a880]" />
                     <span>بيانات العميل والشحن</span>
                   </h4>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#161412] mb-1">
+                    <label className="block text-xs font-semibold text-[#292722] mb-1">
                       اسم العميل <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -4040,13 +4040,13 @@ export default function AdminPage() {
                       placeholder="مثال: كريم مصطفى"
                       value={manualOrderForm.customerName}
                       onChange={(e) => setManualOrderForm({ ...manualOrderForm, customerName: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[#161412] mb-1">
+                      <label className="block text-xs font-semibold text-[#292722] mb-1">
                         رقم الهاتف / واتساب <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -4055,12 +4055,12 @@ export default function AdminPage() {
                         placeholder="010XXXXXXXX"
                         value={manualOrderForm.phone}
                         onChange={(e) => setManualOrderForm({ ...manualOrderForm, phone: e.target.value })}
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412] dir-ltr text-right"
+                        className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722] dir-ltr text-right"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[#161412] mb-1">
+                      <label className="block text-xs font-semibold text-[#292722] mb-1">
                         البريد الإلكتروني (اختياري)
                       </label>
                       <input
@@ -4068,20 +4068,20 @@ export default function AdminPage() {
                         placeholder="name@example.com"
                         value={manualOrderForm.email}
                         onChange={(e) => setManualOrderForm({ ...manualOrderForm, email: e.target.value })}
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412] dir-ltr text-right"
+                        className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722] dir-ltr text-right"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[#161412] mb-1">
+                      <label className="block text-xs font-semibold text-[#292722] mb-1">
                         المحافظة <span className="text-rose-500">*</span>
                       </label>
                       <select
                         value={manualOrderForm.governorate}
                         onChange={(e) => setManualOrderForm({ ...manualOrderForm, governorate: e.target.value })}
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       >
                         {EGYPT_GOVERNORATES.map((g) => {
                           const rate = storeSettings.governorateShippingRates?.[g.name] ?? g.defaultRate;
@@ -4095,13 +4095,13 @@ export default function AdminPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[#161412] mb-1">
+                      <label className="block text-xs font-semibold text-[#292722] mb-1">
                         طريقة الدفع
                       </label>
                       <select
                         value={manualOrderForm.paymentMethod}
                         onChange={(e) => setManualOrderForm({ ...manualOrderForm, paymentMethod: e.target.value as "cod" | "wallet" | "card" })}
-                        className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       >
                         <option value="cod">الدفع عند الاستلام (COD)</option>
                         <option value="wallet">محفظة إلكترونية (فودافون كاش / إنستاباي)</option>
@@ -4111,7 +4111,7 @@ export default function AdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#161412] mb-1">
+                    <label className="block text-xs font-semibold text-[#292722] mb-1">
                       العنوان بالتفصيل
                     </label>
                     <textarea
@@ -4119,12 +4119,12 @@ export default function AdminPage() {
                       placeholder="المنطقة، الشارع، رقم العمارة والشقة، علامة مميزة..."
                       value={manualOrderForm.address}
                       onChange={(e) => setManualOrderForm({ ...manualOrderForm, address: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#161412] mb-1">
+                    <label className="block text-xs font-semibold text-[#292722] mb-1">
                       ملاحظات الطلب (للمندوب أو للتجهيز)
                     </label>
                     <input
@@ -4132,14 +4132,14 @@ export default function AdminPage() {
                       placeholder="أي تفاصيل خاصة بتسليم الشحنة أو الميعاد..."
                       value={manualOrderForm.notes}
                       onChange={(e) => setManualOrderForm({ ...manualOrderForm, notes: e.target.value })}
-                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                      className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3.5 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                     />
                   </div>
                 </div>
 
                 {/* Products Selector Column */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-[#161412] border-b border-[#f0e8dc] pb-2 flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-[#292722] border-b border-[#f0e8dc] pb-2 flex items-center justify-between">
                     <span className="flex items-center gap-2">
                       <Package className="w-4 h-4 text-[#c5a880]" />
                       <span>المنتجات والمخزون</span>
@@ -4150,8 +4150,8 @@ export default function AdminPage() {
                   </h4>
 
                   {/* Product Search & Inventory Quick Picker */}
-                  <div className="bg-[#f7f4ee] rounded-xl p-3 border border-[#ded2c0] space-y-2">
-                    <span className="text-[11px] font-bold text-[#161412] block">
+                  <div className="bg-[#F5F0E7] rounded-xl p-3 border border-[#ded2c0] space-y-2">
+                    <span className="text-[11px] font-bold text-[#292722] block">
                       اختر قطعة من المخزون لإضافتها للطلب:
                     </span>
                     <div className="relative">
@@ -4160,7 +4160,7 @@ export default function AdminPage() {
                         placeholder="ابحث في المنتجات بالاسم أو الصنف..."
                         value={manualOrderProductSearch}
                         onChange={(e) => setManualOrderProductSearch(e.target.value)}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg pr-8 pl-3 py-1.5 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg pr-8 pl-3 py-1.5 text-xs text-[#292722] focus:outline-none"
                       />
                       <Search className="w-3.5 h-3.5 text-[#8c7865] absolute right-2.5 top-1/2 -translate-y-1/2" />
                     </div>
@@ -4186,7 +4186,7 @@ export default function AdminPage() {
                                 className="w-8 h-8 rounded object-cover border border-[#ded2c0] shrink-0"
                               />
                               <div className="min-w-0">
-                                <span className="font-bold text-[#161412] block truncate text-xs">
+                                <span className="font-bold text-[#292722] block truncate text-xs">
                                   {p.arabicName}
                                 </span>
                                 <span className="text-[10px] text-[#8c7865]">
@@ -4225,7 +4225,7 @@ export default function AdminPage() {
                                   };
                                 });
                               }}
-                              className="px-2.5 py-1 rounded bg-[#161412] hover:bg-[#2e2925] text-[#c5a880] text-[11px] font-bold shrink-0 transition-colors"
+                              className="px-2.5 py-1 rounded bg-[#292722] hover:bg-[#2e2925] text-[#c5a880] text-[11px] font-bold shrink-0 transition-colors"
                             >
                               + إضافة
                             </button>
@@ -4257,7 +4257,7 @@ export default function AdminPage() {
                                 className="w-10 h-10 rounded-lg object-cover border border-[#ded2c0] shrink-0"
                               />
                               <div className="min-w-0">
-                                <span className="font-bold text-[#161412] block truncate">
+                                <span className="font-bold text-[#292722] block truncate">
                                   {item.arabicName}
                                 </span>
                                 <div className="flex items-center gap-1.5 mt-0.5">
@@ -4272,7 +4272,7 @@ export default function AdminPage() {
                                             updated[idx].selectedSize = e.target.value;
                                             setManualOrderForm({ ...manualOrderForm, items: updated });
                                           }}
-                                          className="bg-[#f7f4ee] border border-[#ded2c0] rounded px-1.5 py-0.5 text-[10px] text-[#161412] font-semibold"
+                                          className="bg-[#F5F0E7] border border-[#ded2c0] rounded px-1.5 py-0.5 text-[10px] text-[#292722] font-semibold"
                                         >
                                           {prod.sizes.map((s) => (
                                             <option key={s} value={s}>
@@ -4293,7 +4293,7 @@ export default function AdminPage() {
 
                             {/* Qty & Remove */}
                             <div className="flex items-center gap-2 shrink-0">
-                              <div className="flex items-center border border-[#ded2c0] rounded-lg bg-[#f7f4ee]">
+                              <div className="flex items-center border border-[#ded2c0] rounded-lg bg-[#F5F0E7]">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -4306,11 +4306,11 @@ export default function AdminPage() {
                                       setManualOrderForm({ ...manualOrderForm, items: updated });
                                     }
                                   }}
-                                  className="px-2 py-0.5 text-[#161412] hover:bg-[#e8ded0] text-xs font-bold rounded-r-lg"
+                                  className="px-2 py-0.5 text-[#292722] hover:bg-[#e8ded0] text-xs font-bold rounded-r-lg"
                                 >
                                   -
                                 </button>
-                                <span className="px-2 font-bold font-mono text-xs text-[#161412]">
+                                <span className="px-2 font-bold font-mono text-xs text-[#292722]">
                                   {item.quantity}
                                 </span>
                                 <button
@@ -4320,13 +4320,13 @@ export default function AdminPage() {
                                     updated[idx].quantity += 1;
                                     setManualOrderForm({ ...manualOrderForm, items: updated });
                                   }}
-                                  className="px-2 py-0.5 text-[#161412] hover:bg-[#e8ded0] text-xs font-bold rounded-l-lg"
+                                  className="px-2 py-0.5 text-[#292722] hover:bg-[#e8ded0] text-xs font-bold rounded-l-lg"
                                 >
                                   +
                                 </button>
                               </div>
 
-                              <span className="font-bold text-xs text-[#161412] font-mono min-w-[50px] text-left">
+                              <span className="font-bold text-xs text-[#292722] font-mono min-w-[50px] text-left">
                                 {(item.price * item.quantity).toLocaleString("en-US")} ج.م
                               </span>
 
@@ -4362,10 +4362,10 @@ export default function AdminPage() {
                     const grandTotal = Math.max(0, subtotal + shippingFee - discount);
 
                     return (
-                      <div className="bg-[#f7f4ee] rounded-xl p-3.5 border border-[#ded2c0] space-y-2 text-xs">
+                      <div className="bg-[#F5F0E7] rounded-xl p-3.5 border border-[#ded2c0] space-y-2 text-xs">
                         <div className="flex justify-between items-center text-[#756555]">
                           <span>مجموع المنتجات:</span>
-                          <span className="font-bold font-mono text-[#161412]">{subtotal.toLocaleString("en-US")} ج.م</span>
+                          <span className="font-bold font-mono text-[#292722]">{subtotal.toLocaleString("en-US")} ج.م</span>
                         </div>
 
                         <div className="flex justify-between items-center text-[#756555]">
@@ -4388,7 +4388,7 @@ export default function AdminPage() {
                               {manualOrderForm.customShippingFee === 0 ? "شحن مجاني مفعل" : "تطبيق شحن مجاني"}
                             </button>
                           </span>
-                          <span className="font-bold font-mono text-[#161412]">
+                          <span className="font-bold font-mono text-[#292722]">
                             {shippingFee === 0 ? "شحن مجاني" : `${shippingFee} ج.م`}
                           </span>
                         </div>
@@ -4405,9 +4405,9 @@ export default function AdminPage() {
                           />
                         </div>
 
-                        <div className="pt-2 border-t border-[#ded2c0] flex justify-between items-center font-bold text-sm text-[#161412]">
+                        <div className="pt-2 border-t border-[#ded2c0] flex justify-between items-center font-bold text-sm text-[#292722]">
                           <span className="font-amiri text-base">الإجمالي المطلوب من العميل:</span>
-                          <span className="text-base text-[#161412] font-mono bg-white px-3 py-1 rounded-lg border border-[#ded2c0]">
+                          <span className="text-base text-[#292722] font-mono bg-white px-3 py-1 rounded-lg border border-[#ded2c0]">
                             {grandTotal.toLocaleString("en-US")} ج.م
                           </span>
                         </div>
@@ -4422,13 +4422,13 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateOrderModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-[#f7f4ee] hover:bg-[#e8ded0] text-[#161412] text-xs font-medium transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-[#F5F0E7] hover:bg-[#e8ded0] text-[#292722] text-xs font-medium transition-all"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#c5a880] hover:text-[#f7f4ee] text-xs font-bold shadow-md transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#c5a880] hover:text-[#F5F0E7] text-xs font-bold shadow-md transition-all flex items-center gap-2"
                 >
                   <Check className="w-4 h-4" />
                   <span>حفظ وإنشاء الطلب بالسحابة ⚡</span>
@@ -4452,7 +4452,7 @@ export default function AdminPage() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="bg-[#161412] text-[#f7f4ee] px-6 py-4 flex items-center justify-between border-b border-[#2e2925]">
+            <div className="bg-[#292722] text-[#F5F0E7] px-6 py-4 flex items-center justify-between border-b border-[#2e2925]">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-white/10 text-[#c5a880]">
                   <UserPlus className="w-5 h-5" />
@@ -4480,7 +4480,7 @@ export default function AdminPage() {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-[#161412] mb-1">
+                <label className="block text-xs font-bold text-[#292722] mb-1">
                   الاسم الكامل / المسمى الوظيفي *
                 </label>
                 <input
@@ -4489,13 +4489,13 @@ export default function AdminPage() {
                   placeholder="مثال: أحمد سمير - مسؤول المبيعات"
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                  className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#161412] mb-1">
+                  <label className="block text-xs font-bold text-[#292722] mb-1">
                     اسم المستخدم (Username) *
                   </label>
                   <input
@@ -4505,12 +4505,12 @@ export default function AdminPage() {
                     placeholder="مثال: ahmed"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value.toLowerCase())}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs font-mono text-[#161412] focus:outline-none focus:border-[#161412]"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs font-mono text-[#292722] focus:outline-none focus:border-[#292722]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#161412] mb-1">
+                  <label className="block text-xs font-bold text-[#292722] mb-1">
                     كلمة المرور (Password) *
                   </label>
                   <input
@@ -4520,14 +4520,14 @@ export default function AdminPage() {
                     placeholder="كلمة مرور قوية"
                     value={newUserPassword}
                     onChange={(e) => setNewUserPassword(e.target.value)}
-                    className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-xl px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                   />
                 </div>
               </div>
 
               {/* Role Selection */}
               <div>
-                <label className="block text-xs font-bold text-[#161412] mb-2">
+                <label className="block text-xs font-bold text-[#292722] mb-2">
                   تحديد نوع الصلاحية الممنوحة *
                 </label>
                 <div className="space-y-2">
@@ -4535,7 +4535,7 @@ export default function AdminPage() {
                   <label
                     className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                       newUserRole === "orders_customers"
-                        ? "bg-[#faf6ee] border-[#161412] shadow-xs"
+                        ? "bg-[#faf6ee] border-[#292722] shadow-xs"
                         : "bg-white border-[#e8ded0] hover:bg-[#fbf9f5]"
                     }`}
                   >
@@ -4548,7 +4548,7 @@ export default function AdminPage() {
                       className="mt-1"
                     />
                     <div>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#161412]">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#292722]">
                         <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
                         <span>📦 صفحة العملاء والطلبات فقط</span>
                       </div>
@@ -4562,7 +4562,7 @@ export default function AdminPage() {
                   <label
                     className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                       newUserRole === "store_editor"
-                        ? "bg-[#faf6ee] border-[#161412] shadow-xs"
+                        ? "bg-[#faf6ee] border-[#292722] shadow-xs"
                         : "bg-white border-[#e8ded0] hover:bg-[#fbf9f5]"
                     }`}
                   >
@@ -4575,7 +4575,7 @@ export default function AdminPage() {
                       className="mt-1"
                     />
                     <div>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#161412]">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#292722]">
                         <Sparkles className="w-3.5 h-3.5 text-purple-600" />
                         <span>🎨 صفحة تعديل الموقع وتخصيص المتجر فقط</span>
                       </div>
@@ -4589,7 +4589,7 @@ export default function AdminPage() {
                   <label
                     className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                       newUserRole === "all"
-                        ? "bg-[#faf6ee] border-[#161412] shadow-xs"
+                        ? "bg-[#faf6ee] border-[#292722] shadow-xs"
                         : "bg-white border-[#e8ded0] hover:bg-[#fbf9f5]"
                     }`}
                   >
@@ -4602,7 +4602,7 @@ export default function AdminPage() {
                       className="mt-1"
                     />
                     <div>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#161412]">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#292722]">
                         <Shield className="w-3.5 h-3.5 text-emerald-600" />
                         <span>⚡ كلا القسمين (الطلبات + تعديل المتجر)</span>
                       </div>
@@ -4619,13 +4619,13 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setIsAddUserModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-[#f7f4ee] hover:bg-[#e8ded0] text-[#161412] text-xs font-medium transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-[#F5F0E7] hover:bg-[#e8ded0] text-[#292722] text-xs font-medium transition-all"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#c5a880] hover:text-[#f7f4ee] text-xs font-bold shadow-md transition-all flex items-center gap-2 active:scale-95"
+                  className="px-6 py-2.5 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#c5a880] hover:text-[#F5F0E7] text-xs font-bold shadow-md transition-all flex items-center gap-2 active:scale-95"
                 >
                   <Check className="w-4 h-4" />
                   <span>إنشاء الحساب ومزامنته في السحابة ⚡</span>

@@ -20,7 +20,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
           HERO SLIDER (MULTI-SLIDE CAROUSEL)
           =============================================== */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-5">
-        <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-[#c5a880]" />
             <span>سلايدر البانر الرئيسي المتحرك (يتقلب تلقائياً كل 5 ثواني)</span>
@@ -46,32 +46,32 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
               const currentSlides = settingsForm.heroSlides || [];
               setSettingsForm({ ...settingsForm, heroSlides: [...currentSlides, newSlide] });
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] active:scale-95 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] active:scale-95 transition-all shadow-sm"
           >
             <Plus className="w-3.5 h-3.5 text-[#c5a880]" />
             <span>إضافة شريحة للمناسبات / العروض</span>
           </button>
         </div>
 
-        <div className="text-xs text-[#756555] bg-[#f7f4ee] rounded-lg p-3 border border-[#e8ded0] leading-relaxed">
+        <div className="text-xs text-[#756555] bg-[#F5F0E7] rounded-lg p-3 border border-[#e8ded0] leading-relaxed">
           يمكنك إضافة عدة شرائح مصورة هنا لتتحول واجهة المتجر إلى سلايدر تفاعلي بعرض الصفحة يتقلب تلقائياً كل 5 ثوانٍ مع شريط تقدم وتأثير حركة سلس. يمكنك تخصيص صورة ونصوص وزر كل شريحة لأي مناسبة أو عرض خاص.
         </div>
 
         {(!settingsForm.heroSlides || settingsForm.heroSlides.length === 0) ? (
           <div className="py-8 text-center text-xs text-[#8c7865] border-2 border-dashed border-[#e8ded0] rounded-xl space-y-2">
-            <p className="font-bold text-[#161412]">لم يتم إضافة أي شريحة بعد في السلايدر المتعدد</p>
+            <p className="font-bold text-[#292722]">لم يتم إضافة أي شريحة بعد في السلايدر المتعدد</p>
             <p>يعمل المتجر حالياً بنظام البانر الكلاسيكي الفردي. اضغط على الزر أعلاه لإضافة أول شريحة لسلايدر المناسبات.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {settingsForm.heroSlides.map((slide, idx) => (
-              <div key={slide.id} className="border border-[#e8ded0] rounded-xl overflow-hidden bg-[#faf8f5]">
+              <div key={slide.id} className="border border-[#e8ded0] rounded-xl overflow-hidden bg-[#F5F0E7]">
                 <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-[#e8ded0]">
                   <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#161412] text-[#f7f4ee] text-[10px] font-bold flex items-center justify-center shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-[#292722] text-[#F5F0E7] text-[10px] font-bold flex items-center justify-center shrink-0">
                       {idx + 1}
                     </span>
-                    <span className="text-xs font-bold text-[#161412] truncate max-w-[200px]">
+                    <span className="text-xs font-bold text-[#292722] truncate max-w-[200px]">
                       {slide.title || "شريحة بدون عنوان"} {slide.titleLine2 ? `• ${slide.titleLine2}` : ""}
                     </span>
                     {slide.badge && (
@@ -91,7 +91,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           );
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
-                        className="rounded border-[#ded2c0] text-[#161412]"
+                        className="rounded border-[#ded2c0] text-[#292722]"
                       />
                       <span>مُفعّلة</span>
                     </label>
@@ -105,7 +105,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           arr[idx] = temp;
                           setSettingsForm({ ...settingsForm, heroSlides: arr });
                         }}
-                        className="p-1 rounded text-[#8c7865] hover:text-[#161412] hover:bg-[#f0e8dc]"
+                        className="p-1 rounded text-[#8c7865] hover:text-[#292722] hover:bg-[#f0e8dc]"
                         title="تحريك لأعلى"
                       >
                         <ChevronUp className="w-4 h-4" />
@@ -121,7 +121,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           arr[idx] = temp;
                           setSettingsForm({ ...settingsForm, heroSlides: arr });
                         }}
-                        className="p-1 rounded text-[#8c7865] hover:text-[#161412] hover:bg-[#f0e8dc]"
+                        className="p-1 rounded text-[#8c7865] hover:text-[#292722] hover:bg-[#f0e8dc]"
                         title="تحريك لأسفل"
                       >
                         <ChevronDown className="w-4 h-4" />
@@ -160,9 +160,9 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="https://... أو اضغط رفع من جهازك"
-                        className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                        className="flex-1 bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                       />
-                      <label className="px-3.5 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0">
+                      <label className="px-3.5 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0">
                         <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                         <span>رفع</span>
                         <input
@@ -208,7 +208,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="أورما: لا تُهدى بل تُترك"
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none font-bold"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none font-bold"
                       />
                     </div>
                     <div>
@@ -225,7 +225,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="بل يُترك"
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -246,7 +246,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="عرض خاص بمناسبة العيد"
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                       />
                     </div>
                     <div>
@@ -261,7 +261,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           );
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                       >
                         <option value="light">خفيف (إظهار وضوح الصورة أكثر)</option>
                         <option value="medium">متوسط (متوازن ومريح للقراءة)</option>
@@ -280,7 +280,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           );
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                       >
                         <option value="right">يمين (افتراضي فاخر)</option>
                         <option value="center">وسط</option>
@@ -304,7 +304,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                         setSettingsForm({ ...settingsForm, heroSlides: updated });
                       }}
                       placeholder="مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك..."
-                      className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                      className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                     />
                   </div>
 
@@ -324,7 +324,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="تسوق المجموعة"
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                       />
                     </div>
                     <div>
@@ -341,7 +341,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="/collection/all أو #products"
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                       />
                     </div>
                   </div>
@@ -361,7 +361,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="اكتشف ORMA"
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                       />
                     </div>
                     <div>
@@ -378,7 +378,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                           setSettingsForm({ ...settingsForm, heroSlides: updated });
                         }}
                         placeholder="#story"
-                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none dir-ltr"
+                        className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none dir-ltr"
                       />
                     </div>
                   </div>
@@ -392,7 +392,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
           <button
             onClick={handleSaveSettings}
             disabled={isSavingSettings}
-            className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4 text-[#c5a880]" />
             <span>حفظ شرائح السلايدر في السحابة فورياً</span>
@@ -404,7 +404,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
           SINGLE CLASSIC HERO BANNER FALLBACK
           =============================================== */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <ImageIcon className="w-4 h-4 text-[#c5a880]" />
           <span>إعدادات البانر الكلاسيكي الفردي (Hero Section)</span>
         </div>
@@ -419,7 +419,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
               value={settingsForm.heroTitle || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, heroTitle: e.target.value })}
               placeholder="أورما: لا تُهدى&#10;بل تُترك"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
             />
           </div>
 
@@ -432,7 +432,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
               value={settingsForm.heroSubtitle || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, heroSubtitle: e.target.value })}
               placeholder="مصوغات فضية نقية عيار 925 صُممت لتخلد تفاصيلك وتبقى بصمة لا تُمحى."
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
             />
           </div>
 
@@ -445,7 +445,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
               value={settingsForm.heroTagline || ""}
               onChange={(e) => setSettingsForm({ ...settingsForm, heroTagline: e.target.value })}
               placeholder="صياغة إيطالية يدوية فاخرة"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
             />
           </div>
 
@@ -459,7 +459,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                 value={settingsForm.heroButtonText || ""}
                 onChange={(e) => setSettingsForm({ ...settingsForm, heroButtonText: e.target.value })}
                 placeholder="تسوق المجموعة"
-                className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
               />
             </div>
             <div>
@@ -470,7 +470,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                 type="text"
                 value={settingsForm.heroButtonLink || "/#products"}
                 onChange={(e) => setSettingsForm({ ...settingsForm, heroButtonLink: e.target.value })}
-                className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] dir-ltr"
+                className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] dir-ltr"
               />
             </div>
           </div>
@@ -481,9 +481,9 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
               id="heroBtnShow"
               checked={settingsForm.heroButtonShow !== false}
               onChange={(e) => setSettingsForm({ ...settingsForm, heroButtonShow: e.target.checked })}
-              className="rounded border-[#ded2c0] text-[#161412]"
+              className="rounded border-[#ded2c0] text-[#292722]"
             />
-            <label htmlFor="heroBtnShow" className="text-xs font-medium text-[#161412] cursor-pointer">
+            <label htmlFor="heroBtnShow" className="text-xs font-medium text-[#292722] cursor-pointer">
               إظهار الزر الأساسي في البانر
             </label>
           </div>
@@ -498,7 +498,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                 value={settingsForm.heroSecondaryButtonText || ""}
                 onChange={(e) => setSettingsForm({ ...settingsForm, heroSecondaryButtonText: e.target.value })}
                 placeholder="اكتشف ORMA"
-                className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
               />
             </div>
             <div>
@@ -509,7 +509,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                 type="text"
                 value={settingsForm.heroSecondaryButtonLink || "/#story"}
                 onChange={(e) => setSettingsForm({ ...settingsForm, heroSecondaryButtonLink: e.target.value })}
-                className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] dir-ltr"
+                className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] dir-ltr"
               />
             </div>
           </div>
@@ -520,9 +520,9 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
               id="heroSecBtnShow"
               checked={settingsForm.heroSecondaryButtonShow !== false}
               onChange={(e) => setSettingsForm({ ...settingsForm, heroSecondaryButtonShow: e.target.checked })}
-              className="rounded border-[#ded2c0] text-[#161412]"
+              className="rounded border-[#ded2c0] text-[#292722]"
             />
-            <label htmlFor="heroSecBtnShow" className="text-xs font-medium text-[#161412] cursor-pointer">
+            <label htmlFor="heroSecBtnShow" className="text-xs font-medium text-[#292722] cursor-pointer">
               إظهار الزر الثانوي في البانر
             </label>
           </div>
@@ -533,7 +533,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
             </label>
 
             {settingsForm.heroImageUrl && (
-              <div className="flex items-center gap-3 p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0]">
+              <div className="flex items-center gap-3 p-3 bg-[#F5F0E7] rounded-xl border border-[#ded2c0]">
                 <div className="h-14 w-28 bg-white rounded-lg border border-[#d8c8b4] overflow-hidden shrink-0 shadow-sm">
                   <img
                     src={settingsForm.heroImageUrl}
@@ -564,9 +564,9 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
                 value={settingsForm.heroImageUrl || ""}
                 onChange={(e) => setSettingsForm({ ...settingsForm, heroImageUrl: e.target.value })}
                 placeholder="https://... أو اضغط زر الرفع من جهازك"
-                className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] dir-ltr"
+                className="flex-1 min-w-0 bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] dir-ltr"
               />
-              <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
+              <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
                 <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                 <span>رفع من جهازك</span>
                 <input
@@ -593,7 +593,7 @@ export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSetti
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ إعدادات البانر الرئيسي</span>

@@ -192,13 +192,15 @@ export default function ProductDetailPage() {
       {/* Main 2-Column Product Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
         {/* Right Column (Image Gallery) */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="lg:col-span-7 space-y-4">
+          <div className="flex flex-col lg:flex-row-reverse gap-4">
           {/* Main Large Display Image */}
-          <div className="relative aspect-square w-full rounded-3xl overflow-hidden bg-[#f5f1eb] border border-[#ece4d8] shadow-sm">
+          <div className="relative aspect-square w-full lg:flex-1 min-w-0 rounded-3xl overflow-hidden bg-[#f5f1eb] border border-[#ece4d8] shadow-sm">
             <img
+              key={activeImageIdx}
               src={product.images[activeImageIdx] || product.images[0]}
               alt={product.arabicName}
-              className="w-full h-full object-cover object-center transition-all duration-700 ease-out"
+              className="img-fade-in w-full h-full object-cover object-center"
               width={800}
               height={800}
               fetchPriority="high"
@@ -251,12 +253,12 @@ export default function ProductDetailPage() {
 
           {/* Thumbnails Gallery Strip */}
           {product.images.length > 1 && (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex lg:flex-col items-center gap-3 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-none lg:w-[92px] shrink-0">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImageIdx(idx)}
-                  className={`relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
+                  className={`relative w-20 h-20 lg:w-full lg:h-auto lg:aspect-square rounded-2xl overflow-hidden shrink-0 border-2 transition-all duration-300 ${
                     activeImageIdx === idx
                       ? "border-[#1c1815] scale-105 shadow-md"
                       : "border-[#e8ded0] opacity-70 hover:opacity-100"
@@ -267,6 +269,8 @@ export default function ProductDetailPage() {
               ))}
             </div>
           )}
+
+          </div>
 
           {/* 4 Mini Trust Badges Below Gallery */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#eee5d8] text-center">
@@ -302,15 +306,15 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Left Column (Product Details & Actions) */}
-        <div className="lg:col-span-6 space-y-6 text-right">
+        <div className="lg:col-span-5 space-y-6 text-right lg:sticky lg:top-28">
           <div>
             {/* Hallmark Tag */}
-            <div className="text-[11px] font-sans tracking-[0.2em] text-[#8a7663] uppercase mb-2 font-light">
-              ORMA EXCLUSIVE • {product.purity}
+            <div className="eyebrow text-base mb-2">
+              ORMA Exclusive • {product.purity}
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-light text-[#1c1815] font-cairo leading-relaxed tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-[38px] font-light text-[#292722] font-cairo leading-[1.4] tracking-tight">
               {product.arabicName}
             </h1>
 
@@ -618,8 +622,8 @@ export default function ProductDetailPage() {
       {relatedProducts.length > 0 && (
         <section className="mt-20 pt-16 border-t border-[#e8ded0]">
           <div className="text-center mb-10 space-y-2">
-            <span className="text-[11px] font-sans tracking-[0.25em] text-[#8a7663] uppercase font-light">
-              RECOMMENDED FOR YOU
+            <span className="eyebrow">
+              Recommended for you
             </span>
             <h2 className="text-2xl sm:text-3xl font-light text-[#1c1815] font-cairo tracking-tight">
               قطع أخرى قد تنال إعجابك

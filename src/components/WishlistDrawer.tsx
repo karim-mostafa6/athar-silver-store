@@ -42,7 +42,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       <div className="fixed inset-y-0 left-0 max-w-full flex pl-0 sm:pl-10">
-        <div className="w-screen max-w-md bg-[#faf8f5] border-r border-[#ded1be] text-[#1c1815] shadow-2xl flex flex-col justify-between">
+        <div className="w-screen max-w-md bg-[#F5F0E7] border-r border-[#ded1be] text-[#1c1815] shadow-2xl flex flex-col justify-between">
           {/* Header */}
           <div className="p-5 border-b border-[#e5dacb] flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
                           onRemoveWishlist(product);
                           onNotify?.("تم النقل للسلة", `تم نقل "${product.arabicName}" إلى السلة`, "cart");
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1c1815] text-[#faf8f5] font-bold text-[11px] hover:bg-[#2e2620] transition-all shadow-sm active:scale-95"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1c1815] text-[#F5F0E7] font-bold text-[11px] hover:bg-[#2e2620] transition-all shadow-sm active:scale-95"
                       >
                         <ShoppingBag className="w-3.5 h-3.5 text-[#d8c8b4]" />
                         <span>نقل إلى السلة</span>

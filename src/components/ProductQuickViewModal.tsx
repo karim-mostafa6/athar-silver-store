@@ -100,7 +100,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-3xl max-h-[92vh] max-h-[92dvh] overflow-y-auto rounded-3xl bg-[#faf8f5] border border-[#d8c8b4] p-5 sm:p-8 text-[#1c1815] shadow-2xl overscroll-contain custom-scrollbar"
+        className="relative w-full max-w-3xl max-h-[92vh] max-h-[92dvh] overflow-y-auto rounded-3xl bg-[#F5F0E7] border border-[#d8c8b4] p-5 sm:p-8 text-[#1c1815] shadow-2xl overscroll-contain custom-scrollbar"
       >
         {/* Close Button */}
         <button
@@ -248,7 +248,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                       onClick={() => setSelectedSize(s)}
                       className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-all active:scale-95 ${
                         selectedSize === s
-                          ? "bg-[#1c1815] text-[#faf8f5] border-[#1c1815] shadow-sm animate-pop"
+                          ? "bg-[#1c1815] text-[#F5F0E7] border-[#1c1815] shadow-sm animate-pop"
                           : "bg-white text-[#524334] border-[#ded1be] hover:border-[#9c8770]"
                       }`}
                     >
@@ -307,7 +307,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                       ? "bg-stone-300 text-stone-600 cursor-not-allowed border border-stone-300 shadow-none"
                       : isAdded
                       ? "bg-emerald-600 text-white animate-pop"
-                      : "bg-[#1c1815] text-[#faf8f5] hover:bg-[#2e2620]"
+                      : "bg-[#1c1815] text-[#F5F0E7] hover:bg-[#2e2620]"
                   }`}
                 >
                   {isOutOfStock ? (

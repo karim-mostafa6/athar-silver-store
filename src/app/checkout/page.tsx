@@ -404,7 +404,7 @@ export default function CheckoutPage() {
   // -------------------------------------------------------------
   if (orderConfirmed && confirmedSnapshot) {
     return (
-      <div className="min-h-screen bg-[#faf8f5] text-[#161412] font-cairo py-10 px-4 sm:px-6 lg:px-8" dir="rtl">
+      <div className="min-h-screen bg-[#F5F0E7] text-[#292722] font-cairo py-10 px-4 sm:px-6 lg:px-8" dir="rtl">
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Header Branding */}
           <div className="text-center pb-4 border-b border-[#ded2c0]">
@@ -421,7 +421,7 @@ export default function CheckoutPage() {
               <span className="text-xs font-bold text-[#8c7865] uppercase tracking-widest block mb-1">
                 تم استلام طلبك بنجاح
               </span>
-              <h1 className="font-amiri text-2xl sm:text-3xl font-bold text-[#161412]">
+              <h1 className="font-cairo text-2xl sm:text-3xl font-bold text-[#292722]">
                 شكراً لتسوقك من دار أورما للفضة 925
               </h1>
               <p className="text-xs sm:text-sm text-[#756555] mt-1.5 max-w-lg mx-auto">
@@ -430,15 +430,15 @@ export default function CheckoutPage() {
             </div>
 
             {/* Order Number Box */}
-            <div className="inline-flex items-center gap-3 bg-[#f7f4ee] border border-[#d8c8b4] rounded-2xl px-5 py-3">
+            <div className="inline-flex items-center gap-3 bg-[#F5F0E7] border border-[#d8c8b4] rounded-2xl px-5 py-3">
               <span className="text-xs text-[#756555]">رقم الطلب الخاص بك:</span>
-              <span className="font-mono text-base sm:text-lg font-black text-[#161412]">
+              <span className="font-mono text-base sm:text-lg font-black text-[#292722]">
                 #{confirmedOrderId}
               </span>
               <button
                 type="button"
                 onClick={() => handleCopyText(confirmedOrderId)}
-                className="p-1 rounded-md hover:bg-white text-[#756555] hover:text-[#161412] transition-colors"
+                className="p-1 rounded-md hover:bg-white text-[#756555] hover:text-[#292722] transition-colors"
                 title="نسخ رقم الطلب"
               >
                 <Copy className="w-4 h-4" />
@@ -448,7 +448,7 @@ export default function CheckoutPage() {
 
           {/* Order Details & Summary Card */}
           <div className="bg-white rounded-3xl border border-[#ded2c0] shadow-sm p-6 sm:p-8 space-y-6">
-            <h2 className="text-sm font-bold text-[#161412] flex items-center gap-2 pb-3 border-b border-[#f0e8dc]">
+            <h2 className="text-sm font-bold text-[#292722] flex items-center gap-2 pb-3 border-b border-[#f0e8dc]">
               <Package className="w-4 h-4 text-[#c5a880]" />
               <span>تفاصيل الطلب والقطع المطلوبة</span>
             </h2>
@@ -458,24 +458,24 @@ export default function CheckoutPage() {
               {confirmedSnapshot.items.map((item, idx) => (
                 <div key={idx} className="pt-3 first:pt-0 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="relative w-14 h-14 rounded-xl border border-[#e8ded0] overflow-hidden bg-[#f7f4ee] shrink-0">
+                    <div className="relative w-14 h-14 rounded-xl border border-[#e8ded0] overflow-hidden bg-[#F5F0E7] shrink-0">
                       <img
                         src={item.product.images[0] || ""}
                         alt={item.product.arabicName}
                         className="w-full h-full object-cover"
                       />
-                      <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#161412] text-white text-[10px] font-bold flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#292722] text-white text-[10px] font-bold flex items-center justify-center">
                         {item.quantity}
                       </span>
                     </div>
                     <div>
-                      <h3 className="text-xs sm:text-sm font-bold text-[#161412]">{item.product.arabicName}</h3>
+                      <h3 className="text-xs sm:text-sm font-bold text-[#292722]">{item.product.arabicName}</h3>
                       {item.selectedSize && (
                         <span className="text-[11px] text-[#8c7865] block">مقاس: {item.selectedSize}</span>
                       )}
                     </div>
                   </div>
-                  <span className="font-bold text-xs sm:text-sm text-[#161412] font-mono">
+                  <span className="font-bold text-xs sm:text-sm text-[#292722] font-mono">
                     {(item.product.price * item.quantity).toLocaleString("en-US")} ج.م
                   </span>
                 </div>
@@ -486,11 +486,11 @@ export default function CheckoutPage() {
             <div className="pt-4 border-t border-[#f0e8dc] space-y-2 text-xs text-[#756555]">
               <div className="flex justify-between">
                 <span>المجموع الفرعي:</span>
-                <span className="font-bold text-[#161412] font-mono">{confirmedSnapshot.subtotal.toLocaleString("en-US")} ج.م</span>
+                <span className="font-bold text-[#292722] font-mono">{confirmedSnapshot.subtotal.toLocaleString("en-US")} ج.م</span>
               </div>
               <div className="flex justify-between">
                 <span>مصاريف الشحن:</span>
-                <span className="font-bold text-[#161412] font-mono">
+                <span className="font-bold text-[#292722] font-mono">
                   {confirmedSnapshot.shippingFee === 0 ? "شحن مجاني 🚚" : `${confirmedSnapshot.shippingFee} ج.م`}
                 </span>
               </div>
@@ -500,9 +500,9 @@ export default function CheckoutPage() {
                   <span className="font-mono">-{confirmedSnapshot.discount.toLocaleString("en-US")} ج.م</span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold text-[#161412] pt-2 border-t border-[#ded2c0]">
+              <div className="flex justify-between text-base font-bold text-[#292722] pt-2 border-t border-[#ded2c0]">
                 <span>المبلغ الإجمالي:</span>
-                <span className="text-lg font-black font-mono text-[#161412]">
+                <span className="text-lg font-black font-mono text-[#292722]">
                   {confirmedSnapshot.total.toLocaleString("en-US")} ج.م
                 </span>
               </div>
@@ -512,12 +512,12 @@ export default function CheckoutPage() {
             <div className="pt-4 border-t border-[#f0e8dc] grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
                 <span className="text-[11px] text-[#8c7865] block mb-0.5">الاسم ورقم الهاتف:</span>
-                <span className="font-bold text-[#161412] block">{confirmedSnapshot.fullName}</span>
+                <span className="font-bold text-[#292722] block">{confirmedSnapshot.fullName}</span>
                 <span className="font-mono text-[#756555] dir-ltr block">{confirmedSnapshot.phone}</span>
               </div>
               <div>
                 <span className="text-[11px] text-[#8c7865] block mb-0.5">عنوان التوصيل:</span>
-                <span className="font-semibold text-[#161412] block">{confirmedSnapshot.governorate}</span>
+                <span className="font-semibold text-[#292722] block">{confirmedSnapshot.governorate}</span>
                 <span className="text-[#756555] block">{confirmedSnapshot.address}</span>
               </div>
             </div>
@@ -527,7 +527,7 @@ export default function CheckoutPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
             >
               <Home className="w-4 h-4 text-[#c5a880]" />
               <span>العودة للصفحة الرئيسية ومواصلة التسوق</span>
@@ -536,7 +536,7 @@ export default function CheckoutPage() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white border border-[#ded2c0] text-[#161412] hover:bg-[#f7f4ee] text-xs font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white border border-[#ded2c0] text-[#292722] hover:bg-[#F5F0E7] text-xs font-bold transition-all flex items-center justify-center gap-2"
             >
               <Printer className="w-4 h-4 text-[#8c7865]" />
               <span>طباعة إيصال الطلب</span>
@@ -552,18 +552,18 @@ export default function CheckoutPage() {
   // -------------------------------------------------------------
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-white text-[#161412] font-cairo flex flex-col justify-center items-center py-16 px-4" dir="rtl">
+      <div className="min-h-screen bg-white text-[#292722] font-cairo flex flex-col justify-center items-center py-16 px-4" dir="rtl">
         <div className="text-center max-w-md mx-auto space-y-5">
           <div className="pb-4">
             <OrmaLogo variant="light" size="lg" href="/" />
           </div>
 
-          <div className="w-20 h-20 rounded-full bg-[#f7f4ee] text-[#8c7865] mx-auto flex items-center justify-center border border-[#ded2c0]">
+          <div className="w-20 h-20 rounded-full bg-[#F5F0E7] text-[#8c7865] mx-auto flex items-center justify-center border border-[#ded2c0]">
             <ShoppingBag className="w-9 h-9 text-[#c5a880]" />
           </div>
 
           <div>
-            <h1 className="font-amiri text-2xl font-bold text-[#161412]">سلة المشتريات فارغة</h1>
+            <h1 className="font-cairo text-2xl font-bold text-[#292722]">سلة المشتريات فارغة</h1>
             <p className="text-xs sm:text-sm text-[#756555] mt-1.5 leading-relaxed">
               لم تقم بإضافة أي قطع من الفضة الإسترليني إلى سلتك بعد. تفضل باستعراض أحدث التشكيلات الملكية.
             </p>
@@ -571,7 +571,7 @@ export default function CheckoutPage() {
 
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md"
           >
             <span>استعراض تشكيلات أورما</span>
             <ArrowLeft className="w-4 h-4" />
@@ -585,13 +585,13 @@ export default function CheckoutPage() {
   // MAIN STANDALONE SHOPIFY-STYLE CHECKOUT VIEW
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-white text-[#161412] font-cairo" dir="rtl">
+    <div className="min-h-screen bg-white text-[#292722] font-cairo" dir="rtl">
       {/* Top Header - Clean Centered Logo matching Shopify */}
       <header className="border-b border-[#e8ded0] bg-white sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           <Link
             href="/"
-            className="text-xs text-[#756555] hover:text-[#161412] flex items-center gap-1 transition-colors"
+            className="text-xs text-[#756555] hover:text-[#292722] flex items-center gap-1 transition-colors"
           >
             <ArrowRight className="w-4 h-4" />
             <span className="hidden sm:inline">العودة للمتجر</span>
@@ -609,13 +609,13 @@ export default function CheckoutPage() {
       </header>
 
       {/* Mobile Collapsible Order Summary Bar */}
-      <div className="lg:hidden border-b border-[#e8ded0] bg-[#faf8f5]">
+      <div className="lg:hidden border-b border-[#e8ded0] bg-[#F5F0E7]">
         <button
           type="button"
           onClick={() => setIsMobileSummaryOpen(!isMobileSummaryOpen)}
-          className="w-full px-4 py-3.5 flex items-center justify-between text-xs font-bold text-[#161412]"
+          className="w-full px-4 py-3.5 flex items-center justify-between text-xs font-bold text-[#292722]"
         >
-          <div className="flex items-center gap-2 text-[#161412]">
+          <div className="flex items-center gap-2 text-[#292722]">
             <ShoppingBag className="w-4 h-4 text-[#c5a880]" />
             <span>{isMobileSummaryOpen ? "إخفاء ملخص الطلب" : "عرض ملخص الطلب والأصناف"}</span>
             {isMobileSummaryOpen ? (
@@ -624,7 +624,7 @@ export default function CheckoutPage() {
               <ChevronDown className="w-3.5 h-3.5 text-[#8c7865]" />
             )}
           </div>
-          <span className="font-mono text-sm font-black text-[#161412]">
+          <span className="font-mono text-sm font-black text-[#292722]">
             {grandTotal.toLocaleString("en-US")} ج.م
           </span>
         </button>
@@ -637,18 +637,18 @@ export default function CheckoutPage() {
               {cartItems.map((item) => (
                 <div key={`${item.product.id}-${item.selectedSize}`} className="pt-3 first:pt-0 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="relative w-14 h-14 rounded-xl border border-[#ded2c0] overflow-visible bg-[#f7f4ee] shrink-0">
+                    <div className="relative w-14 h-14 rounded-xl border border-[#ded2c0] overflow-visible bg-[#F5F0E7] shrink-0">
                       <img
                         src={item.product.images[0] || ""}
                         alt={item.product.arabicName}
                         className="w-full h-full object-cover rounded-xl"
                       />
-                      <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#161412] text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                      <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#292722] text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
                         {item.quantity}
                       </span>
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-[#161412] line-clamp-1">{item.product.arabicName}</h4>
+                      <h4 className="text-xs font-bold text-[#292722] line-clamp-1">{item.product.arabicName}</h4>
                       {item.selectedSize && (
                         <span className="text-[10px] text-[#8c7865]">مقاس: {item.selectedSize}</span>
                       )}
@@ -664,7 +664,7 @@ export default function CheckoutPage() {
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="text-sm font-mono font-bold text-[#161412] w-5 text-center">
+                        <span className="text-sm font-mono font-bold text-[#292722] w-5 text-center">
                           {item.quantity}
                         </span>
                         <button
@@ -686,7 +686,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-[#161412] font-mono self-start pt-1">
+                  <span className="text-xs font-bold text-[#292722] font-mono self-start pt-1">
                     {(item.product.price * item.quantity).toLocaleString("en-US")} ج.م
                   </span>
                 </div>
@@ -701,11 +701,11 @@ export default function CheckoutPage() {
                   placeholder="كود الخصم أو كوبون الهدية"
                   value={promoInput}
                   onChange={(e) => setPromoInput(e.target.value)}
-                  className="flex-1 bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none uppercase font-mono"
+                  className="flex-1 bg-[#F5F0E7] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none uppercase font-mono"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#161412] hover:bg-[#2e2925] text-white text-xs font-bold rounded-xl shrink-0"
+                  className="px-4 py-2 bg-[#292722] hover:bg-[#2e2925] text-white text-xs font-bold rounded-xl shrink-0"
                 >
                   تطبيق
                 </button>
@@ -718,11 +718,11 @@ export default function CheckoutPage() {
             <div className="space-y-2 text-xs pt-2 border-t border-[#f0e8dc] text-[#756555]">
               <div className="flex justify-between">
                 <span>المجموع الفرعي:</span>
-                <span className="font-mono text-[#161412] font-bold">{subtotal.toLocaleString("en-US")} ج.م</span>
+                <span className="font-mono text-[#292722] font-bold">{subtotal.toLocaleString("en-US")} ج.م</span>
               </div>
               <div className="flex justify-between">
                 <span>الشحن والتوصيل:</span>
-                <span className="font-mono text-[#161412] font-bold">
+                <span className="font-mono text-[#292722] font-bold">
                   {shippingFee === 0 ? "مجاناً 🚚" : `${shippingFee} ج.م`}
                 </span>
               </div>
@@ -732,7 +732,7 @@ export default function CheckoutPage() {
                   <span className="font-mono">-{discountAmount.toLocaleString("en-US")} ج.م</span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold text-[#161412] pt-2 border-t border-[#ded2c0]">
+              <div className="flex justify-between text-base font-bold text-[#292722] pt-2 border-t border-[#ded2c0]">
                 <span>الإجمالي:</span>
                 <span className="font-mono text-lg font-black">{grandTotal.toLocaleString("en-US")} ج.م</span>
               </div>
@@ -751,14 +751,14 @@ export default function CheckoutPage() {
             {/* 1. Contact Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#161412] flex items-center gap-2">
+                <h2 className="text-base font-bold text-[#292722] flex items-center gap-2">
                   <span>معلومات التواصل</span>
                 </h2>
                 <span className="text-[11px] text-[#8c7865]">لتأكيد الطلب وإرسال الفاتورة</span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#161412] mb-1">
+                <label className="block text-xs font-semibold text-[#292722] mb-1">
                   البريد الإلكتروني (اختياري)
                 </label>
                 <div className="relative">
@@ -767,7 +767,7 @@ export default function CheckoutPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="example@domain.com"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors dir-ltr text-right"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors dir-ltr text-right"
                   />
                   <Mail className="w-4 h-4 text-[#a89582] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
@@ -778,7 +778,7 @@ export default function CheckoutPage() {
                   type="checkbox"
                   checked={emailOffers}
                   onChange={(e) => setEmailOffers(e.target.checked)}
-                  className="rounded border-[#ded2c0] text-[#161412] focus:ring-0"
+                  className="rounded border-[#ded2c0] text-[#292722] focus:ring-0"
                 />
                 <span>أرسل لي آخر العروض والخصومات الحصرية والقطع الجديدة</span>
               </label>
@@ -786,16 +786,16 @@ export default function CheckoutPage() {
 
             {/* 2. Delivery Section */}
             <div className="space-y-4 pt-4 border-t border-[#e8ded0]">
-              <h2 className="text-base font-bold text-[#161412]">
+              <h2 className="text-base font-bold text-[#292722]">
                 عنوان الشحن والتوصيل
               </h2>
 
               {/* Country */}
               <div>
-                <label className="block text-xs font-semibold text-[#161412] mb-1">
+                <label className="block text-xs font-semibold text-[#292722] mb-1">
                   الدولة / المنطقة
                 </label>
-                <div className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#161412] flex items-center justify-between">
+                <div className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#292722] flex items-center justify-between">
                   <span>مصر (Egypt)</span>
                   <Truck className="w-4 h-4 text-[#8c7865]" />
                 </div>
@@ -804,7 +804,7 @@ export default function CheckoutPage() {
               {/* First & Last Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#161412] mb-1">
+                  <label className="block text-xs font-semibold text-[#292722] mb-1">
                     الاسم الأول *
                   </label>
                   <input
@@ -814,11 +814,11 @@ export default function CheckoutPage() {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="مثال: كريم"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#161412] mb-1">
+                  <label className="block text-xs font-semibold text-[#292722] mb-1">
                     اسم العائلة / اللقب *
                   </label>
                   <input
@@ -828,14 +828,14 @@ export default function CheckoutPage() {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="مثال: مصطفى"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                   />
                 </div>
               </div>
 
               {/* Full Address */}
               <div>
-                <label className="block text-xs font-semibold text-[#161412] mb-1">
+                <label className="block text-xs font-semibold text-[#292722] mb-1">
                   العنوان بالتفصيل * (اسم الشارع، المنطقة، رقم العمارة)
                 </label>
                 <input
@@ -845,13 +845,13 @@ export default function CheckoutPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="مثال: شارع النزهة، مصر الجديدة، عمارة 15"
-                  className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors"
+                  className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                 />
               </div>
 
               {/* Apartment, Suite (Optional) */}
               <div>
-                <label className="block text-xs font-semibold text-[#161412] mb-1">
+                <label className="block text-xs font-semibold text-[#292722] mb-1">
                   رقم الشقة، الطابق، علامة مميزة (اختياري)
                 </label>
                 <input
@@ -860,14 +860,14 @@ export default function CheckoutPage() {
                   value={apartment}
                   onChange={(e) => setApartment(e.target.value)}
                   placeholder="مثال: شقة 4، الطابق الثالث، بجوار مسجد..."
-                  className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors"
+                  className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                 />
               </div>
 
               {/* City, Governorate, Postal Code */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#161412] mb-1">
+                  <label className="block text-xs font-semibold text-[#292722] mb-1">
                     المدينة / المركز *
                   </label>
                   <input
@@ -877,18 +877,18 @@ export default function CheckoutPage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="المدينة"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#161412] mb-1">
+                  <label className="block text-xs font-semibold text-[#292722] mb-1">
                     المحافظة *
                   </label>
                   <select
                     value={governorate}
                     onChange={(e) => setGovernorate(e.target.value)}
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] font-semibold focus:outline-none focus:border-[#161412] transition-colors cursor-pointer"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] font-semibold focus:outline-none focus:border-[#292722] transition-colors cursor-pointer"
                   >
                     {GOVERNORATES.map((g) => (
                       <option key={g.name} value={g.name}>
@@ -899,7 +899,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#161412] mb-1">
+                  <label className="block text-xs font-semibold text-[#292722] mb-1">
                     الرقم البريدي (اختياري)
                   </label>
                   <input
@@ -909,14 +909,14 @@ export default function CheckoutPage() {
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
                     placeholder="11511"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors font-mono"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors font-mono"
                   />
                 </div>
               </div>
 
               {/* Mobile Phone */}
               <div>
-                <label className="block text-xs font-semibold text-[#161412] mb-1">
+                <label className="block text-xs font-semibold text-[#292722] mb-1">
                   رقم الهاتف للتواصل وتأكيد الشحن *
                 </label>
                 <div className="relative">
@@ -928,7 +928,7 @@ export default function CheckoutPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="01012345678"
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] transition-colors dir-ltr text-right font-mono"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] transition-colors dir-ltr text-right font-mono"
                   />
                   <Phone className="w-4 h-4 text-[#a89582] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
@@ -940,7 +940,7 @@ export default function CheckoutPage() {
                   type="checkbox"
                   checked={saveInfo}
                   onChange={(e) => setSaveInfo(e.target.checked)}
-                  className="rounded border-[#ded2c0] text-[#161412] focus:ring-0"
+                  className="rounded border-[#ded2c0] text-[#292722] focus:ring-0"
                 />
                 <span>حفظ هذه البيانات لتسريع عمليات الشراء القادمة</span>
               </label>
@@ -948,15 +948,15 @@ export default function CheckoutPage() {
 
             {/* 3. Shipping Method Section */}
             <div className="space-y-3 pt-4 border-t border-[#e8ded0]">
-              <h2 className="text-base font-bold text-[#161412]">
+              <h2 className="text-base font-bold text-[#292722]">
                 طريقة الشحن والتوصيل
               </h2>
 
-              <div className="border-2 border-[#161412] bg-[#fdfbf7] rounded-2xl p-4 flex items-center justify-between shadow-xs">
+              <div className="border-2 border-[#292722] bg-[#fdfbf7] rounded-2xl p-4 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full border-4 border-[#161412] bg-white flex items-center justify-center shrink-0" />
+                  <div className="w-5 h-5 rounded-full border-4 border-[#292722] bg-white flex items-center justify-center shrink-0" />
                   <div>
-                    <span className="text-xs font-bold text-[#161412] block">
+                    <span className="text-xs font-bold text-[#292722] block">
                       {storeSettings.checkoutShippingMethodTitle || "شحن قياسي سريع (خلال 2-4 أيام عمل)"}
                     </span>
                     <span className="text-[11px] text-[#756555] block">
@@ -965,7 +965,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="text-left font-mono font-bold text-xs sm:text-sm text-[#161412]">
+                <div className="text-left font-mono font-bold text-xs sm:text-sm text-[#292722]">
                   {shippingFee === 0 ? (
                     <span className="text-emerald-700 font-bold font-cairo">مجاناً 🚚</span>
                   ) : (
@@ -978,7 +978,7 @@ export default function CheckoutPage() {
             {/* 4. Payment Section (Shopify-Style Accordion) */}
             <div className="space-y-3 pt-4 border-t border-[#e8ded0]">
               <div>
-                <h2 className="text-base font-bold text-[#161412]">
+                <h2 className="text-base font-bold text-[#292722]">
                   طريقة الدفع
                 </h2>
                 <p className="text-xs text-[#756555] mt-0.5">
@@ -999,16 +999,16 @@ export default function CheckoutPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            paymentMethod === "cod" ? "border-[#161412] border-4" : "border-[#ded2c0]"
+                            paymentMethod === "cod" ? "border-[#292722] border-4" : "border-[#ded2c0]"
                           }`}
                         />
-                        <span className="text-xs font-bold text-[#161412]">الدفع عند الاستلام (Cash on Delivery)</span>
+                        <span className="text-xs font-bold text-[#292722]">الدفع عند الاستلام (Cash on Delivery)</span>
                       </div>
                       <Banknote className="w-5 h-5 text-[#8c7865]" />
                     </label>
 
                     {paymentMethod === "cod" && (
-                      <div className="p-4 bg-[#f7f4ee] border-t border-[#ded2c0] text-xs text-[#756555] leading-relaxed animate-fadeIn">
+                      <div className="p-4 bg-[#F5F0E7] border-t border-[#ded2c0] text-xs text-[#756555] leading-relaxed animate-fadeIn">
                         سداد قيمة الطلب ومصاريف الشحن نقداً بالكامل لمندوب التوصيل عند استلام الشحنة لباب بيتك.
                       </div>
                     )}
@@ -1027,10 +1027,10 @@ export default function CheckoutPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            paymentMethod === "wallet" ? "border-[#161412] border-4" : "border-[#ded2c0]"
+                            paymentMethod === "wallet" ? "border-[#292722] border-4" : "border-[#ded2c0]"
                           }`}
                         />
-                        <span className="text-xs font-bold text-[#161412]">
+                        <span className="text-xs font-bold text-[#292722]">
                           محفظة إلكترونية (إنستاباي InstaPay / فودافون كاش)
                         </span>
                       </div>
@@ -1038,7 +1038,7 @@ export default function CheckoutPage() {
                     </label>
 
                     {paymentMethod === "wallet" && (
-                      <div className="p-4 sm:p-5 bg-[#f7f4ee] border-t border-[#ded2c0] space-y-3.5 text-xs animate-fadeIn">
+                      <div className="p-4 sm:p-5 bg-[#F5F0E7] border-t border-[#ded2c0] space-y-3.5 text-xs animate-fadeIn">
                         <p className="text-[#756555] leading-relaxed">
                           {storeSettings.walletInstructions ||
                             "يرجى تحويل إجمالي المبلغ إلى حساب إنستاباي أو محفظة فودافون كاش، ثم إرفاق صورة الإيصال."}
@@ -1049,7 +1049,7 @@ export default function CheckoutPage() {
                           <div className="bg-white p-3 rounded-xl border border-[#ded2c0] flex items-center justify-between">
                             <div>
                               <span className="text-[10px] text-[#8c7865] block">حساب إنستاباي (InstaPay):</span>
-                              <span className="font-mono font-bold text-xs text-[#161412]">
+                              <span className="font-mono font-bold text-xs text-[#292722]">
                                 {storeSettings.instaPayUsername || storeSettings.instaPayNumber}
                               </span>
                             </div>
@@ -1058,7 +1058,7 @@ export default function CheckoutPage() {
                               onClick={() =>
                                 handleCopyText(storeSettings.instaPayUsername || storeSettings.instaPayNumber)
                               }
-                              className="p-1.5 rounded-lg bg-[#f7f4ee] hover:bg-[#e8ded0] text-[#161412] text-[11px] font-bold flex items-center gap-1 transition-colors"
+                              className="p-1.5 rounded-lg bg-[#F5F0E7] hover:bg-[#e8ded0] text-[#292722] text-[11px] font-bold flex items-center gap-1 transition-colors"
                             >
                               <Copy className="w-3.5 h-3.5" />
                               <span>نسخ</span>
@@ -1069,14 +1069,14 @@ export default function CheckoutPage() {
                           <div className="bg-white p-3 rounded-xl border border-[#ded2c0] flex items-center justify-between">
                             <div>
                               <span className="text-[10px] text-[#8c7865] block">فودافون كاش (Vodafone Cash):</span>
-                              <span className="font-mono font-bold text-xs text-[#161412]">
+                              <span className="font-mono font-bold text-xs text-[#292722]">
                                 {storeSettings.vodafoneCashNumber}
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={() => handleCopyText(storeSettings.vodafoneCashNumber)}
-                              className="p-1.5 rounded-lg bg-[#f7f4ee] hover:bg-[#e8ded0] text-[#161412] text-[11px] font-bold flex items-center gap-1 transition-colors"
+                              className="p-1.5 rounded-lg bg-[#F5F0E7] hover:bg-[#e8ded0] text-[#292722] text-[11px] font-bold flex items-center gap-1 transition-colors"
                             >
                               <Copy className="w-3.5 h-3.5" />
                               <span>نسخ</span>
@@ -1086,7 +1086,7 @@ export default function CheckoutPage() {
 
                         {/* Sender Number Input */}
                         <div>
-                          <label className="block text-[11px] font-semibold text-[#161412] mb-1">
+                          <label className="block text-[11px] font-semibold text-[#292722] mb-1">
                             رقم المحفظة التي قمت بالتحويل منها (اختياري)
                           </label>
                           <input
@@ -1108,7 +1108,7 @@ export default function CheckoutPage() {
                             className="hidden"
                           />
 
-                          <label className="block text-[11px] font-semibold text-[#161412] mb-1">
+                          <label className="block text-[11px] font-semibold text-[#292722] mb-1">
                             إرفاق صورة إيصال التحويل {storeSettings.requireReceiptUpload && "*"}
                           </label>
 
@@ -1117,7 +1117,7 @@ export default function CheckoutPage() {
                               type="button"
                               onClick={() => receiptFileInputRef.current?.click()}
                               disabled={isUploadingReceipt}
-                              className="px-4 py-2 bg-white border border-[#ded2c0] hover:bg-gray-50 rounded-xl text-xs font-bold text-[#161412] flex items-center gap-2 transition-all shadow-xs"
+                              className="px-4 py-2 bg-white border border-[#ded2c0] hover:bg-gray-50 rounded-xl text-xs font-bold text-[#292722] flex items-center gap-2 transition-all shadow-xs"
                             >
                               <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                               <span>{isUploadingReceipt ? "جاري الرفع..." : "اختر صورة الإيصال"}</span>
@@ -1148,10 +1148,10 @@ export default function CheckoutPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            paymentMethod === "card" ? "border-[#161412] border-4" : "border-[#ded2c0]"
+                            paymentMethod === "card" ? "border-[#292722] border-4" : "border-[#ded2c0]"
                           }`}
                         />
-                        <span className="text-xs font-bold text-[#161412]">بطاقة دفع إلكتروني (Visa / Mastercard)</span>
+                        <span className="text-xs font-bold text-[#292722]">بطاقة دفع إلكتروني (Visa / Mastercard)</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-[10px] font-bold bg-[#1a1f71] text-white px-1.5 py-0.5 rounded font-mono">
@@ -1164,9 +1164,9 @@ export default function CheckoutPage() {
                     </label>
 
                     {paymentMethod === "card" && (
-                      <div className="p-4 sm:p-5 bg-[#f7f4ee] border-t border-[#ded2c0] space-y-3 text-xs animate-fadeIn">
+                      <div className="p-4 sm:p-5 bg-[#F5F0E7] border-t border-[#ded2c0] space-y-3 text-xs animate-fadeIn">
                         <div>
-                          <label className="block text-[11px] font-semibold text-[#161412] mb-1">
+                          <label className="block text-[11px] font-semibold text-[#292722] mb-1">
                             رقم البطاقة (Card number)
                           </label>
                           <div className="relative">
@@ -1183,7 +1183,7 @@ export default function CheckoutPage() {
 
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-[11px] font-semibold text-[#161412] mb-1">
+                            <label className="block text-[11px] font-semibold text-[#292722] mb-1">
                               تاريخ الانتهاء (MM / YY)
                             </label>
                             <input
@@ -1195,7 +1195,7 @@ export default function CheckoutPage() {
                             />
                           </div>
                           <div>
-                            <label className="block text-[11px] font-semibold text-[#161412] mb-1">
+                            <label className="block text-[11px] font-semibold text-[#292722] mb-1">
                               رمز الأمان (CVV)
                             </label>
                             <input
@@ -1210,7 +1210,7 @@ export default function CheckoutPage() {
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-semibold text-[#161412] mb-1">
+                          <label className="block text-[11px] font-semibold text-[#292722] mb-1">
                             الاسم على البطاقة (Name on card)
                           </label>
                           <input
@@ -1231,12 +1231,12 @@ export default function CheckoutPage() {
             {/* 5. Gift Option & Notes Section */}
             {storeSettings.checkoutEnableGiftOption !== false && (
               <div className="space-y-3 pt-4 border-t border-[#e8ded0]">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#161412]">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#292722]">
                   <input
                     type="checkbox"
                     checked={isGift}
                     onChange={(e) => setIsGift(e.target.checked)}
-                    className="rounded border-[#ded2c0] text-[#161412] focus:ring-0"
+                    className="rounded border-[#ded2c0] text-[#292722] focus:ring-0"
                   />
                   <Gift className="w-4 h-4 text-[#c5a880]" />
                   <span>هذا الطلب هدية لشخص مميز (تغليف فاخر وبدون طباعة الأسعار)</span>
@@ -1252,13 +1252,13 @@ export default function CheckoutPage() {
                       value={giftMessage}
                       onChange={(e) => setGiftMessage(e.target.value)}
                       placeholder="اكتب رسالة الإهداء الخاصة بك هنا لتتم طباعتها داخل كارت أورما الفاخر..."
-                      className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-xs text-[#161412] focus:outline-none"
+                      className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-xs text-[#292722] focus:outline-none"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#161412] mb-1">
+                  <label className="block text-xs font-semibold text-[#292722] mb-1">
                     ملاحظات إضافية للتوصيل (اختياري)
                   </label>
                   <textarea
@@ -1266,7 +1266,7 @@ export default function CheckoutPage() {
                     value={orderNotes}
                     onChange={(e) => setOrderNotes(e.target.value)}
                     placeholder="أي ملاحظات خاصة بالاستلام أو مواعيد التوصيل..."
-                    className="w-full bg-white border border-[#ded2c0] rounded-xl p-2.5 text-xs text-[#161412] focus:outline-none"
+                    className="w-full bg-white border border-[#ded2c0] rounded-xl p-2.5 text-xs text-[#292722] focus:outline-none"
                   />
                 </div>
               </div>
@@ -1277,7 +1277,7 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-4 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#F5F0E7] font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <span>جاري تسجيل الطلب وتأكيده...</span>
@@ -1308,8 +1308,8 @@ export default function CheckoutPage() {
               RIGHT COLUMN: ORDER SUMMARY (Shopify Desktop Pattern)
               ========================================================= */}
           <div className="hidden lg:block lg:col-span-5 sticky top-24">
-            <div className="bg-[#faf8f5] border border-[#e8ded0] rounded-3xl p-6 sm:p-7 space-y-6 shadow-sm">
-              <h2 className="text-sm font-bold text-[#161412] flex items-center justify-between pb-3 border-b border-[#e8ded0]">
+            <div className="bg-[#F5F0E7] border border-[#e8ded0] rounded-3xl p-6 sm:p-7 space-y-6 shadow-sm">
+              <h2 className="text-sm font-bold text-[#292722] flex items-center justify-between pb-3 border-b border-[#e8ded0]">
                 <span>ملخص الطلب ({cartItems.reduce((acc, i) => acc + i.quantity, 0)} قطعة)</span>
                 <ShoppingBag className="w-4 h-4 text-[#c5a880]" />
               </h2>
@@ -1329,13 +1329,13 @@ export default function CheckoutPage() {
                           alt={item.product.arabicName}
                           className="w-full h-full object-cover rounded-2xl"
                         />
-                        <span className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-[#161412] text-white text-[10px] font-bold flex items-center justify-center shadow-md">
+                        <span className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-[#292722] text-white text-[10px] font-bold flex items-center justify-center shadow-md">
                           {item.quantity}
                         </span>
                       </div>
 
                       <div className="space-y-1">
-                        <h3 className="text-xs font-bold text-[#161412] leading-snug line-clamp-2">
+                        <h3 className="text-xs font-bold text-[#292722] leading-snug line-clamp-2">
                           {item.product.arabicName}
                         </h3>
                         {item.selectedSize && (
@@ -1351,17 +1351,17 @@ export default function CheckoutPage() {
                             onClick={() =>
                               updateQuantity(item.product.id, Math.max(1, item.quantity - 1), item.selectedSize)
                             }
-                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] text-[#756555] hover:text-[#161412] text-xs font-bold flex items-center justify-center"
+                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] text-[#756555] hover:text-[#292722] text-xs font-bold flex items-center justify-center"
                           >
                             <Minus className="w-2.5 h-2.5" />
                           </button>
-                          <span className="text-xs font-mono font-bold text-[#161412] w-4 text-center">
+                          <span className="text-xs font-mono font-bold text-[#292722] w-4 text-center">
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize)}
-                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] text-[#756555] hover:text-[#161412] text-xs font-bold flex items-center justify-center"
+                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] text-[#756555] hover:text-[#292722] text-xs font-bold flex items-center justify-center"
                           >
                             <Plus className="w-2.5 h-2.5" />
                           </button>
@@ -1378,7 +1378,7 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="text-left shrink-0">
-                      <span className="text-xs font-bold text-[#161412] font-mono">
+                      <span className="text-xs font-bold text-[#292722] font-mono">
                         {(item.product.price * item.quantity).toLocaleString("en-US")} ج.م
                       </span>
                     </div>
@@ -1410,12 +1410,12 @@ export default function CheckoutPage() {
                         placeholder="كود الخصم أو كوبون الهدية"
                         value={promoInput}
                         onChange={(e) => setPromoInput(e.target.value)}
-                        className="flex-1 bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412] uppercase font-mono"
+                        className="flex-1 bg-white border border-[#ded2c0] rounded-xl px-3.5 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722] uppercase font-mono"
                       />
                       <button
                         type="button"
                         onClick={handleApplyPromo}
-                        className="px-5 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] font-bold text-xs transition-colors shrink-0 shadow-sm"
+                        className="px-5 py-2.5 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#F5F0E7] font-bold text-xs transition-colors shrink-0 shadow-sm"
                       >
                         تطبيق
                       </button>
@@ -1430,7 +1430,7 @@ export default function CheckoutPage() {
               <div className="space-y-2.5 text-xs text-[#756555] pt-4 border-t border-[#e8ded0]">
                 <div className="flex justify-between">
                   <span>المجموع الفرعي:</span>
-                  <span className="font-bold text-[#161412] font-mono">{subtotal.toLocaleString("en-US")} ج.م</span>
+                  <span className="font-bold text-[#292722] font-mono">{subtotal.toLocaleString("en-US")} ج.م</span>
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -1441,7 +1441,7 @@ export default function CheckoutPage() {
                     {shippingFee === 0 ? (
                       <span className="text-emerald-700 font-bold font-cairo">شحن مجاني 🚚</span>
                     ) : (
-                      <span className="text-[#161412]">{shippingFee} ج.م</span>
+                      <span className="text-[#292722]">{shippingFee} ج.م</span>
                     )}
                   </span>
                 </div>
@@ -1453,14 +1453,14 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <div className="flex justify-between items-baseline text-base font-bold text-[#161412] pt-3 border-t border-[#ded2c0]">
+                <div className="flex justify-between items-baseline text-base font-bold text-[#292722] pt-3 border-t border-[#ded2c0]">
                   <div>
-                    <span className="font-amiri text-lg">الإجمالي المستحق:</span>
+                    <span className="font-cairo text-lg">الإجمالي المستحق:</span>
                     <span className="text-[10px] text-[#8c7865] block font-normal">شامل ضريبة القيمة المضافة والشحن</span>
                   </div>
                   <div className="text-left">
                     <span className="text-xs text-[#8c7865] font-mono ml-1">EGP</span>
-                    <span className="text-xl sm:text-2xl font-black font-mono text-[#161412]">
+                    <span className="text-xl sm:text-2xl font-black font-mono text-[#292722]">
                       {grandTotal.toLocaleString("en-US")}
                     </span>
                     <span className="text-xs font-normal mr-1">ج.م</span>

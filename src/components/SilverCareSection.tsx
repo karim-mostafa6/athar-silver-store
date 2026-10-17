@@ -52,7 +52,7 @@ export const SilverCareSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Title in Aref Ruqaa */}
         <div className="text-center mb-14">
-          <h2 className="font-aref text-4xl sm:text-6xl font-bold text-[#292722]">
+          <h2 className="font-cairo text-4xl sm:text-6xl font-bold text-[#292722]">
             {sectionTitle}
           </h2>
           <div className="w-12 h-[2px] bg-[#8E7545] mx-auto mt-4 rounded-full" />

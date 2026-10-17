@@ -46,7 +46,7 @@ export default function NavTab({ settingsForm, setSettingsForm, handleSaveSettin
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Layers className="w-4 h-4 text-[#c5a880]" />
           <span>روابط قائمة التنقل العلوية (Navigation Links)</span>
         </div>
@@ -59,17 +59,17 @@ export default function NavTab({ settingsForm, setSettingsForm, handleSaveSettin
             type="text"
             value={settingsForm.searchPlaceholder || "ابحث عن خاتم، سلسلة، عيار 925..."}
             onChange={(e) => setSettingsForm({ ...settingsForm, searchPlaceholder: e.target.value })}
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
           />
         </div>
 
         <div className="pt-2 border-t border-[#f0e8dc] space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#161412]">روابط القائمة الرئيسية:</span>
+            <span className="text-xs font-bold text-[#292722]">روابط القائمة الرئيسية:</span>
             <button
               type="button"
               onClick={addNavLinkItem}
-              className="px-3 py-1.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>إضافة رابط جديد</span>
@@ -80,7 +80,7 @@ export default function NavTab({ settingsForm, setSettingsForm, handleSaveSettin
             {(settingsForm.navLinks || []).map((link) => (
               <div
                 key={link.id}
-                className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] grid grid-cols-1 sm:grid-cols-12 gap-3 items-center text-xs"
+                className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] grid grid-cols-1 sm:grid-cols-12 gap-3 items-center text-xs"
               >
                 <div className="sm:col-span-3">
                   <label className="block text-[10px] text-[#756555] mb-0.5">اسم الرابط</label>
@@ -119,7 +119,7 @@ export default function NavTab({ settingsForm, setSettingsForm, handleSaveSettin
                       type="checkbox"
                       checked={link.visible}
                       onChange={(e) => updateNavLinkItem(link.id, { visible: e.target.checked })}
-                      className="rounded border-[#ded2c0] text-[#161412]"
+                      className="rounded border-[#ded2c0] text-[#292722]"
                     />
                     <span>ظاهر</span>
                   </label>
@@ -129,7 +129,7 @@ export default function NavTab({ settingsForm, setSettingsForm, handleSaveSettin
                       type="checkbox"
                       checked={link.isSpecial || false}
                       onChange={(e) => updateNavLinkItem(link.id, { isSpecial: e.target.checked })}
-                      className="rounded border-[#ded2c0] text-[#161412]"
+                      className="rounded border-[#ded2c0] text-[#292722]"
                     />
                     <span className="text-amber-700 font-bold">مميز</span>
                   </label>
@@ -160,7 +160,7 @@ export default function NavTab({ settingsForm, setSettingsForm, handleSaveSettin
                           subItems: [...cur, { label: "قسم جديد", href: link.href }],
                         });
                       }}
-                      className="text-[10px] font-bold text-[#c5a880] hover:text-[#9e7a4f] bg-[#161412] px-2.5 py-1 rounded-md"
+                      className="text-[10px] font-bold text-[#c5a880] hover:text-[#9e7a4f] bg-[#292722] px-2.5 py-1 rounded-md"
                     >
                       + إضافة قسم فرعي
                     </button>
@@ -219,7 +219,7 @@ export default function NavTab({ settingsForm, setSettingsForm, handleSaveSettin
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ قائمة التنقل والبحث</span>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Tajawal, Cairo } from "next/font/google";
+import { Tajawal, Cairo, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,15 @@ const tajawal = Tajawal({
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
   variable: "--font-cairo",
+  display: "swap",
+});
+
+// Latin display serif for small accents (slogan, eyebrows, numerals) - Arabic text stays in Cairo/Tajawal.
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -114,7 +123,7 @@ export default async function RootLayout({
         <meta httpEquiv="Expires" content="0" />
       </head>
       <body
-        className={`${tajawal.variable} ${cairo.variable} font-tajawal bg-[#F5F0E7] text-[#292722] antialiased selection:bg-[#B7A078] selection:text-[#292722] min-h-screen`}
+        className={`${tajawal.variable} ${cairo.variable} ${cormorant.variable} font-tajawal bg-[#F5F0E7] text-[#292722] antialiased selection:bg-[#B7A078] selection:text-[#292722] min-h-screen`}
       >
         <SiteShell initialStore={initialStore}>{children}</SiteShell>
       </body>

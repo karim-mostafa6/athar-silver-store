@@ -47,7 +47,7 @@ export const BrandStorySection: React.FC = () => {
         {/* Badge */}
         {storeSettings.storyBadge && (
           <ScrollReveal direction="up" delay={80} duration={700} threshold={0.12}>
-            <span className="inline-block text-[10px] font-mono tracking-[0.3em] uppercase text-[#B7A078] border border-[#B7A078]/40 px-4 py-1.5 rounded-full">
+            <span className="inline-block font-cormorant italic text-lg tracking-wide text-[#B7A078]">
               {storeSettings.storyBadge}
             </span>
           </ScrollReveal>
@@ -55,7 +55,7 @@ export const BrandStorySection: React.FC = () => {
 
         {/* Headline in Aref Ruqaa */}
         <ScrollReveal direction="up" delay={150} duration={800} threshold={0.12}>
-          <h2 className="font-aref text-4xl sm:text-6xl font-bold leading-tight tracking-tight text-[#F5F0E7]">
+          <h2 className="font-cairo font-light text-4xl sm:text-6xl leading-[1.3] tracking-tight text-[#F5F0E7]">
             {headlineLines.map((line, idx) => (
               <span key={idx} className="block">
                 {line}
@@ -81,7 +81,7 @@ export const BrandStorySection: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 w-full text-center">
             {pillars.map((p, idx) => (
               <ScrollReveal key={idx} direction="up" delay={400 + idx * 100} duration={700} threshold={0.1}>
-                <div className="space-y-2 p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#B7A078]/30 transition-colors">
+                <div className="space-y-2 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-[#B7A078]/50 hover:-translate-y-1 transition-all duration-300">
                   <div className="w-8 h-[1px] bg-[#B7A078]/50 mx-auto mb-3" />
                   {p.title && (
                     <div className="text-xs sm:text-sm font-bold text-[#B7A078] font-tajawal tracking-wide">

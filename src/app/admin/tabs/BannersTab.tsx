@@ -18,7 +18,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
     <div className="space-y-6 max-w-4xl">
       {/* Main Banner Controls */}
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-5">
-        <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[#c5a880]" />
             <span>البانرات الإعلانية المخصصة والتحكم في موقعها بالمتجر</span>
@@ -30,9 +30,9 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
               onChange={(e) =>
                 setSettingsForm({ ...settingsForm, promoBannerShow: e.target.checked })
               }
-              className="rounded border-[#ded2c0] text-[#161412]"
+              className="rounded border-[#ded2c0] text-[#292722]"
             />
-            <span className="font-bold text-[#161412]">تفعيل ظهور البانر في المتجر</span>
+            <span className="font-bold text-[#292722]">تفعيل ظهور البانر في المتجر</span>
           </label>
         </div>
 
@@ -50,7 +50,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                   promoBannerPosition: e.target.value as "top" | "after_hero" | "between_products" | "before_care" | "before_footer",
                 })
               }
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-bold focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] font-bold focus:outline-none"
             >
               <option value="after_hero">بعد البانر الرئيسي وقبل المنتجات (موصى به)</option>
               <option value="top">أعلى الصفحة تحت شريط التنقل مباشرة</option>
@@ -76,7 +76,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                   promoBannerTheme: e.target.value as "charcoal" | "sand" | "gold" | "burgundy",
                 })
               }
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
             >
               <option value="charcoal">فحم ملكي داكن مع لمعان برونزي (Charcoal & Gold)</option>
               <option value="gold">ذهبي برونزي ملكي دافئ (Royal Bronze Gold)</option>
@@ -99,7 +99,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                 setSettingsForm({ ...settingsForm, promoBannerBadge: e.target.value })
               }
               placeholder="عرض استثنائي لفترة محدودة"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
             />
           </div>
 
@@ -114,7 +114,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                 setSettingsForm({ ...settingsForm, promoBannerTitle: e.target.value })
               }
               placeholder="تألقي ببريق الفضة الإيطالية عيار 925"
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] font-bold focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] font-bold focus:outline-none"
             />
           </div>
 
@@ -129,7 +129,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                 setSettingsForm({ ...settingsForm, promoBannerSubtitle: e.target.value })
               }
               placeholder="احصل على خصم 10% فوري عند استخدام كود ORMA10 مع شحن مجاني للطلبات المؤكدة اليوم."
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#161412] focus:outline-none"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2 text-xs text-[#292722] focus:outline-none"
             />
           </div>
 
@@ -145,7 +145,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                   setSettingsForm({ ...settingsForm, promoBannerButtonText: e.target.value })
                 }
                 placeholder="تسوق العروض الآن"
-                className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+                className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none"
               />
             </div>
 
@@ -160,7 +160,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                   setSettingsForm({ ...settingsForm, promoBannerButtonLink: e.target.value })
                 }
                 placeholder="#products أو رابط صفحة التشكيلة"
-                className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none dir-ltr"
+                className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none dir-ltr"
               />
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
             </label>
 
             {settingsForm.promoBannerImageUrl && (
-              <div className="flex items-center gap-3 p-3 bg-[#f7f4ee] rounded-xl border border-[#ded2c0]">
+              <div className="flex items-center gap-3 p-3 bg-[#F5F0E7] rounded-xl border border-[#ded2c0]">
                 <div className="h-14 w-28 bg-white rounded-lg border border-[#d8c8b4] overflow-hidden shrink-0 shadow-sm">
                   <img
                     src={settingsForm.promoBannerImageUrl}
@@ -204,9 +204,9 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                   setSettingsForm({ ...settingsForm, promoBannerImageUrl: e.target.value })
                 }
                 placeholder="https://images.unsplash.com/... أو اضغط زر الرفع من جهازك"
-                className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none dir-ltr"
+                className="flex-1 min-w-0 bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none dir-ltr"
               />
-              <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
+              <label className="shrink-0 px-3.5 py-2.5 rounded-lg bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap">
                 <Upload className="w-3.5 h-3.5 text-[#c5a880]" />
                 <span>رفع من جهازك</span>
                 <input
@@ -231,18 +231,18 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
 
         {/* Live Banner Preview Card */}
         <div className="pt-4 border-t border-[#f0e8dc]">
-          <span className="text-xs font-bold text-[#161412] block mb-2">
+          <span className="text-xs font-bold text-[#292722] block mb-2">
             معاينة حية لشكل البانر حسب إعداداتك الحالية:
           </span>
           <div
             className={`p-6 rounded-xl border shadow-md relative overflow-hidden transition-all ${
               settingsForm.promoBannerTheme === "sand"
-                ? "bg-[#eee4d5] text-[#161412] border-[#ded1be]"
+                ? "bg-[#eee4d5] text-[#292722] border-[#ded1be]"
                 : settingsForm.promoBannerTheme === "gold"
                 ? "bg-gradient-to-r from-[#211a14] via-[#2d2319] to-[#1a140f] text-[#fbf7f0] border-[#c5a880]/40"
                 : settingsForm.promoBannerTheme === "burgundy"
                 ? "bg-[#201014] text-white border-[#913d4b]/40"
-                : "bg-[#161412] text-[#f7f4ee] border-[#2e2925]"
+                : "bg-[#292722] text-[#F5F0E7] border-[#2e2925]"
             }`}
           >
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -260,7 +260,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
                 </p>
                 {settingsForm.promoBannerButtonText && (
                   <div className="pt-2">
-                    <span className="inline-block px-4 py-1.5 rounded-lg text-xs font-bold bg-[#c5a880] text-[#161412]">
+                    <span className="inline-block px-4 py-1.5 rounded-lg text-xs font-bold bg-[#c5a880] text-[#292722]">
                       {settingsForm.promoBannerButtonText}
                     </span>
                   </div>
@@ -283,7 +283,7 @@ export default function BannersTab({ settingsForm, setSettingsForm, handleSaveSe
           <button
             onClick={handleSaveSettings}
             disabled={isSavingSettings}
-            className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4 text-[#c5a880]" />
             <span>حفظ إعدادات البانر في السحابة فورياً</span>

@@ -23,7 +23,7 @@ export default function PagesTab({ settingsForm, handleSaveSettings, isSavingSet
       {/* Header & Controls */}
       <div className="bg-white rounded-xl p-5 border border-[#e8ded0] flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div>
-          <h3 className="font-bold text-sm text-[#161412] flex items-center gap-2">
+          <h3 className="font-bold text-sm text-[#292722] flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-[#c5a880]" />
             <span>إدارة الصفحات المستقلة والبراند (Custom Pages & Brand)</span>
           </h3>
@@ -35,7 +35,7 @@ export default function PagesTab({ settingsForm, handleSaveSettings, isSavingSet
         <div className="flex items-center gap-2">
           <button
             onClick={handleOpenAddPage}
-            className="px-5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
+            className="px-5 py-2.5 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] transition-all shadow-md flex items-center gap-2"
           >
             <Plus className="w-4 h-4 text-[#c5a880]" />
             <span>إنشاء صفحة جديدة</span>
@@ -43,7 +43,7 @@ export default function PagesTab({ settingsForm, handleSaveSettings, isSavingSet
           <button
             onClick={handleSaveSettings}
             disabled={isSavingSettings}
-            className="px-4 py-2.5 rounded-lg bg-[#c5a880] text-[#161412] text-xs font-bold hover:bg-[#b8996e] transition-all shadow-sm flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-lg bg-[#c5a880] text-[#292722] text-xs font-bold hover:bg-[#b8996e] transition-all shadow-sm flex items-center gap-1.5"
           >
             <Save className="w-4 h-4" />
             <span>حفظ السحابة</span>
@@ -85,7 +85,7 @@ export default function PagesTab({ settingsForm, handleSaveSettings, isSavingSet
                   {page.isPublished !== false ? "منشورة" : "مسودة"}
                 </span>
                 {page.showInFooter !== false && (
-                  <span className="px-2 py-0.5 rounded bg-amber-500 text-[#161412] text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded bg-amber-500 text-[#292722] text-[10px] font-bold">
                     في الفوتر
                   </span>
                 )}
@@ -94,7 +94,7 @@ export default function PagesTab({ settingsForm, handleSaveSettings, isSavingSet
 
             {/* Page Content Info */}
             <div className="p-4 space-y-2 flex-1">
-              <h4 className="font-bold text-sm text-[#161412] line-clamp-1">{page.title}</h4>
+              <h4 className="font-bold text-sm text-[#292722] line-clamp-1">{page.title}</h4>
               {page.englishTitle && (
                 <div className="text-[10px] font-mono text-[#8c7865] uppercase">
                   {page.englishTitle}
@@ -113,7 +113,7 @@ export default function PagesTab({ settingsForm, handleSaveSettings, isSavingSet
               <Link
                 href={`/page/${page.slug}`}
                 target="_blank"
-                className="px-3 py-1.5 rounded-lg bg-white border border-[#ded2c0] text-[#161412] hover:bg-[#ede3d3] text-xs font-medium flex items-center gap-1"
+                className="px-3 py-1.5 rounded-lg bg-white border border-[#ded2c0] text-[#292722] hover:bg-[#ede3d3] text-xs font-medium flex items-center gap-1"
               >
                 <ExternalLink className="w-3.5 h-3.5 text-[#c5a880]" />
                 <span>معاينة حية ↗</span>
@@ -122,7 +122,7 @@ export default function PagesTab({ settingsForm, handleSaveSettings, isSavingSet
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleOpenEditPage(page)}
-                  className="p-1.5 rounded text-[#5c4f42] hover:text-[#161412] hover:bg-white"
+                  className="p-1.5 rounded text-[#5c4f42] hover:text-[#292722] hover:bg-white"
                   title="تعديل الصفحة"
                 >
                   <Edit className="w-4 h-4" />

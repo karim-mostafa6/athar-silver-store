@@ -27,18 +27,18 @@ export const CustomPromoBanner: React.FC<CustomPromoBannerProps> = ({ settings, 
 
   // Theme styling
   const themeClasses = {
-    charcoal: "bg-[#161412] text-[#f7f4ee] border-[#2e2925]",
-    sand: "bg-[#eee4d5] text-[#161412] border-[#ded1be]",
+    charcoal: "bg-[#292722] text-[#F5F0E7] border-[#2e2925]",
+    sand: "bg-[#eee4d5] text-[#292722] border-[#ded1be]",
     gold: "bg-gradient-to-r from-[#211a14] via-[#2d2319] to-[#1a140f] text-[#fbf7f0] border-[#c5a880]/40",
     burgundy: "bg-gradient-to-r from-[#201014] via-[#2a131a] to-[#1c0c10] text-[#fdf6f7] border-[#913d4b]/40",
-  }[theme] || "bg-[#161412] text-[#f7f4ee] border-[#2e2925]";
+  }[theme] || "bg-[#292722] text-[#F5F0E7] border-[#2e2925]";
 
   const buttonStyle = {
-    charcoal: "bg-[#f7f4ee] text-[#161412] hover:bg-white",
-    sand: "bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925]",
-    gold: "bg-[#c5a880] text-[#161412] hover:bg-[#d6bc96]",
+    charcoal: "bg-[#F5F0E7] text-[#292722] hover:bg-white",
+    sand: "bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925]",
+    gold: "bg-[#c5a880] text-[#292722] hover:bg-[#d6bc96]",
     burgundy: "bg-[#d9777f] text-white hover:bg-[#e48b92]",
-  }[theme] || "bg-[#f7f4ee] text-[#161412]";
+  }[theme] || "bg-[#F5F0E7] text-[#292722]";
 
   return (
     <section id="custom-promo-banner" className="relative overflow-hidden py-6 sm:py-8 px-4 sm:px-6 lg:px-8 scroll-mt-20">
@@ -58,7 +58,7 @@ export const CustomPromoBanner: React.FC<CustomPromoBannerProps> = ({ settings, 
               </div>
             )}
 
-            <h3 className="font-amiri text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+            <h3 className="font-cairo text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
               {title}
             </h3>
 

@@ -28,7 +28,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
       <div className="bg-white rounded-xl p-4 border border-[#e8ded0] flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <button
           onClick={handleOpenNewProduct}
-          className="px-5 py-2.5 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-colors shadow-md flex items-center gap-2"
+          className="px-5 py-2.5 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] transition-colors shadow-md flex items-center gap-2"
         >
           <Plus className="w-4 h-4 text-[#c5a880]" />
           <span>إضافة قطعة جديدة</span>
@@ -40,12 +40,12 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
             placeholder="ابحث في المنتجات..."
             value={productSearch}
             onChange={(e) => setProductSearch(e.target.value)}
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
           />
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none"
+            className="bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
           >
             <option value="all">كافة الكولكشن والأقسام</option>
             {(settingsForm.categories && settingsForm.categories.length > 0
@@ -69,7 +69,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
           >
             <div>
               {/* Photo */}
-              <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-[#faf8f5] mb-3 border border-[#ded2c0]">
+              <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-[#F5F0E7] mb-3 border border-[#ded2c0]">
                 <img
                   src={product.images[0]}
                   alt={product.arabicName}
@@ -82,7 +82,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
                 )}
                 <div className="absolute top-2 right-2 flex flex-col gap-1">
                   {product.isBestSeller && (
-                    <span className="bg-[#161412] text-[#c5a880] text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                    <span className="bg-[#292722] text-[#c5a880] text-[10px] font-bold px-2 py-0.5 rounded shadow">
                       الأكثر مبيعاً
                     </span>
                   )}
@@ -94,7 +94,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
                 </div>
               </div>
 
-              <h4 className="text-sm font-bold text-[#161412] line-clamp-1 mb-1">
+              <h4 className="text-sm font-bold text-[#292722] line-clamp-1 mb-1">
                 {product.arabicName}
               </h4>
               {product.name && (
@@ -104,7 +104,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
               )}
 
               <div className="flex items-center justify-between text-xs mb-2">
-                <span className="font-bold text-[#161412]">
+                <span className="font-bold text-[#292722]">
                   {product.price.toLocaleString("en-US")} ج.م
                 </span>
                 {product.originalPrice && (
@@ -134,7 +134,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
                 })}
               </div>
               {/* Inventory Stock Indicator with quick adjustment */}
-              <div className="bg-[#f7f4ee] rounded-lg p-2 mb-3 border border-[#ded2c0] flex items-center justify-between text-xs">
+              <div className="bg-[#F5F0E7] rounded-lg p-2 mb-3 border border-[#ded2c0] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
                   <span
                     className={`w-2 h-2 rounded-full ${
@@ -145,7 +145,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
                         : "bg-emerald-500"
                     }`}
                   />
-                  <span className="font-medium text-[#161412]">
+                  <span className="font-medium text-[#292722]">
                     المخزون:{" "}
                     <strong className="font-bold">
                       {product.stockQuantity !== undefined ? product.stockQuantity : (product.inStock ? 10 : 0)}
@@ -212,7 +212,7 @@ export default function ProductsTab({ settingsForm, filteredProductsList, catego
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleOpenEditProduct(product)}
-                  className="p-1.5 rounded text-[#5c4f42] hover:text-[#161412] hover:bg-[#f7f4ee]"
+                  className="p-1.5 rounded text-[#5c4f42] hover:text-[#292722] hover:bg-[#F5F0E7]"
                   title="تعديل القطعة"
                 >
                   <Edit className="w-4 h-4" />

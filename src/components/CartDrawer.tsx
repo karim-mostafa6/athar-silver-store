@@ -84,7 +84,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       />
 
       <div className="fixed inset-y-0 left-0 max-w-full flex pl-0 sm:pl-10">
-        <div className="w-screen max-w-md bg-[#faf8f5] border-r border-[#ded1be] text-[#1c1815] shadow-2xl flex flex-col justify-between">
+        <div className="w-screen max-w-md bg-[#F5F0E7] border-r border-[#ded1be] text-[#1c1815] shadow-2xl flex flex-col justify-between">
           {/* Header */}
           <div className="p-5 border-b border-[#e5dacb] flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-xl bg-[#1c1815] text-[#faf8f5] font-bold text-xs hover:bg-[#2e2620] transition-all shadow-sm"
+                  className="px-6 py-2.5 rounded-xl bg-[#1c1815] text-[#F5F0E7] font-bold text-xs hover:bg-[#2e2620] transition-all shadow-sm"
                 >
                   استكشف المنتجات الآن
                 </button>
@@ -229,7 +229,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-[#1c1815] hover:bg-[#2e2620] text-[#faf8f5] font-bold text-xs transition-colors shrink-0 shadow-sm"
+                    className="px-4 py-2 rounded-xl bg-[#1c1815] hover:bg-[#2e2620] text-[#F5F0E7] font-bold text-xs transition-colors shrink-0 shadow-sm"
                   >
                     تطبيق
                   </button>
@@ -286,7 +286,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   onClose();
                   onProceedToCheckout();
                 }}
-                className="w-full py-3.5 px-6 rounded-xl bg-[#1c1815] text-[#faf8f5] font-bold text-sm shadow-lg shadow-[#1c1815]/15 hover:bg-[#2e2620] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-xl bg-[#1c1815] text-[#F5F0E7] font-bold text-sm shadow-lg shadow-[#1c1815]/15 hover:bg-[#2e2620] active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <span>متابعة إتمام الطلب</span>
                 <ArrowLeft className="w-4 h-4" />

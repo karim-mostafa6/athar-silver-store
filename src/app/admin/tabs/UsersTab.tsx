@@ -19,11 +19,11 @@ export default function UsersTab({ settingsForm, onOpenAddUser, handleToggleUser
       <div className="bg-white rounded-2xl border border-[#e8ded0] p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-[#161412] text-[#c5a880]">
+            <div className="p-2 rounded-xl bg-[#292722] text-[#c5a880]">
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#161412] font-amiri">
+              <h2 className="text-base font-bold text-[#292722] font-amiri">
                 إدارة المستخدمين وصلاحيات لوحة التحكم
               </h2>
               <p className="text-xs text-[#756555] mt-0.5">
@@ -38,7 +38,7 @@ export default function UsersTab({ settingsForm, onOpenAddUser, handleToggleUser
           onClick={() => {
             onOpenAddUser();
           }}
-          className="px-4 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#F5F0E7] text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
         >
           <UserPlus className="w-4 h-4 text-[#c5a880]" />
           <span>+ إضافة مستخدم جديد</span>
@@ -47,20 +47,20 @@ export default function UsersTab({ settingsForm, onOpenAddUser, handleToggleUser
 
       {/* Master Super Admin Card (Permanent & Protected) */}
       <div className="bg-gradient-to-l from-[#faf6ee] to-white rounded-2xl border-2 border-[#c5a880]/50 p-6 shadow-sm space-y-3 relative overflow-hidden">
-        <div className="absolute top-0 left-0 bg-[#c5a880] text-[#161412] px-3 py-1 rounded-br-xl text-[10px] font-black flex items-center gap-1 shadow-xs">
-          <Crown className="w-3 h-3 text-[#161412]" />
+        <div className="absolute top-0 left-0 bg-[#c5a880] text-[#292722] px-3 py-1 rounded-br-xl text-[10px] font-black flex items-center gap-1 shadow-xs">
+          <Crown className="w-3 h-3 text-[#292722]" />
           <span>المالك والمدير العام (Master Super Admin)</span>
         </div>
 
         <div className="flex items-start justify-between pt-2">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#161412] text-[#c5a880] flex items-center justify-center font-bold text-lg shadow-md">
+            <div className="w-12 h-12 rounded-2xl bg-[#292722] text-[#c5a880] flex items-center justify-center font-bold text-lg shadow-md">
               ك
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#161412] flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[#292722] flex items-center gap-2">
                 <span>كريم مصطفى</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#161412] text-[#c5a880]">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#292722] text-[#c5a880]">
                   karim mostafa
                 </span>
               </h3>
@@ -88,7 +88,7 @@ export default function UsersTab({ settingsForm, onOpenAddUser, handleToggleUser
       <div className="bg-white rounded-2xl border border-[#e8ded0] p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
           <div>
-            <h3 className="text-sm font-bold text-[#161412] flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[#292722] flex items-center gap-2">
               <Users className="w-4 h-4 text-[#c5a880]" />
               <span>المستخدمون المصرح لهم (الموظفون وفريق العمل)</span>
             </h3>
@@ -106,7 +106,7 @@ export default function UsersTab({ settingsForm, onOpenAddUser, handleToggleUser
             <div className="w-12 h-12 rounded-full bg-[#f4ece0] text-[#8c7865] flex items-center justify-center mx-auto">
               <UserCheck className="w-6 h-6 text-[#c5a880]" />
             </div>
-            <h4 className="text-xs font-bold text-[#161412]">لا يوجد مستخدمون فرعيون مضافون</h4>
+            <h4 className="text-xs font-bold text-[#292722]">لا يوجد مستخدمون فرعيون مضافون</h4>
             <p className="text-[11px] text-[#8c7865] max-w-sm mx-auto">
               يمكنك الآن إضافة موظف مبيعات لرؤية الطلبات فقط، أو مصمم ومسؤول محتوى لتعديل الموقع والمنتجات فقط دون الوصول للطلبات.
             </p>
@@ -115,7 +115,7 @@ export default function UsersTab({ settingsForm, onOpenAddUser, handleToggleUser
               onClick={() => {
                 onOpenAddUser();
               }}
-              className="px-4 py-2 rounded-xl bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925] transition-all"
+              className="px-4 py-2 rounded-xl bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925] transition-all"
             >
               + إضافة أول مستخدم الآن
             </button>
@@ -133,12 +133,12 @@ export default function UsersTab({ settingsForm, onOpenAddUser, handleToggleUser
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-[#ded2c0] flex items-center justify-center font-bold text-sm text-[#161412] shadow-xs">
+                    <div className="w-10 h-10 rounded-xl bg-white border border-[#ded2c0] flex items-center justify-center font-bold text-sm text-[#292722] shadow-xs">
                       {u.name.charAt(0)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#161412]">{u.name}</span>
+                        <span className="text-xs font-bold text-[#292722]">{u.name}</span>
                         <span className="font-mono text-[11px] text-[#8c7865] bg-white px-2 py-0.5 rounded-md border border-[#ded2c0]">
                           @{u.username}
                         </span>

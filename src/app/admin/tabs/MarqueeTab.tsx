@@ -47,7 +47,7 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <Megaphone className="w-4 h-4 text-[#c5a880]" />
           <span>شريط الإعلانات المتحرك (Marquee Bar)</span>
         </div>
@@ -59,9 +59,9 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
               id="showMarqueeCheck"
               checked={settingsForm.showMarquee}
               onChange={(e) => setSettingsForm({ ...settingsForm, showMarquee: e.target.checked })}
-              className="rounded border-[#ded2c0] text-[#161412]"
+              className="rounded border-[#ded2c0] text-[#292722]"
             />
-            <label htmlFor="showMarqueeCheck" className="text-xs font-bold text-[#161412] cursor-pointer">
+            <label htmlFor="showMarqueeCheck" className="text-xs font-bold text-[#292722] cursor-pointer">
               تفعيل شريط الإعلانات
             </label>
           </div>
@@ -76,7 +76,7 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
                   marqueeTheme: e.target.value as "default" | "dark" | "gold" | "burgundy",
                 })
               }
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722]"
             >
               <option value="default">كريمي افتراضي</option>
               <option value="dark">داكن Charcoal</option>
@@ -95,7 +95,7 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
                   marqueeSpeed: e.target.value as "slow" | "normal" | "fast",
                 })
               }
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722]"
             >
               <option value="slow">هادئة (Slow)</option>
               <option value="normal">متوسطة (Normal)</option>
@@ -110,9 +110,9 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
             id="marqueePause"
             checked={settingsForm.marqueePauseOnHover !== false}
             onChange={(e) => setSettingsForm({ ...settingsForm, marqueePauseOnHover: e.target.checked })}
-            className="rounded border-[#ded2c0] text-[#161412]"
+            className="rounded border-[#ded2c0] text-[#292722]"
           />
-          <label htmlFor="marqueePause" className="text-xs font-medium text-[#161412] cursor-pointer">
+          <label htmlFor="marqueePause" className="text-xs font-medium text-[#292722] cursor-pointer">
             إيقاف الحركة عند تمرير الماوس فوق الشريط (Pause on hover)
           </label>
         </div>
@@ -126,20 +126,20 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
             value={settingsForm.marqueeCustomText || ""}
             onChange={(e) => setSettingsForm({ ...settingsForm, marqueeCustomText: e.target.value })}
             placeholder="خصومات حصرية بمناسبة إطلاق تشكيلة الصيف..."
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
           />
         </div>
 
         {/* Subsections */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#f0e8dc]">
           {/* Countdown */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
               <input
                 type="checkbox"
                 checked={settingsForm.marqueeShowCountdown}
                 onChange={(e) => setSettingsForm({ ...settingsForm, marqueeShowCountdown: e.target.checked })}
-                className="rounded border-[#ded2c0] text-[#161412]"
+                className="rounded border-[#ded2c0] text-[#292722]"
               />
               <span>عداد تنازلي للعرض (Countdown)</span>
             </label>
@@ -162,13 +162,13 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
           </div>
 
           {/* Free Shipping */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
               <input
                 type="checkbox"
                 checked={settingsForm.marqueeShowFreeShipping}
                 onChange={(e) => setSettingsForm({ ...settingsForm, marqueeShowFreeShipping: e.target.checked })}
-                className="rounded border-[#ded2c0] text-[#161412]"
+                className="rounded border-[#ded2c0] text-[#292722]"
               />
               <span>رسالة الشحن المجاني</span>
             </label>
@@ -182,13 +182,13 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
           </div>
 
           {/* Promo */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
               <input
                 type="checkbox"
                 checked={settingsForm.marqueeShowPromo}
                 onChange={(e) => setSettingsForm({ ...settingsForm, marqueeShowPromo: e.target.checked })}
-                className="rounded border-[#ded2c0] text-[#161412]"
+                className="rounded border-[#ded2c0] text-[#292722]"
               />
               <span>إبراز كوبون الخصم</span>
             </label>
@@ -202,13 +202,13 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
           </div>
 
           {/* Warranty */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2">
             <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
               <input
                 type="checkbox"
                 checked={settingsForm.marqueeShowWarranty}
                 onChange={(e) => setSettingsForm({ ...settingsForm, marqueeShowWarranty: e.target.checked })}
-                className="rounded border-[#ded2c0] text-[#161412]"
+                className="rounded border-[#ded2c0] text-[#292722]"
               />
               <span>رسالة الضمان والفحص</span>
             </label>
@@ -222,13 +222,13 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
           </div>
 
           {/* Gift Wrap */}
-          <div className="p-3 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] space-y-2 sm:col-span-2">
+          <div className="p-3 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] space-y-2 sm:col-span-2">
             <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
               <input
                 type="checkbox"
                 checked={settingsForm.marqueeShowGiftWrap}
                 onChange={(e) => setSettingsForm({ ...settingsForm, marqueeShowGiftWrap: e.target.checked })}
-                className="rounded border-[#ded2c0] text-[#161412]"
+                className="rounded border-[#ded2c0] text-[#292722]"
               />
               <span>رسالة تغليف الهدايا</span>
             </label>
@@ -244,7 +244,7 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
 
         {/* Extra Messages Array */}
         <div className="pt-4 border-t border-[#f0e8dc] space-y-3">
-          <div className="text-xs font-bold text-[#161412]">
+          <div className="text-xs font-bold text-[#292722]">
             رسائل متحركة إضافية في الشريط (Extra Messages):
           </div>
 
@@ -254,12 +254,12 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
               value={newExtraMsgText}
               onChange={(e) => setNewExtraMsgText(e.target.value)}
               placeholder="اكتب رسالة إضافية للشريط..."
-              className="flex-1 min-w-0 bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
+              className="flex-1 min-w-0 bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs"
             />
             <button
               type="button"
               onClick={addMarqueeExtraMessage}
-              className="px-4 py-2 rounded-lg bg-[#161412] text-[#f7f4ee] text-xs font-bold hover:bg-[#2e2925]"
+              className="px-4 py-2 rounded-lg bg-[#292722] text-[#F5F0E7] text-xs font-bold hover:bg-[#2e2925]"
             >
               إضافة
             </button>
@@ -269,16 +269,16 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
             {(settingsForm.marqueeExtraMessages || []).map((msg) => (
               <div
                 key={msg.id}
-                className="flex items-center justify-between p-2.5 bg-[#f7f4ee] rounded-lg border border-[#e4dcce] text-xs"
+                className="flex items-center justify-between p-2.5 bg-[#F5F0E7] rounded-lg border border-[#e4dcce] text-xs"
               >
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={msg.visible}
                     onChange={() => toggleMarqueeExtraMessage(msg.id)}
-                    className="rounded border-[#ded2c0] text-[#161412]"
+                    className="rounded border-[#ded2c0] text-[#292722]"
                   />
-                  <span className={msg.visible ? "text-[#161412]" : "text-[#8c7865] line-through"}>
+                  <span className={msg.visible ? "text-[#292722]" : "text-[#8c7865] line-through"}>
                     {msg.text}
                   </span>
                 </div>
@@ -297,7 +297,7 @@ export default function MarqueeTab({ settingsForm, setSettingsForm, handleSaveSe
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ إعدادات شريط الإعلانات</span>

@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { ConcentricRipples } from "@/components/ConcentricRipples";
 import { getCacheBustedImageUrl } from "@/lib/version";
@@ -12,13 +14,16 @@ interface HeroSectionProps {
   onNotify?: (title: string, msg: string, type: "cart" | "wishlist" | "promo" | "info") => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({
-  onExploreClick,
-}) => {
-  const { storeSettings } = useStore();
+const EASE = [0.16, 1, 0.3, 1] as const;
 
-  const headline =
-    storeSettings.heroTitle || "القطعة اللي بتفضل..\nبعد ما اللحظة تعدّي";
+export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
+  const { storeSettings, products } = useStore();
+  const reduce = useReducedMotion();
+  const sectionRef = React.useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
+  const imageY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, 60]);
+
+  const headline = storeSettings.heroTitle || "القطعة اللي بتفضل..\nبعد ما اللحظة تعدّي";
   const slogan = storeSettings.heroTagline || "Not Given, But Left";
   const subtitle =
     storeSettings.heroSubtitle ||
@@ -29,101 +34,132 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const showSecondary = storeSettings.heroSecondaryButtonShow !== false;
   const primaryLink = (storeSettings.heroButtonLink || "").trim();
   const secondaryLink = (storeSettings.heroSecondaryButtonLink || "").trim() || "#story";
-
-  // Parse lines for headline
   const headlineLines = headline.split("\n");
-
   const hasCustomImage = Boolean(storeSettings.heroImageUrl && storeSettings.heroImageUrl.trim());
+
+  // Spotlight card: a real best-selling piece from the catalogue (read-only, no data changes).
+  const featured = products.find((p) => p.isBestSeller && p.inStock !== false) || products.find((p) => p.inStock !== false);
+
+  const stats = [
+    { value: "925", label: "فضة إسترليني أصلية" },
+    { value: String(storeSettings.returnPolicyDays || 14), label: "يوم استرجاع واستبدال" },
+    { value: "24–48", label: "ساعة توصيل للقاهرة والجيزة" },
+  ];
+
+  const item = (i: number) => ({
+    initial: reduce ? false : { opacity: 0, y: 28 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.8, delay: 0.12 * i, ease: EASE },
+  });
 
   return (
     <section
       id="hero"
-      className="relative w-full min-h-[560px] sm:min-h-[640px] lg:min-h-[720px] xl:min-h-[780px] bg-[#1a1815] overflow-hidden flex items-end sm:items-center border-b border-[#292722]/12"
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-[#F5F0E7] border-b border-[#292722]/12"
     >
-      {/* =========================================================
-          FULL-WIDTH BACKGROUND IMAGE / LUXURY CANVAS (Edge-to-Edge)
-          ========================================================= */}
-      {hasCustomImage ? (
-        <div className="absolute inset-0 w-full h-full">
-          <img
-            src={getCacheBustedImageUrl(storeSettings.heroImageUrl)}
-            alt={headline}
-            fetchPriority="high"
-            decoding="async"
-            className="w-full h-full object-cover object-center scale-[1.01] hover:scale-105 transition-transform duration-[7000ms] ease-out"
-          />
-          {/* Multi-layer Cinematic Overlay for Pristine Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/25 sm:bg-gradient-to-r sm:from-transparent sm:via-black/50 sm:to-black/85 pointer-events-none" />
-          <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-        </div>
-      ) : (
-        /* Full-width Luxury Brand Canvas when no image is uploaded */
-        <div className="absolute inset-0 w-full h-full bg-[#181614] overflow-hidden flex items-center justify-center">
-          {/* Subtle Ambient Radial Lighting */}
-          <div className="absolute w-[600px] h-[600px] sm:w-[900px] sm:h-[900px] rounded-full bg-gradient-to-br from-[#8E7545]/15 via-[#B7A078]/5 to-transparent blur-3xl pointer-events-none" />
-          {/* Watermark Ripples */}
-          <ConcentricRipples variant="hero" strokeColor="#B7A078" ringCount={16} />
-          {/* Cinematic Gradient Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
-        </div>
-      )}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-10 pb-14 sm:pt-14 sm:pb-20 lg:py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center lg:min-h-[680px]">
+        {/* Text column */}
+        <div className="lg:col-span-6 text-right space-y-5 sm:space-y-7 order-2 lg:order-1">
+          <motion.div {...item(0)} className="eyebrow text-lg sm:text-xl">
+            {slogan}
+          </motion.div>
 
-      {/* =========================================================
-          CONTENT OVERLAY: Artsy-Style Luxury Typography
-          ========================================================= */}
-      <div className="relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-14 py-16 sm:py-24 lg:py-28">
-        <div className="max-w-2xl lg:max-w-3xl space-y-4 sm:space-y-6 text-right">
-          {/* English Slogan Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-[#B7A078]/40 shadow-sm animate-fadeIn">
-            <Sparkles className="w-3.5 h-3.5 text-[#B7A078]" />
-            <span className="font-cairo text-[#B7A078] text-xs sm:text-sm font-bold tracking-[0.2em] uppercase">
-              {slogan}
-            </span>
-          </div>
-
-          {/* Signature Headline in Cairo Font (Crystal-clear, luxury geometric Arabic, refined medium weight) */}
-          <h1 className="font-cairo text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-normal sm:font-medium text-white/95 leading-[1.3] sm:leading-[1.25] tracking-normal drop-shadow-md">
+          <h1 className="font-cairo font-light text-[44px] leading-[1.18] sm:text-7xl xl:text-[88px] tracking-tight text-[#292722]">
             {headlineLines.map((line, idx) => (
-              <span key={idx} className="block">
+              <motion.span key={idx} {...item(1 + idx)} className="block">
                 {line}
-              </span>
+              </motion.span>
             ))}
           </h1>
 
-          {/* Subtitle in Tajawal (Elegant, crisp, comfortable to read) */}
-          <p className="font-tajawal text-sm sm:text-base lg:text-lg text-stone-200/90 leading-relaxed max-w-xl drop-shadow-sm font-normal">
+          <motion.p {...item(3)} className="font-tajawal text-base sm:text-lg text-[#5c5346] leading-[1.9] max-w-md">
             {subtitle}
-          </p>
+          </motion.p>
 
-          {/* Action Buttons matching luxury e-commerce standards */}
-          <div className="flex items-center justify-start gap-4 pt-3 flex-wrap">
-            {/* Primary Action Button */}
+          <motion.div {...item(4)} className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-1">
             {showPrimary && (
-            <button
-              onClick={() => {
-                if (primaryLink && !primaryLink.startsWith("/#") && primaryLink !== "#products") {
-                  window.location.href = primaryLink;
-                } else {
-                  onExploreClick();
-                }
-              }}
-              className="px-8 sm:px-10 py-3.5 sm:py-4 rounded-full bg-white text-[#161412] hover:bg-[#F5F0E7] font-cairo text-xs sm:text-sm font-bold transition-all duration-300 shadow-xl hover:shadow-2xl active:scale-95 flex items-center gap-2.5 group cursor-pointer"
-            >
-              <span>{primaryButtonText}</span>
-              <ArrowLeft className="w-4 h-4 text-[#8E7545] group-hover:-translate-x-1 transition-transform" />
-            </button>
+              <button
+                onClick={() => {
+                  if (primaryLink && !primaryLink.startsWith("/#") && primaryLink !== "#products") {
+                    window.location.href = primaryLink;
+                  } else {
+                    onExploreClick();
+                  }
+                }}
+                className="btn-shine group inline-flex items-center justify-center gap-2.5 min-h-[56px] px-10 rounded-full bg-[#292722] text-[#F5F0E7] font-cairo text-sm font-bold transition-all duration-300 hover:bg-[#3a352d] hover:shadow-xl active:scale-95 cursor-pointer"
+              >
+                <span>{primaryButtonText}</span>
+                <ArrowLeft className="w-4 h-4 text-[#B7A078] transition-transform duration-300 group-hover:-translate-x-1" />
+              </button>
             )}
-
-            {/* Secondary Action Link */}
             {showSecondary && (
-            <a
-              href={secondaryLink}
-              className="px-7 sm:px-8 py-3.5 sm:py-4 rounded-full bg-black/40 backdrop-blur-md border border-white/30 text-white hover:bg-white/10 hover:border-white/60 font-cairo text-xs sm:text-sm font-medium transition-all duration-300 flex items-center gap-2 cursor-pointer"
-            >
-              <span>{secondaryButtonText}</span>
-            </a>
+              <a
+                href={secondaryLink}
+                className="inline-flex items-center justify-center min-h-[56px] px-9 rounded-full border border-[#292722] text-[#292722] font-cairo text-sm font-medium transition-all duration-300 hover:bg-[#292722] hover:text-[#F5F0E7] cursor-pointer"
+              >
+                {secondaryButtonText}
+              </a>
             )}
-          </div>
+          </motion.div>
+
+          <motion.dl
+            {...item(5)}
+            className="grid grid-cols-3 gap-3 sm:gap-8 pt-6 sm:pt-8 mt-2 sm:mt-4 border-t border-[#292722]/14 max-w-xl"
+          >
+            {stats.map((s) => (
+              <div key={s.label}>
+                <dt className="font-cairo text-2xl sm:text-3xl font-semibold text-[#292722] leading-none">{s.value}</dt>
+                <dd className="text-[11px] sm:text-sm text-[#5c5346] mt-2 leading-snug">{s.label}</dd>
+              </div>
+            ))}
+          </motion.dl>
+        </div>
+
+        {/* Arched visual column */}
+        <div className="lg:col-span-6 order-1 lg:order-2 relative">
+          <motion.div
+            initial={reduce ? false : { opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.1, ease: EASE }}
+            className="relative mx-auto w-full max-w-[520px] lg:max-w-none h-[400px] sm:h-[520px] lg:h-[580px]"
+          >
+            <div className="absolute inset-0 overflow-hidden bg-gradient-to-br from-[#D8C8B3] to-[#B7A078] shadow-[0_40px_80px_-40px_rgba(41,39,34,0.45)]" style={{ borderRadius: "999px 999px 28px 28px / 300px 300px 28px 28px" }}>
+              {hasCustomImage ? (
+                <motion.img
+                  src={getCacheBustedImageUrl(storeSettings.heroImageUrl)}
+                  alt={headline.replace(/\n/g, " ")}
+                  fetchPriority="high"
+                  decoding="async"
+                  style={{ y: imageY }}
+                  className="absolute inset-x-0 -top-[30px] w-full h-[calc(100%+60px)] object-cover object-center"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#292722]">
+                  <ConcentricRipples variant="hero" strokeColor="#B7A078" ringCount={14} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                </div>
+              )}
+            </div>
+
+            {featured && (
+              <motion.div
+                initial={reduce ? false : { opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
+                className="absolute -bottom-5 right-2 sm:right-[-20px] sm:bottom-12"
+              >
+                <Link
+                  href={`/product/${featured.id}`}
+                  className="animate-gentle-float block min-w-[200px] rounded-2xl bg-[#F5F0E7] border border-[#292722]/14 px-5 py-4 shadow-[0_20px_44px_-18px_rgba(41,39,34,0.35)] transition-transform hover:scale-[1.03]"
+                >
+                  <div className="text-xs text-[#8E7545] tracking-wider">الأكثر طلباً</div>
+                  <div className="font-cairo font-semibold text-sm mt-1 text-[#292722] line-clamp-1 max-w-[190px]">{featured.arabicName}</div>
+                  <div className="text-sm text-[#5c5346] mt-0.5">{featured.price.toLocaleString("en-US")} ج.م</div>
+                </Link>
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       </div>
     </section>

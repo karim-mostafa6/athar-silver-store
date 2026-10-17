@@ -13,7 +13,7 @@ export default function PoliciesTab({ settingsForm, setSettingsForm, handleSaveS
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
-        <div className="text-sm font-bold text-[#161412] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
+        <div className="text-sm font-bold text-[#292722] flex items-center gap-2 border-b border-[#f0e8dc] pb-3 mb-4">
           <ShieldCheck className="w-4 h-4 text-[#c5a880]" />
           <span>سياسات المتجر (الاستبدال والاسترجاع والضمان)</span>
         </div>
@@ -27,7 +27,7 @@ export default function PoliciesTab({ settingsForm, setSettingsForm, handleSaveS
               type="number"
               value={settingsForm.returnPolicyDays || 14}
               onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyDays: Number(e.target.value) })}
-              className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold text-[#161412]"
+              className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs font-bold text-[#292722]"
             />
           </div>
 
@@ -42,7 +42,7 @@ export default function PoliciesTab({ settingsForm, setSettingsForm, handleSaveS
             value={settingsForm.returnPolicyText || ""}
             onChange={(e) => setSettingsForm({ ...settingsForm, returnPolicyText: e.target.value })}
             placeholder="يحق للعميل معاينة واستبدال القطعة خلال 14 يوماً بشرط أن تكون بحالتها الأصلية..."
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722]"
           />
         </div>
 
@@ -55,7 +55,7 @@ export default function PoliciesTab({ settingsForm, setSettingsForm, handleSaveS
             value={settingsForm.warrantyPolicyText || ""}
             onChange={(e) => setSettingsForm({ ...settingsForm, warrantyPolicyText: e.target.value })}
             placeholder="جميع قطع متجر ORMA مصوغة من الفضة الإسترليني عيار 925 المعتمدة والمختومة رسميًا..."
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722]"
           />
         </div>
 
@@ -67,14 +67,14 @@ export default function PoliciesTab({ settingsForm, setSettingsForm, handleSaveS
             type="text"
             value={settingsForm.shippingPolicyTimeline || "التوصيل خلال 2-4 أيام عمل لكافة محافظات مصر"}
             onChange={(e) => setSettingsForm({ ...settingsForm, shippingPolicyTimeline: e.target.value })}
-            className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412]"
+            className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722]"
           />
         </div>
       </div>
 
       <button
         onClick={handleSaveSettings}
-        className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-[#292722] text-[#F5F0E7] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
       >
         <Save className="w-4 h-4 text-[#c5a880]" />
         <span>حفظ سياسات المتجر والضمان</span>

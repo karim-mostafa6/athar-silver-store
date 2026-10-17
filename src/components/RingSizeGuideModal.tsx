@@ -100,7 +100,7 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
               <Ruler className="w-4 h-4 text-[#B7A078]" />
               <span className="h-px flex-1 bg-[#B7A078]/50" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black font-amiri leading-tight">دليل مقاسات الخواتم</h2>
+            <h2 className="text-2xl sm:text-3xl font-black font-cairo leading-tight">دليل مقاسات الخواتم</h2>
             <p className="text-[13px] text-[#D8C8B3] leading-relaxed max-w-sm [@media(max-height:700px)]:hidden">
               اعرفي مقاس إصبعك بدقة، ليصلك خاتم أورما مريحاً كأنه صُنع لك.
             </p>

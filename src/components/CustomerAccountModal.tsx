@@ -193,7 +193,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="bg-[#161412] text-[#f7f4ee] px-6 py-5 relative flex items-center justify-between border-b border-[#2e2925]">
+        <div className="bg-[#292722] text-[#F5F0E7] px-6 py-5 relative flex items-center justify-between border-b border-[#2e2925]">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-white/10 border border-white/10">
               <User className="w-5 h-5 text-[#c5a880]" />
@@ -225,8 +225,8 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
             onClick={() => setActiveTab("track")}
             className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
               activeTab === "track"
-                ? "bg-white text-[#161412] shadow-sm"
-                : "text-[#5c4f42] hover:text-[#161412]"
+                ? "bg-white text-[#292722] shadow-sm"
+                : "text-[#5c4f42] hover:text-[#292722]"
             }`}
           >
             <Truck className="w-4 h-4 text-[#c5a880]" />
@@ -237,8 +237,8 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
             onClick={() => setActiveTab("account")}
             className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
               activeTab === "account"
-                ? "bg-white text-[#161412] shadow-sm"
-                : "text-[#5c4f42] hover:text-[#161412]"
+                ? "bg-white text-[#292722] shadow-sm"
+                : "text-[#5c4f42] hover:text-[#292722]"
             }`}
           >
             <User className="w-4 h-4 text-[#c5a880]" />
@@ -252,7 +252,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
           {activeTab === "track" && (
             <div className="space-y-4">
               <div className="bg-white rounded-2xl p-4 border border-[#e8ded0] shadow-xs">
-                <h3 className="text-xs font-bold text-[#161412] mb-1 flex items-center gap-1.5">
+                <h3 className="text-xs font-bold text-[#292722] mb-1 flex items-center gap-1.5">
                   <Search className="w-3.5 h-3.5 text-[#c5a880]" />
                   <span>ابحث عن حالة شحنتك فورياً</span>
                 </h3>
@@ -271,7 +271,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                         placeholder="مثال: #ATH-1000"
                         value={trackOrderId}
                         onChange={(e) => setTrackOrderId(e.target.value)}
-                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       />
                     </div>
                     <div>
@@ -283,14 +283,14 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                         placeholder="مثال: 01012345678"
                         value={trackPhone}
                         onChange={(e) => setTrackPhone(e.target.value)}
-                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       />
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold transition-all shadow-md active:scale-98 flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#F5F0E7] text-xs font-bold transition-all shadow-md active:scale-98 flex items-center justify-center gap-2"
                   >
                     <Search className="w-3.5 h-3.5 text-[#c5a880]" />
                     <span>تتبع حالة الطلب</span>
@@ -307,7 +307,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                       <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-extrabold text-[#161412]">
+                            <span className="font-mono text-sm font-extrabold text-[#292722]">
                               {trackedOrder.id}
                             </span>
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#c5a880]/15 text-[#8c6b3e] border border-[#c5a880]/30">
@@ -325,7 +325,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                           </p>
                         </div>
 
-                        <div className="text-left font-mono font-bold text-sm text-[#161412]">
+                        <div className="text-left font-mono font-bold text-sm text-[#292722]">
                           {trackedOrder.total.toLocaleString()} ج.م
                         </div>
                       </div>
@@ -336,7 +336,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                           <div className="relative flex items-center justify-between">
                             <div className="absolute top-1/2 left-0 right-0 h-1 bg-[#ede3d3] -translate-y-1/2 z-0" />
                             <div
-                              className="absolute top-1/2 right-0 h-1 bg-[#161412] -translate-y-1/2 z-0 transition-all duration-500"
+                              className="absolute top-1/2 right-0 h-1 bg-[#292722] -translate-y-1/2 z-0 transition-all duration-500"
                               style={{
                                 width: `${((getStageNumber(trackedOrder.status) - 1) / 3) * 100}%`,
                               }}
@@ -358,7 +358,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                                   <div
                                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${
                                       isCompleted
-                                        ? "bg-[#161412] border-[#161412] text-white"
+                                        ? "bg-[#292722] border-[#292722] text-white"
                                         : "bg-white border-[#ded2c0] text-[#8c7865]"
                                     } ${isCurrent ? "ring-2 ring-[#c5a880] scale-110" : ""}`}
                                   >
@@ -366,7 +366,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                                   </div>
                                   <span
                                     className={`text-[9px] mt-1 whitespace-nowrap font-medium ${
-                                      isCompleted ? "text-[#161412] font-bold" : "text-[#8c7865]"
+                                      isCompleted ? "text-[#292722] font-bold" : "text-[#8c7865]"
                                     }`}
                                   >
                                     {s.label}
@@ -403,7 +403,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                                   />
                                 )}
                                 <div>
-                                  <span className="font-bold text-[#161412] block">
+                                  <span className="font-bold text-[#292722] block">
                                     {it.arabicName}
                                   </span>
                                   {it.selectedSize && (
@@ -447,7 +447,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                   ) : (
                     <div className="bg-white rounded-2xl p-6 text-center border border-[#ded2c0] space-y-2">
                       <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
-                      <h4 className="text-xs font-bold text-[#161412]">لم يتم العثور على طلب</h4>
+                      <h4 className="text-xs font-bold text-[#292722]">لم يتم العثور على طلب</h4>
                       <p className="text-[11px] text-[#8c7865]">
                         يرجى التأكد من كتابة رقم الطلب صحيحاً أو رقم الهاتف المسجل به الطلب
                       </p>
@@ -467,11 +467,11 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                   <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#ded2c0] shadow-xs space-y-3">
                     <div className="flex items-center justify-between border-b border-[#f0e8dc] pb-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-[#161412] text-[#c5a880] flex items-center justify-center font-bold text-sm">
+                        <div className="w-9 h-9 rounded-full bg-[#292722] text-[#c5a880] flex items-center justify-center font-bold text-sm">
                           {profile.name.charAt(0)}
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-[#161412]">
+                          <h4 className="text-xs font-bold text-[#292722]">
                             أهلاً بك، {profile.name} ✨
                           </h4>
                           <p className="text-[10px] text-[#8c7865]">{profile.phone}</p>
@@ -489,15 +489,15 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-[#5c4f42]">
                       <div className="p-2 rounded-lg bg-[#fbf9f5] border border-[#ede3d3]">
                         <span className="text-[10px] text-[#8c7865] block">المحافظة</span>
-                        <span className="font-bold text-[#161412]">{profile.governorate || "—"}</span>
+                        <span className="font-bold text-[#292722]">{profile.governorate || "—"}</span>
                       </div>
                       <div className="p-2 rounded-lg bg-[#fbf9f5] border border-[#ede3d3]">
                         <span className="text-[10px] text-[#8c7865] block">البريد الإلكتروني</span>
-                        <span className="font-bold text-[#161412]">{profile.email || "—"}</span>
+                        <span className="font-bold text-[#292722]">{profile.email || "—"}</span>
                       </div>
                       <div className="sm:col-span-2 p-2 rounded-lg bg-[#fbf9f5] border border-[#ede3d3]">
                         <span className="text-[10px] text-[#8c7865] block">العنوان المسجل</span>
-                        <span className="font-bold text-[#161412]">{profile.address || "—"}</span>
+                        <span className="font-bold text-[#292722]">{profile.address || "—"}</span>
                       </div>
                     </div>
 
@@ -513,7 +513,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
 
                   {/* Customer Previous Orders History */}
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-[#161412] flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-[#292722] flex items-center justify-between">
                       <span>سجل طلباتك السابقة</span>
                       <span className="text-[10px] text-[#8c7865] font-normal">
                         ({customerOrders.length} طلب)
@@ -529,7 +529,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                           >
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="font-mono font-bold text-[#161412]">
+                                <span className="font-mono font-bold text-[#292722]">
                                   {o.id}
                                 </span>
                                 <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-[#ede3d3] text-[#5c4f42]">
@@ -542,7 +542,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                             </div>
 
                             <div className="text-left">
-                              <span className="font-mono font-bold text-[#161412] block">
+                              <span className="font-mono font-bold text-[#292722] block">
                                 {o.total.toLocaleString()} ج.م
                               </span>
                               <button
@@ -575,7 +575,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                   className="bg-white rounded-2xl p-4 sm:p-5 border border-[#ded2c0] shadow-xs space-y-3"
                 >
                   <div className="border-b border-[#f0e8dc] pb-2">
-                    <h4 className="text-xs font-bold text-[#161412]">
+                    <h4 className="text-xs font-bold text-[#292722]">
                       {profile ? "تعديل بيانات الحساب" : "تسجيل الدخول / إنشاء حساب عميل"}
                     </h4>
                     <p className="text-[11px] text-[#8c7865]">
@@ -593,7 +593,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                       placeholder="مثال: محمد أحمد"
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
-                      className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                      className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                     />
                   </div>
 
@@ -608,7 +608,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                         placeholder="01012345678"
                         value={phoneInput}
                         onChange={(e) => setPhoneInput(e.target.value)}
-                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       />
                     </div>
                     <div>
@@ -620,7 +620,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                         placeholder="name@example.com"
                         value={emailInput}
                         onChange={(e) => setEmailInput(e.target.value)}
-                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       />
                     </div>
                   </div>
@@ -633,7 +633,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                       <select
                         value={govInput}
                         onChange={(e) => setGovInput(e.target.value)}
-                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       >
                         {EGYPT_GOVERNORATES.map((g) => (
                           <option key={g} value={g}>
@@ -651,7 +651,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                         placeholder="المنطقة، الشارع، العمارة"
                         value={addressInput}
                         onChange={(e) => setAddressInput(e.target.value)}
-                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
+                        className="w-full bg-[#fbf9f5] border border-[#ded2c0] rounded-xl px-3 py-2 text-xs text-[#292722] focus:outline-none focus:border-[#292722]"
                       />
                     </div>
                   </div>
@@ -659,7 +659,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                   <div className="flex items-center gap-2 pt-2">
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-xl bg-[#161412] hover:bg-[#2e2925] text-[#f7f4ee] text-xs font-bold transition-all shadow-md active:scale-98"
+                      className="flex-1 py-2.5 rounded-xl bg-[#292722] hover:bg-[#2e2925] text-[#F5F0E7] text-xs font-bold transition-all shadow-md active:scale-98"
                     >
                       {profile ? "تحديث البيانات" : "حفظ الحساب"}
                     </button>

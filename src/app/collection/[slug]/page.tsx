@@ -319,60 +319,38 @@ function CollectionPageContent() {
 
   return (
     <div>
-      {/* Editorial Collection Banner or Clean Header */}
-      {collectionInfo.showBanner !== false && collectionInfo.bannerImage ? (
-        <div className="relative w-full h-[280px] sm:h-[380px] overflow-hidden bg-[#1c1815] select-none">
-          <img
-            src={collectionInfo.bannerImage}
-            alt={collectionInfo.title || "تشكيلة أورما"}
-            className="w-full h-full object-cover object-center brightness-[0.7] contrast-[1.05]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
-
-          <div className="absolute inset-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-10 sm:pb-12 text-right">
+      {/* Collection title band (image shown as an arch when a banner is enabled in the dashboard) */}
+      <div className="bg-[#F5F0E7] border-b border-[#292722]/12">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-10 sm:py-14 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+          <div className="md:col-span-8 text-right">
             {collectionInfo.englishTitle && (
-              <div className="text-[11px] font-sans tracking-[0.25em] text-white/80 uppercase mb-2 font-light">
-                {collectionInfo.englishTitle}
-              </div>
+              <div className="eyebrow text-base sm:text-lg mb-2 normal-case">{collectionInfo.englishTitle}</div>
             )}
             {collectionInfo.title && (
-              <h1 className="text-3xl sm:text-5xl font-light text-[#faf8f5] font-cairo tracking-tight">
+              <h1 className="font-cairo font-light text-4xl sm:text-6xl leading-[1.2] text-[#292722]">
                 {collectionInfo.title}
               </h1>
             )}
             {collectionInfo.subtitle && (
-              <p className="text-xs sm:text-sm text-white/85 font-light mt-2 max-w-xl">
-                {collectionInfo.subtitle}
-              </p>
+              <p className="text-sm sm:text-lg text-[#5c5346] mt-4 max-w-xl leading-[1.9]">{collectionInfo.subtitle}</p>
             )}
           </div>
-        </div>
-      ) : (
-        /* Minimal Banner if Banner Image Hidden or Disabled */
-        (collectionInfo.title || collectionInfo.englishTitle || collectionInfo.subtitle) && (
-          <div className="bg-[#f5efe6] border-b border-[#e2d5c2] py-8 sm:py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-right">
-              {collectionInfo.englishTitle && (
-                <div className="text-[11px] font-sans tracking-[0.25em] text-[#8c7865] uppercase mb-1 font-light">
-                  {collectionInfo.englishTitle}
-                </div>
-              )}
-              {collectionInfo.title && (
-                <h1 className="text-2xl sm:text-4xl font-light text-[#1c1815] font-cairo tracking-tight">
-                  {collectionInfo.title}
-                </h1>
-              )}
-              {collectionInfo.subtitle && (
-                <p className="text-xs sm:text-sm text-[#705e4d] font-light mt-2 max-w-xl">
-                  {collectionInfo.subtitle}
-                </p>
-              )}
+          {collectionInfo.showBanner !== false && collectionInfo.bannerImage && (
+            <div className="hidden md:block md:col-span-4">
+              <div className="relative h-[220px] overflow-hidden bg-[#D8C8B3] ml-auto max-w-[320px]" style={{ borderRadius: "999px 999px 20px 20px / 160px 160px 20px 20px" }}>
+                <img
+                  src={collectionInfo.bannerImage}
+                  alt={collectionInfo.title || "تشكيلة أورما"}
+                  className="img-fade-in absolute inset-0 w-full h-full object-cover object-center"
+                  decoding="async"
+                />
+              </div>
             </div>
-          </div>
-        )
-      )}
+          )}
+        </div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in-up">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-8 sm:py-12 animate-fade-in-up">
         {/* Breadcrumb Bar */}
         <nav className="flex items-center gap-2 text-xs text-[#705e4d] mb-8 font-light">
           <Link href="/" className="py-3 -my-3 hover:text-[#1c1815] transition-colors">
@@ -390,10 +368,10 @@ function CollectionPageContent() {
               <button
                 key={sub.id}
                 onClick={() => setSelectedSubCategory(sub.id)}
-                className={`px-4 py-2 rounded-full transition-all duration-200 active:scale-95 whitespace-nowrap hover-lift ${
+                className={`min-h-[44px] px-5 rounded-full transition-all duration-200 active:scale-95 whitespace-nowrap ${
                   selectedSubCategory === sub.id
-                    ? "bg-[#1c1815] text-[#faf8f5] font-medium shadow-sm"
-                    : "bg-white text-[#5c4d3f] border border-[#e2d5c2] hover:bg-[#ede3d3] font-light"
+                    ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
+                    : "bg-transparent text-[#292722] border border-[#292722]/25 hover:border-[#292722] font-medium"
                 }`}
               >
                 {sub.label}
@@ -435,7 +413,7 @@ function CollectionPageContent() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-10 sm:gap-y-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-10 sm:gap-y-14">
             {products.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

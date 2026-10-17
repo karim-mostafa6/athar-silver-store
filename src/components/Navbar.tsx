@@ -138,11 +138,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [internalQuery, setInternalQuery] = useState("");
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const lastScrollYRef = useRef(0);
+  const [scrolled, setScrolled] = useState(false);
 
   // Smoothly collapse announcement bar when scrolling down, reopen when scrolling up or at top
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 24);
       if (currentScrollY <= 20) {
         setShowAnnouncement(true);
       } else if (currentScrollY > lastScrollYRef.current + 8) {
@@ -199,7 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       : defaultNavItems;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#F5F0E7] border-b border-[#292722]/12 transition-colors shadow-xs">
+    <header className={`sticky top-0 z-40 w-full border-b border-[#292722]/12 backdrop-blur-md transition-all duration-300 ${scrolled ? "bg-[#F5F0E7]/90 shadow-[0_8px_30px_-16px_rgba(41,39,34,0.28)]" : "bg-[#F5F0E7]"}`}>
       {/* Live Marquee Ticker - smooth collapse on scroll */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -213,7 +215,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main Navbar */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-3 sm:gap-6">
+        <div className={`flex items-center justify-between gap-3 sm:gap-6 transition-all duration-300 ${scrolled ? "h-14 sm:h-[68px]" : "h-16 sm:h-20"}`}>
           {/* Right: Mobile Menu & Signature ORMA Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button

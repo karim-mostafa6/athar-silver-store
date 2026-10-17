@@ -295,3 +295,100 @@ a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
     height: 20px;
   }
 }
+
+/* ==========================================================================
+   Storefront redesign helpers (v2)
+   ========================================================================== */
+.eyebrow {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+}
+
+/* Arched image frame used by hero and story */
+.arch-frame {
+  border-radius: 999px 999px 24px 24px / 360px 360px 24px 24px;
+}
+
+/* Underline that grows on hover (links, "view all") */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: 100% 1px;
+  transition: background-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-underline:hover {
+  background-size: 40% 1px;
+}
+
+/* Soft light sweep across primary buttons */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+  transform: translateX(120%);
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: -1;
+}
+.btn-shine:hover::after {
+  transform: translateX(-120%);
+}
+
+/* Images fade in once decoded instead of popping in */
+@keyframes imgFadeIn {
+  from { opacity: 0; transform: scale(1.03); }
+  to { opacity: 1; transform: scale(1); }
+}
+.img-fade-in {
+  animation: imgFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Gentle float for floating badges/cards */
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-gentle-float {
+  animation: gentleFloat 6s ease-in-out infinite;
+}
+
+/* Respect users who ask for less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Admin dashboard redesign: dark sidebar, gold active state, softer cards.
+   Colour/typography only; layout and behaviour are untouched.
+   ========================================================================== */
+.admin-root { background: #F5F0E7; font-family: var(--font-tajawal), var(--font-cairo), sans-serif; }
+.admin-sidebar { background: #1E1C18 !important; border-color: #1E1C18 !important; }
+.admin-sidebar div[class*="uppercase"] { color: #B7A078 !important; letter-spacing: 0.06em; }
+.admin-sidebar div[class*="uppercase"] svg { color: #B7A078 !important; }
+.admin-sidebar button { color: #D8C8B3 !important; border-radius: 12px; }
+.admin-sidebar button svg { color: inherit; }
+.admin-sidebar button[class*="text-[#292722]"] { color: #F5F0E7 !important; }
+.admin-sidebar button:hover { background: rgba(245, 240, 231, 0.08) !important; color: #F5F0E7 !important; }
+.admin-sidebar button[class*="bg-[#292722]"] { background: #8E7545 !important; color: #fff !important; box-shadow: none; }
+.admin-sidebar button[class*="bg-[#292722]"] span { color: inherit !important; }
+.admin-sidebar button span[class*="bg-"] { color: #1E1C18 !important; }
+.admin-sidebar button span[class*="bg-[#e8ded0]"] { background: rgba(216, 200, 179, 0.2) !important; color: #D8C8B3 !important; }
+.admin-sidebar::-webkit-scrollbar { width: 6px; }
+.admin-sidebar::-webkit-scrollbar-thumb { background: rgba(216, 200, 179, 0.25); border-radius: 6px; }
+.admin-root h1, .admin-root h2, .admin-root h3 { font-family: var(--font-cairo), sans-serif; }
+.admin-root .rounded-xl, .admin-root .rounded-2xl { border-color: rgba(41, 39, 34, 0.12); }
+.admin-root main .bg-white { background: #fbf8f3; }
+.admin-root table thead th { color: #7d6c5c; font-weight: 600; }
