@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, ShoppingBag, Heart, X, Menu, User, ChevronDown } from "lucide-react";
 import { MarqueeAnnouncement } from "@/components/MarqueeAnnouncement";
@@ -136,25 +136,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [internalQuery, setInternalQuery] = useState("");
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
-  const lastScrollYRef = useRef(0);
+  const [openMobileSection, setOpenMobileSection] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
-  // Smoothly collapse announcement bar when scrolling down, reopen when scrolling up or at top
+  // Only the "scrolled" shadow depends on scroll. The announcement bar scrolls away with the page
+  // (no height toggling), which removed the show/hide flicker caused by layout shifts.
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrolled(currentScrollY > 24);
-      if (currentScrollY <= 20) {
-        setShowAnnouncement(true);
-      } else if (currentScrollY > lastScrollYRef.current + 8) {
-        setShowAnnouncement(false);
-      } else if (currentScrollY < lastScrollYRef.current - 8) {
-        setShowAnnouncement(true);
-      }
-      lastScrollYRef.current = currentScrollY;
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 24);
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -201,17 +190,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       : defaultNavItems;
 
   return (
-    <header className={`sticky top-0 z-40 w-full border-b border-[#292722]/12 backdrop-blur-md transition-all duration-300 ${scrolled ? "bg-[#F5F0E7]/90 shadow-[0_8px_30px_-16px_rgba(41,39,34,0.28)]" : "bg-[#F5F0E7]"}`}>
-      {/* Live Marquee Ticker - smooth collapse on scroll */}
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          showAnnouncement
-            ? "max-h-12 opacity-100 translate-y-0"
-            : "max-h-0 opacity-0 -translate-y-2 pointer-events-none"
-        }`}
-      >
-        <MarqueeAnnouncement onNotify={handleNotify} />
-      </div>
+    <>
+    {/* Announcement ticker: normal page flow, scrolls away with the page */}
+    <MarqueeAnnouncement onNotify={handleNotify} />
+    <header className={`sticky top-0 z-40 w-full border-b border-[#292722]/12 backdrop-blur-md transition-colors duration-300 ${scrolled ? "bg-[#F5F0E7]/90 shadow-[0_8px_30px_-16px_rgba(41,39,34,0.28)]" : "bg-[#F5F0E7]"}`}>
 
       {/* Main Navbar */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -426,29 +408,55 @@ export const Navbar: React.FC<NavbarProps> = ({
               }
               return (
                 <div key={item.id} className="border-b border-[#292722]/10 pb-2">
-                  <Link
-                    href={item.href}
-                    target={item.targetBlank ? "_blank" : undefined}
-                    rel={item.targetBlank ? "noreferrer" : undefined}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="py-1.5 hover:text-[#8E7545] flex items-center justify-between font-medium"
-                  >
-                    <span>{item.label}</span>
-                    {badgeNode}
-                  </Link>
-                  {subItems && (
-                    <div className="pr-3 pt-1 pb-1 space-y-1.5 border-r-2 border-[#D8C8B3] mr-1 mt-1">
-                      {subItems.map((sub, sIdx) => (
-                        <Link
-                          key={sIdx}
-                          href={sub.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="block py-1 text-xs text-[#292722]/70 hover:text-[#292722]"
-                        >
-                          {sub.label}
-                        </Link>
-                      ))}
-                    </div>
+                  {subItems && subItems.length > 0 ? (
+                    <>
+                      <button
+                        type="button"
+                        aria-expanded={openMobileSection === item.id}
+                        onClick={() => setOpenMobileSection(openMobileSection === item.id ? null : item.id)}
+                        className="w-full py-1.5 hover:text-[#8E7545] flex items-center justify-between font-medium text-right"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{item.label}</span>
+                          {badgeNode}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-[#292722]/60 transition-transform duration-200 ${openMobileSection === item.id ? "rotate-180" : ""}`} />
+                      </button>
+                      {openMobileSection === item.id && (
+                        <div className="pr-3 pt-1 pb-1 space-y-1.5 border-r-2 border-[#D8C8B3] mr-1 mt-1">
+                          {!subItems.some((sub) => sub.href === item.href) && (
+                            <Link
+                              href={item.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="block py-1 text-xs font-bold text-[#8E7545]"
+                            >
+                              عرض الكل
+                            </Link>
+                          )}
+                          {subItems.map((sub, sIdx) => (
+                            <Link
+                              key={sIdx}
+                              href={sub.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="block py-1 text-xs text-[#292722]/70 hover:text-[#292722]"
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      target={item.targetBlank ? "_blank" : undefined}
+                      rel={item.targetBlank ? "noreferrer" : undefined}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="py-1.5 hover:text-[#8E7545] flex items-center justify-between font-medium"
+                    >
+                      <span>{item.label}</span>
+                      {badgeNode}
+                    </Link>
                   )}
                 </div>
               );
@@ -457,5 +465,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       )}
     </header>
+    </>
   );
 };
