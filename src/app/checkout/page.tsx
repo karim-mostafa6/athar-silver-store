@@ -39,6 +39,7 @@ export default function CheckoutPage() {
     updateQuantity,
     removeFromCart,
     clearCart,
+    isStorageLoaded,
     appliedPromo,
     setAppliedPromo,
     discountAmount,
@@ -419,20 +420,19 @@ export default function CheckoutPage() {
       }).catch((err) => console.warn("Email send notification:", err));
     }
 
-    // Clear cart immediately
+    // Show the confirmation screen and clear the cart in the same render,
+    // so the "empty cart" view never flashes in between.
+    setIsSubmitting(false);
+    setOrderConfirmed(true);
     clearCart();
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setOrderConfirmed(true);
-
-      // Trigger Celebration Confetti
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.5 },
-      });
-    }, 700);
+    // Trigger Celebration Confetti
+    confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.5 },
+    });
   };
 
   // -------------------------------------------------------------
@@ -581,6 +581,11 @@ export default function CheckoutPage() {
         </div>
       </div>
     );
+  }
+
+  // Wait for the saved cart to load from the browser (avoids a flash of "empty cart")
+  if (!isStorageLoaded && cartItems.length === 0) {
+    return <div className="min-h-screen bg-[#F5F0E7]" aria-busy="true" />;
   }
 
   // -------------------------------------------------------------

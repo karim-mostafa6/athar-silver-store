@@ -36,6 +36,9 @@ export default function ProductDetailPage() {
   }, [productId, products]);
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const touchStart = React.useRef<{ x: number; y: number } | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const dragRef = React.useRef(0);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     product?.defaultSize || (product?.sizes ? product.sizes[0] : undefined)
   );
@@ -121,10 +124,7 @@ export default function ProductDetailPage() {
     }
     addToCart(product, effectiveSize, quantity);
     setIsAdded(true);
-    setTimeout(() => {
-      setIsAdded(false);
-      setIsCartOpen(true);
-    }, 600);
+    setTimeout(() => setIsAdded(false), 1800);
   };
 
   const handleWhatsAppOrder = () => {
@@ -188,8 +188,43 @@ export default function ProductDetailPage() {
         <div className="lg:col-span-7 space-y-4">
           <div className="flex flex-col lg:flex-row-reverse gap-4">
           {/* Main Large Display Image */}
-          <div className="relative aspect-square w-full lg:flex-1 min-w-0 rounded-[24px] overflow-hidden bg-[#E3D6C2]">
+          <div
+            data-gallery="main"
+            className="relative aspect-square w-full lg:flex-1 min-w-0 rounded-[24px] overflow-hidden bg-[#E3D6C2] select-none"
+            style={{ touchAction: "pan-y" }}
+            onTouchStart={(e) => {
+              touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+              dragRef.current = 0;
+              setDragX(0);
+            }}
+            onTouchMove={(e) => {
+              const st = touchStart.current;
+              if (!st || product.images.length < 2) return;
+              const dx = e.touches[0].clientX - st.x;
+              const dy = e.touches[0].clientY - st.y;
+              if (Math.abs(dx) > Math.abs(dy)) {
+                dragRef.current = dx;
+                setDragX(dx);
+              }
+            }}
+            onTouchEnd={() => {
+              const n = product.images.length;
+              if (touchStart.current && n > 1 && Math.abs(dragRef.current) > 45) {
+                const left = dragRef.current < 0;
+                setActiveImageIdx((i) => (left ? (i + 1) % n : (i - 1 + n) % n));
+              }
+              touchStart.current = null;
+              dragRef.current = 0;
+              setDragX(0);
+            }}
+            onTouchCancel={() => {
+              touchStart.current = null;
+              setDragX(0);
+            }}
+          >
             <img
+              draggable={false}
+              style={{ transform: dragX ? `translateX(${dragX * 0.35}px)` : undefined, transition: dragX ? "none" : "transform .25s ease" }}
               key={activeImageIdx}
               src={product.images[activeImageIdx] || product.images[0]}
               alt={product.arabicName}
@@ -199,6 +234,17 @@ export default function ProductDetailPage() {
               fetchPriority="high"
               decoding="async"
             />
+
+            {product.images.length > 1 && (
+              <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 z-10 lg:hidden pointer-events-none">
+                {product.images.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all ${i === activeImageIdx ? "w-5 bg-[#292722]" : "w-1.5 bg-[#292722]/35"}`}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">

@@ -379,6 +379,7 @@ interface StoreContextType {
   cartItems: CartItem[];
   wishlist: Product[];
   isCartOpen: boolean;
+  isStorageLoaded: boolean;
   isWishlistOpen: boolean;
   isCheckoutOpen: boolean;
   isSizeGuideOpen: boolean;
@@ -1028,23 +1029,28 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     return [];
   });
 
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
+  // Cart & wishlist start empty on BOTH server and first client render (so hydration matches),
+  // then load from the browser right after mount. Persisting waits for that load.
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [wishlist, setWishlist] = useState<Product[]>([]);
+  const [isStorageLoaded, setIsStorageLoaded] = useState(false);
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem("athar_cart");
-      if (saved) return JSON.parse(saved);
+      const savedCart = localStorage.getItem("athar_cart");
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed)) setCartItems(parsed);
+      }
     } catch {}
-    return [];
-  });
-
-  const [wishlist, setWishlist] = useState<Product[]>(() => {
-    if (typeof window === "undefined") return [];
     try {
-      const saved = localStorage.getItem("athar_wishlist");
-      if (saved) return JSON.parse(saved);
+      const savedWish = localStorage.getItem("athar_wishlist");
+      if (savedWish) {
+        const parsed = JSON.parse(savedWish);
+        if (Array.isArray(parsed)) setWishlist(parsed);
+      }
     } catch {}
-    return [];
-  });
+    setIsStorageLoaded(true);
+  }, []);
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
@@ -1442,20 +1448,22 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
   }, [orders]);
 
   useEffect(() => {
+    if (!isStorageLoaded) return;
     try {
       localStorage.setItem("athar_cart", JSON.stringify(cartItems));
     } catch {
       // Ignore
     }
-  }, [cartItems]);
+  }, [cartItems, isStorageLoaded]);
 
   useEffect(() => {
+    if (!isStorageLoaded) return;
     try {
       localStorage.setItem("athar_wishlist", JSON.stringify(wishlist));
     } catch {
       // Ignore
     }
-  }, [wishlist]);
+  }, [wishlist, isStorageLoaded]);
 
   // Toast notification (ultra-sleek, compact, capped at 2, quick 2.2s auto-dismiss)
   const addToast = (
@@ -2193,6 +2201,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         cartItems,
         wishlist,
         isCartOpen,
+        isStorageLoaded,
         isWishlistOpen,
         isCheckoutOpen,
         isSizeGuideOpen,
