@@ -28,77 +28,81 @@ export const BrandStorySection: React.FC = () => {
     { title: storeSettings.storyPillar4Title, desc: storeSettings.storyPillar4Desc, show: storeSettings.storyPillar4Show },
   ].filter((p) => p.show !== false && (p.title || p.desc));
 
+  const image = storeSettings.storyImageUrl?.trim();
+
   return (
-    <section
-      id="story"
-      className="relative w-full py-24 sm:py-32 bg-[#292722] text-[#F5F0E7] overflow-hidden border-b border-[#292722]/30"
-    >
-      {/* Background Concentric Ripples in Champagne Gold */}
-      <ConcentricRipples variant="story" strokeColor="#B7A078" ringCount={12} />
-
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center space-y-6">
-        {/* Emblem / ORMA Logo */}
-        <ScrollReveal direction="none" delay={0} duration={800} threshold={0.15}>
-          <div className="mb-2">
-            <OrmaLogo variant="dark" size="lg" showSlogan={false} />
-          </div>
-        </ScrollReveal>
-
-        {/* Badge */}
-        {storeSettings.storyBadge && (
-          <ScrollReveal direction="up" delay={80} duration={700} threshold={0.12}>
-            <span className="inline-block font-cormorant italic text-lg tracking-wide text-[#B7A078]">
-              {storeSettings.storyBadge}
-            </span>
+    <>
+      <section
+        id="story"
+        className="relative w-full py-16 sm:py-28 bg-[#292722] text-[#F5F0E7] overflow-hidden"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center">
+          {/* Visual: workshop photo if configured, otherwise the brand emblem on rippled panel */}
+          <div className="lg:col-span-5">
+          <ScrollReveal direction="up" delay={0} duration={800} threshold={0.1}>
+            <div className="relative h-[320px] sm:h-[440px] rounded-3xl overflow-hidden bg-[#1E1C18] border border-white/10">
+              {image ? (
+                <img src={image} alt={headlineLines.join(" ")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              ) : (
+                <>
+                  <ConcentricRipples variant="story" strokeColor="#B7A078" ringCount={9} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <OrmaLogo variant="dark" size="lg" showSlogan={false} />
+                  </div>
+                </>
+              )}
+            </div>
           </ScrollReveal>
-        )}
+          </div>
 
-        {/* Headline in Aref Ruqaa */}
-        <ScrollReveal direction="up" delay={150} duration={800} threshold={0.12}>
-          <h2 className="font-cairo font-light text-4xl sm:text-6xl leading-[1.3] tracking-tight text-[#F5F0E7]">
-            {headlineLines.map((line, idx) => (
-              <span key={idx} className="block">
-                {line}
-              </span>
-            ))}
-          </h2>
-        </ScrollReveal>
+          <div className="lg:col-start-7 lg:col-span-6 flex flex-col gap-5 sm:gap-6 text-right">
+            <ScrollReveal direction="up" delay={80} duration={700} threshold={0.1}>
+              <div className="flex flex-col gap-5 sm:gap-6">
+                <div className="self-start">
+                  <OrmaLogo variant="dark" size="md" showSlogan={false} />
+                </div>
+                {storeSettings.storyBadge && (
+                  <span className="font-cormorant italic text-lg tracking-wide text-[#B7A078]">
+                    {storeSettings.storyBadge}
+                  </span>
+                )}
+                <h2 className="font-cairo font-light text-4xl sm:text-5xl leading-[1.35] text-[#F5F0E7]">
+                  {headlineLines.map((line, idx) => (
+                    <span key={idx} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </h2>
+                <p className="text-base sm:text-lg text-[#D8C8B3] font-tajawal leading-[2] max-w-xl">
+                  {storyText}
+                </p>
+                <a
+                  href="/page/about"
+                  className="btn-shine self-start inline-flex items-center justify-center min-h-[52px] px-9 rounded-full bg-[#F5F0E7] text-[#292722] font-bold text-sm hover:bg-white transition-colors"
+                >
+                  اقرأ قصتنا
+                </a>
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
 
-        {/* Decorative line: Champagne #B7A078 under title */}
-        <ScrollReveal direction="none" delay={250} duration={600}>
-          <div className="w-14 h-[2px] bg-[#B7A078] mx-auto rounded-full" />
-        </ScrollReveal>
-
-        {/* Body Text: Tajawal, Ivory with 80% opacity */}
-        <ScrollReveal direction="up" delay={300} duration={700} threshold={0.12}>
-          <p className="text-sm sm:text-base text-[#F5F0E7]/80 font-tajawal font-normal leading-relaxed max-w-2xl mx-auto">
-            {storyText}
-          </p>
-        </ScrollReveal>
-
-        {/* Story Pillars */}
-        {pillars.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 w-full text-center">
+      {/* Trust strip: the four pillars configured in the dashboard */}
+      {pillars.length > 0 && (
+        <section className="w-full bg-[#F5F0E7] py-14 sm:py-[72px]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {pillars.map((p, idx) => (
-              <ScrollReveal key={idx} direction="up" delay={400 + idx * 100} duration={700} threshold={0.1}>
-                <div className="space-y-2 p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-[#B7A078]/50 hover:-translate-y-1 transition-all duration-300">
-                  <div className="w-8 h-[1px] bg-[#B7A078]/50 mx-auto mb-3" />
-                  {p.title && (
-                    <div className="text-xs sm:text-sm font-bold text-[#B7A078] font-tajawal tracking-wide">
-                      {p.title}
-                    </div>
-                  )}
-                  {p.desc && (
-                    <div className="text-xs text-[#F5F0E7]/75 font-tajawal font-normal leading-relaxed">
-                      {p.desc}
-                    </div>
-                  )}
+              <ScrollReveal key={idx} direction="up" delay={idx * 90} duration={700} threshold={0.1}>
+                <div className="h-full flex flex-col gap-2 p-6 rounded-[18px] border border-[#292722]/12 bg-[#fbf8f3] hover:-translate-y-1 hover:border-[#8E7545]/50 transition-all duration-300">
+                  {p.title && <div className="font-cairo font-semibold text-[17px] text-[#292722]">{p.title}</div>}
+                  {p.desc && <div className="text-sm leading-[1.8] text-[#5c5346] font-tajawal">{p.desc}</div>}
                 </div>
               </ScrollReveal>
             ))}
           </div>
-        )}
-      </div>
-    </section>
+        </section>
+      )}
+    </>
   );
 };

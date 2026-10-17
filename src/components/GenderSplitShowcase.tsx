@@ -33,14 +33,14 @@ export const GenderSplitShowcase: React.FC = () => {
     "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?auto=format&fit=crop&w=1400&q=85";
 
   return (
-    <section className="w-full bg-[#F5F0E7] py-6 sm:py-10 border-b border-[#292722]/12">
+    <section className="w-full bg-[#F5F0E7] py-8 sm:py-14">
       {/* Full-width container with responsive outer margin and elegant rounded corners */}
-      <div className="w-full max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
           {/* Women's Showcase Banner */}
           <Link
             href={womenLink}
-            className="group relative h-[380px] sm:h-[480px] lg:h-[560px] xl:h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 block border border-[#292722]/10"
+            className="group relative h-[340px] sm:h-[420px] lg:h-[480px] rounded-[20px] overflow-hidden cursor-pointer hover:shadow-[0_24px_50px_-24px_rgba(41,39,34,0.5)] transition-all duration-500 block border border-[#292722]/10"
           >
             {/* Background Photography */}
             <img
@@ -51,7 +51,7 @@ export const GenderSplitShowcase: React.FC = () => {
             />
 
             {/* Gradient Overlay for Crisp Text Legibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent group-hover:from-black/90 transition-colors duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#292722]/70 via-[#292722]/10 to-transparent transition-colors duration-300" />
 
             {/* Editorial Content: Title + Rectangular EXPLORE NOW Button */}
             <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10 text-left dir-ltr space-y-3 sm:space-y-4">
@@ -60,7 +60,7 @@ export const GenderSplitShowcase: React.FC = () => {
               </h3>
 
               <div>
-                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 border border-white/85 bg-black/25 group-hover:bg-white text-white group-hover:text-[#292722] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
+                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 rounded-full border border-[#F5F0E7]/70 bg-[#292722]/20 group-hover:bg-[#F5F0E7] text-[#F5F0E7] group-hover:text-[#292722] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
                   {womenButtonText}
                 </span>
               </div>
@@ -70,7 +70,7 @@ export const GenderSplitShowcase: React.FC = () => {
           {/* Men's Showcase Banner */}
           <Link
             href={menLink}
-            className="group relative h-[380px] sm:h-[480px] lg:h-[560px] xl:h-[620px] rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 block border border-[#292722]/10"
+            className="group relative h-[340px] sm:h-[420px] lg:h-[480px] rounded-[20px] overflow-hidden cursor-pointer hover:shadow-[0_24px_50px_-24px_rgba(41,39,34,0.5)] transition-all duration-500 block border border-[#292722]/10"
           >
             {/* Background Photography */}
             <img
@@ -81,7 +81,7 @@ export const GenderSplitShowcase: React.FC = () => {
             />
 
             {/* Gradient Overlay for Crisp Text Legibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent group-hover:from-black/90 transition-colors duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#292722]/70 via-[#292722]/10 to-transparent transition-colors duration-300" />
 
             {/* Editorial Content: Title + Rectangular EXPLORE NOW Button */}
             <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10 text-left dir-ltr space-y-3 sm:space-y-4">
@@ -90,7 +90,7 @@ export const GenderSplitShowcase: React.FC = () => {
               </h3>
 
               <div>
-                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 border border-white/85 bg-black/25 group-hover:bg-white text-white group-hover:text-[#292722] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
+                <span className="inline-block px-5 py-2 sm:px-6 sm:py-2.5 rounded-full border border-[#F5F0E7]/70 bg-[#292722]/20 group-hover:bg-[#F5F0E7] text-[#F5F0E7] group-hover:text-[#292722] text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm">
                   {menButtonText}
                 </span>
               </div>

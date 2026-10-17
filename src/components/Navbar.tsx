@@ -235,7 +235,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Center: Navigation Links with Animated Underline and Solid Opaque Dropdowns (No badges to prevent horizontal clutter) */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0 px-2 xl:px-6 gap-3 xl:gap-5 2xl:gap-7 text-xs sm:text-sm font-medium text-[#292722]">
+          <nav className="hidden lg:flex items-center justify-center flex-1 min-w-0 px-2 gap-2 xl:gap-3 2xl:gap-6 text-xs xl:text-[13px] 2xl:text-sm font-medium text-[#292722]">
             {activeNavLinks.map((item) => {
               const subItems = getSubNavItems(item);
 

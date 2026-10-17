@@ -282,6 +282,51 @@ export default function StoryTab({ settingsForm, setSettingsForm, handleSaveSett
           />
         </div>
 
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-[#756555]">صورة قسم القصة (ورشة / تصنيع) - اختياري</label>
+          {settingsForm.storyImageUrl && (
+            <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-[#ded2c0]">
+              <div className="w-10 h-10 rounded overflow-hidden border shrink-0">
+                <img src={settingsForm.storyImageUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+              <span className="text-[10px] text-[#756555] truncate flex-1 dir-ltr">
+                {settingsForm.storyImageUrl.startsWith("data:") ? "صورة مرفوعة" : settingsForm.storyImageUrl}
+              </span>
+              <button type="button" onClick={() => setSettingsForm({ ...settingsForm, storyImageUrl: "" })} className="text-[#8c7865] hover:text-rose-600 p-1">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              value={settingsForm.storyImageUrl || ""}
+              onChange={(e) => setSettingsForm({ ...settingsForm, storyImageUrl: e.target.value })}
+              placeholder="رابط الصورة أو رفع ملف"
+              className="flex-1 bg-white border border-[#ded2c0] rounded px-3 py-1.5 text-xs dir-ltr"
+            />
+            <label className="px-2.5 py-1.5 rounded bg-[#292722] text-[#F5F0E7] text-xs font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap">
+              <Upload className="w-3 h-3 text-[#c5a880]" />
+              <span>رفع</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const dataUrl = await compressImageFile(file);
+                    if (dataUrl) {
+                      setSettingsForm((prev) => ({ ...prev, storyImageUrl: dataUrl }));
+                      addToast("تم اختيار الصورة", "تم تحديث صورة قسم القصة", "info");
+                    }
+                  }
+                }}
+              />
+            </label>
+          </div>
+        </div>
+
         {/* 4 Pillars */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[#f0e8dc]">
           {/* Pillar 1 */}

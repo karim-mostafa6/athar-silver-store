@@ -12,11 +12,12 @@ import { CategoryShowcase } from "@/components/CategoryShowcase";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useStore } from "@/context/StoreContext";
 import { X } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   const { products, storeSettings, addToCart, toggleWishlist, isWishlisted, addToast, setIsSizeGuideOpen } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showAllProducts, setShowAllProducts] = useState<boolean>(false);
+  const showAllProducts = false;
   const [searchQuery, setSearchQuery] = useState("");
 
   const productsSectionRef = useRef<HTMLDivElement>(null);
@@ -24,25 +25,6 @@ export default function Home() {
   const scrollToProducts = () => {
     productsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  const categories = useMemo(() => {
-    const list =
-      storeSettings?.categories && storeSettings.categories.length > 0
-        ? storeSettings.categories
-        : [
-            { id: "rings", label: "خواتم" },
-            { id: "chains", label: "سلاسل" },
-            { id: "bracelets", label: "أساور" },
-            { id: "earrings", label: "أقراط" },
-          ];
-    return [
-      { id: "all", label: "الكل" },
-      ...list.map((c) => ({
-        id: c.id,
-        label: storeSettings?.collectionPages?.[c.id]?.title || c.label,
-      })),
-    ];
-  }, [storeSettings?.categories, storeSettings?.collectionPages]);
 
   // Filtering
   const filteredProducts = useMemo(() => {
@@ -121,7 +103,7 @@ export default function Home() {
       <section
         ref={productsSectionRef}
         id="products"
-        className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        className="py-16 sm:py-24 max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16"
       >
         {/* Section Header */}
         <ScrollReveal direction="up" delay={0}>
@@ -129,34 +111,9 @@ export default function Home() {
             <div className="eyebrow text-lg sm:text-xl mb-1">
               {storeSettings.productsSectionBadge || "The Collection"}
             </div>
-            <h2 className="font-cairo font-light text-4xl sm:text-5xl text-[#292722]">
+            <h2 className="font-cairo font-light text-4xl sm:text-[44px] text-[#292722]">
               {storeSettings.productsSectionTitle || "المجموعة"}
             </h2>
-            {storeSettings.productsSectionSubtitle && (
-              <p className="text-sm sm:text-base text-[#292722]/80 mt-3 font-tajawal font-normal max-w-md mx-auto leading-relaxed">
-                {storeSettings.productsSectionSubtitle}
-              </p>
-            )}
-            <div className="w-12 h-[1px] bg-[#8E7545] mx-auto mt-5" />
-          </div>
-        </ScrollReveal>
-
-        {/* Category Filter Pills */}
-        <ScrollReveal direction="up" delay={80}>
-          <div className="flex items-center justify-center gap-2 sm:gap-3 pb-3 mb-10 overflow-x-auto scrollbar-none text-xs">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-full transition-all duration-300 whitespace-nowrap active:scale-95 font-tajawal ${
-                  selectedCategory === cat.id
-                    ? "bg-[#292722] text-[#F5F0E7] font-bold shadow-sm"
-                    : "bg-[#D8C8B3]/50 text-[#292722] border border-[#292722]/12 hover:bg-[#D8C8B3] hover:text-[#292722] font-medium"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
           </div>
         </ScrollReveal>
 
@@ -196,7 +153,7 @@ export default function Home() {
             </div>
           </ScrollReveal>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10">
             {displayedProducts.map((product, idx) => (
               <ScrollReveal
                 key={product.id}
@@ -216,19 +173,16 @@ export default function Home() {
           </div>
         )}
 
-        {/* Show All / Show Less Button */}
-        {filteredProducts.length > 8 && selectedCategory === "all" && !searchQuery && (
-          <ScrollReveal direction="up" delay={100}>
-            <div className="text-center mt-12 sm:mt-16">
-              <button
-                onClick={() => setShowAllProducts(!showAllProducts)}
-                className="px-10 sm:px-14 py-3 rounded-full border border-[#292722] text-[#292722] hover:bg-[#292722] hover:text-[#F5F0E7] transition-all duration-300 text-xs sm:text-sm font-tajawal font-bold active:scale-95 shadow-xs"
-              >
-                {showAllProducts ? "عرض أقل" : "عرض كل القطع"}
-              </button>
-            </div>
-          </ScrollReveal>
-        )}
+        <ScrollReveal direction="up" delay={100}>
+          <div className="text-center mt-12 sm:mt-14">
+            <Link
+              href="/collection/all"
+              className="inline-flex items-center justify-center min-h-[54px] px-11 rounded-full border border-[#292722] text-[#292722] hover:bg-[#292722] hover:text-[#F5F0E7] transition-all duration-300 text-sm font-tajawal font-medium active:scale-95"
+            >
+              عرض كل المنتجات
+            </Link>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Gender Split Showcase (التشكيلة الرجالية والنسائية) */}

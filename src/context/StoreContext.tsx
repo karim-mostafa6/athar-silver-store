@@ -203,6 +203,7 @@ export interface StoreSettings {
   // Brand Story Section Copy
   storySectionShow?: boolean;
   storyBadge?: string;
+  storyImageUrl?: string;
   storyTitle?: string;
   storySubtitle?: string;
   storyPillar1Title?: string;
