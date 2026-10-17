@@ -385,7 +385,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#292722]/12 bg-[#F5F0E7] px-6 py-6 space-y-4 text-right shadow-2xl">
+        <div className="lg:hidden border-t border-[#292722]/12 bg-[#F5F0E7] px-6 py-6 space-y-4 text-right shadow-2xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain">
           <div className="flex flex-col space-y-3 text-sm font-medium text-[#292722]">
             {activeNavLinks.map((item) => {
               const subItems = getSubNavItems(item);

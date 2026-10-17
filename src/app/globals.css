@@ -262,3 +262,20 @@ html, body {
     text-wrap: balance;
   }
 }
+
+/* ── Mobile UX hardening ─────────────────────────────────────────── */
+/* iOS Safari zooms the whole page when a focused field has font-size < 16px. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+/* Don't let a scrolled drawer/modal hand its scroll over to the page behind it. */
+.overscroll-contain { overscroll-behavior: contain; }
+html { -webkit-text-size-adjust: 100%; }
+/* Remove the grey tap flash on Android/iOS; keep it for keyboard focus. */
+a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+/* Keep fixed bars clear of the iPhone notch / home indicator. */
+.safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }

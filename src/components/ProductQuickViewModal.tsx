@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Product } from "@/data/products";
 import { X, ShieldCheck, ShoppingBag, MessageCircle, Heart, Sparkles, Check, Scale, AlertCircle } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface ProductQuickViewModalProps {
   product: Product | null;
@@ -32,17 +33,15 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
 
+  useBodyScrollLock(!!product);
   // Lock body scroll and listen for Escape key
   React.useEffect(() => {
     if (!product) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [product, onClose]);
@@ -101,7 +100,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#faf8f5] border border-[#d8c8b4] p-5 sm:p-8 text-[#1c1815] shadow-2xl overscroll-contain custom-scrollbar"
+        className="relative w-full max-w-3xl max-h-[92vh] max-h-[92dvh] overflow-y-auto rounded-3xl bg-[#faf8f5] border border-[#d8c8b4] p-5 sm:p-8 text-[#1c1815] shadow-2xl overscroll-contain custom-scrollbar"
       >
         {/* Close Button */}
         <button

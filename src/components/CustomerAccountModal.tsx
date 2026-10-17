@@ -13,6 +13,7 @@ import {
   LogOut,
   AlertCircle
 } from "lucide-react";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface CustomerAccountModalProps {
   isOpen: boolean;
@@ -88,6 +89,8 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
       return oPhone && (oPhone.includes(cleanP) || cleanP.includes(oPhone));
     });
   }, [orders, profile?.phone]);
+
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -186,7 +189,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn font-cairo"
     >
       <div
-        className="w-full max-w-lg bg-[#fbf9f5] rounded-3xl shadow-2xl border border-[#ded2c0] overflow-hidden flex flex-col max-h-[90vh] animate-scaleUp"
+        className="w-full max-w-lg bg-[#fbf9f5] rounded-3xl shadow-2xl border border-[#ded2c0] overflow-hidden flex flex-col max-h-[90vh] max-h-[90dvh] animate-scaleUp"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -244,7 +247,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6 space-y-4">
           {/* TAB 1: TRACK ORDER */}
           {activeTab === "track" && (
             <div className="space-y-4">

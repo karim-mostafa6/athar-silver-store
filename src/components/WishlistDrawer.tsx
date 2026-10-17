@@ -3,6 +3,7 @@
 import React from "react";
 import { Product } from "@/data/products";
 import { X, Heart, ShoppingBag, Trash2 } from "lucide-react";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface WishlistDrawerProps {
   isOpen: boolean;
@@ -21,17 +22,15 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
   onAddToCart,
   onNotify,
 }) => {
+  useBodyScrollLock(isOpen);
   // Lock body scroll and listen for Escape key
   React.useEffect(() => {
     if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -64,7 +63,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-3.5">
             {wishlist.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
                 <div className="w-16 h-16 rounded-full bg-[#f4ece0] border border-[#ded1be] flex items-center justify-center text-[#806953]">

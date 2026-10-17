@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { CartItem } from "@/data/products";
 import { X, Trash2, ShoppingBag, ArrowLeft, Check, Sparkles, AlertCircle } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -27,20 +29,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   setAppliedPromo,
   discountAmount,
 }) => {
+  const { storeSettings } = useStore();
   const [promoInput, setPromoInput] = useState("");
   const [promoMessage, setPromoMessage] = useState<{ text: string; error: boolean } | null>(null);
 
+  useBodyScrollLock(isOpen);
   // Lock body scroll and listen for Escape key
   React.useEffect(() => {
     if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -48,7 +49,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const freeShippingThreshold = 2500;
+  const freeShippingThreshold = Number(storeSettings.freeShippingThreshold) > 0 ? Number(storeSettings.freeShippingThreshold) : 2500;
   const freeShippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
@@ -124,7 +125,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Items List */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-3.5">
             {cartItems.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4">
                 <div className="w-16 h-16 rounded-full bg-[#f4ece0] border border-[#ded1be] flex items-center justify-center text-[#806953]">

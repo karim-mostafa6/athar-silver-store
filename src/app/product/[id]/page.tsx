@@ -34,6 +34,7 @@ export default function ProductDetailPage() {
     isWishlisted,
     setIsSizeGuideOpen,
     setIsCartOpen,
+    setIsCheckoutOpen,
     addToast,
   } = useStore();
 
@@ -87,6 +88,22 @@ export default function ProductDetailPage() {
   const isOutOfStock =
     product.inStock === false ||
     (product.stockQuantity !== undefined && product.stockQuantity <= 0);
+
+  const handleBuyNow = () => {
+    if (isOutOfStock) {
+      addToast("تنبيه", "هذه القطعة غير متوفرة حالياً بالمخزن", "info");
+      return;
+    }
+    let effectiveSize = isRingProduct ? selectedSize : undefined;
+    if (engravingText.trim()) {
+      effectiveSize = effectiveSize
+        ? `${effectiveSize} (نقش ليزر: ${engravingText.trim()})`
+        : `نقش ليزر: ${engravingText.trim()}`;
+    }
+    addToCart(product, effectiveSize, quantity);
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
+  };
 
   const handleAddToCart = () => {
     if (isOutOfStock) {
@@ -415,6 +432,22 @@ export default function ProductDetailPage() {
               </div>
             ) : (
               <>
+                {/* Trust strip right above the buy buttons */}
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-white/70 border border-[#ece4d8]">
+                    <ShieldCheck className="w-4 h-4 text-[#8E7545]" />
+                    <span className="text-[10.5px] leading-tight text-[#1c1815]">فضة 925 أصلية بضمان</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-white/70 border border-[#ece4d8]">
+                    <Truck className="w-4 h-4 text-[#8E7545]" />
+                    <span className="text-[10.5px] leading-tight text-[#1c1815]">شحن لكل المحافظات</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl bg-white/70 border border-[#ece4d8]">
+                    <RotateCcw className="w-4 h-4 text-[#8E7545]" />
+                    <span className="text-[10.5px] leading-tight text-[#1c1815]">استبدال خلال {storeSettings.returnPolicyDays || 14} يوماً</span>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-3">
                   {/* Quantity */}
                   <div className="flex items-center bg-white border border-[#ded2c0] rounded-2xl p-1 shadow-sm">
@@ -461,6 +494,15 @@ export default function ProductDetailPage() {
                     )}
                   </button>
                 </div>
+
+                {/* Buy it now: straight to checkout */}
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="w-full py-4 px-6 rounded-2xl bg-[#8E7545] hover:bg-[#7a6439] text-white font-medium text-xs tracking-wider transition-all duration-300 active:scale-95 shadow-lg flex items-center justify-center gap-2"
+                >
+                  <span>اشتري الآن • BUY IT NOW</span>
+                </button>
 
                 {/* Direct WhatsApp Order Button */}
                 <button

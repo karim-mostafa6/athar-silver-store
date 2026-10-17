@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { X, Sparkles, Ruler, CheckCircle, Info } from "lucide-react";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface RingSizeGuideModalProps {
   isOpen: boolean;
@@ -12,17 +13,15 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
   const [testMm, setTestMm] = useState("");
   const [calculatedSize, setCalculatedSize] = useState<string | null>(null);
 
+  useBodyScrollLock(isOpen);
   // Lock body scroll and listen for Escape key
   React.useEffect(() => {
     if (!isOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -69,7 +68,7 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#faf8f5] border border-[#d8c8b4] rounded-3xl p-5 sm:p-8 text-[#1c1815] shadow-2xl text-right overscroll-contain custom-scrollbar"
+        className="relative w-full max-w-2xl max-h-[92vh] max-h-[92dvh] overflow-y-auto bg-[#faf8f5] border border-[#d8c8b4] rounded-3xl p-5 sm:p-8 text-[#1c1815] shadow-2xl text-right overscroll-contain custom-scrollbar"
       >
         {/* Close Button */}
         <button
