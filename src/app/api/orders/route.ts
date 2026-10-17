@@ -10,7 +10,7 @@ import {
 import { Order, OrderItem } from "@/context/StoreContext";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { sendTelegramOrderNotification } from "@/lib/telegram";
-import { reconcilePendingWhatsAppConfirmations, normalizeEgyptianPhone, resolveProvider } from "@/lib/whatsapp";
+import { reconcilePendingWhatsAppConfirmations, normalizeEgyptianPhone, waAutoEnabled } from "@/lib/whatsapp";
 import { evaluateOrderReview } from "@/lib/orderReview";
 import { patchOrderFields } from "@/lib/serverStore";
 import { recordFunnelEvent, markCartRecovered, sanitizeSource } from "@/lib/funnel";
@@ -339,7 +339,7 @@ export async function POST(request: NextRequest) {
         adminNotes: rawOrder.adminNotes || undefined,
         createdAt: new Date().toISOString(),
         source: sanitizeSource(rawOrder.source),
-        waStatus: resolveProvider() ? "pending" : "manual",
+        waStatus: waAutoEnabled() ? "pending" : "manual",
       };
 
       const review = evaluateOrderReview(
@@ -406,7 +406,7 @@ export async function POST(request: NextRequest) {
     //    wa_status is owned by the dispatcher, so mark it "pending" explicitly here.
     if (!isExisting) {
       // No automatic provider connected -> "manual": the Telegram button / dashboard sends it with one tap.
-      const initialWa = resolveProvider() ? "pending" : "manual";
+      const initialWa = waAutoEnabled() ? "pending" : "manual";
       await patchOrderFields(finalOrder.id, { waStatus: initialWa });
       finalOrder.waStatus = initialWa;
 

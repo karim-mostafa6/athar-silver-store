@@ -87,6 +87,11 @@ export function resolveProvider(): Provider | null {
   return null;
 }
 
+/** Automatic sending is opt-in: set WA_AUTO_SEND=true in Vercel once a provider is working. Otherwise orders use the one-tap manual flow. */
+export function waAutoEnabled(): boolean {
+  return process.env.WA_AUTO_SEND === "true" && resolveProvider() !== null;
+}
+
 export function providerSummary() {
   const p = resolveProvider();
   return p ? p.kind : "none";
