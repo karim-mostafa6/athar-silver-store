@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const cleanExt = [".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(ext.toLowerCase())
       ? ext.toLowerCase()
       : ".jpg";
-    const uniqueName = `athar-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
+    const uniqueName = `orma-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
 
     // 3. Upload to Supabase Storage (product-images bucket)
     if (isSupabaseConfigured()) {

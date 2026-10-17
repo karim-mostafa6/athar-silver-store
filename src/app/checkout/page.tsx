@@ -422,7 +422,7 @@ export default function CheckoutPage() {
                 تم استلام طلبك بنجاح
               </span>
               <h1 className="font-amiri text-2xl sm:text-3xl font-bold text-[#161412]">
-                شكراً لتسوقك من دار أَثَـر للفضة 925
+                شكراً لتسوقك من دار أورما للفضة 925
               </h1>
               <p className="text-xs sm:text-sm text-[#756555] mt-1.5 max-w-lg mx-auto">
                 يسعدنا إبلاغك بأنه تم تسجيل وتأكيد أوردرك وجاري تجهيزه وتغليفه الفاخر لشحنه لباب منزلك.
@@ -573,7 +573,7 @@ export default function CheckoutPage() {
             href="/"
             className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md"
           >
-            <span>استعراض تشكيلات أَثَـر</span>
+            <span>استعراض تشكيلات أورما</span>
             <ArrowLeft className="w-4 h-4" />
           </Link>
         </div>
@@ -1219,7 +1219,7 @@ export default function CheckoutPage() {
                       rows={2}
                       value={giftMessage}
                       onChange={(e) => setGiftMessage(e.target.value)}
-                      placeholder="اكتب رسالة الإهداء الخاصة بك هنا لتتم طباعتها داخل كارت أَثَر الفاخر..."
+                      placeholder="اكتب رسالة الإهداء الخاصة بك هنا لتتم طباعتها داخل كارت أورما الفاخر..."
                       className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-xs text-[#161412] focus:outline-none"
                     />
                   </div>

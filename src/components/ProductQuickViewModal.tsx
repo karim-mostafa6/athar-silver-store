@@ -149,7 +149,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
             <div className="p-4 rounded-2xl bg-[#f4eee2] border border-[#e2d5c2] space-y-2 text-xs text-[#524436]">
               <div className="flex items-center gap-2 text-[#1c1815] font-bold">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>ضمان ومزايا أَثَر الفاخرة:</span>
+                <span>ضمان ومزايا أورما الفاخرة:</span>
               </div>
               <ul className="space-y-1 text-[#665545] pr-5 list-disc">
                 <li>{product.warrantyDuration || "فضة إسترليني أصلية عيار 925 مختومة ومضمونة."}</li>

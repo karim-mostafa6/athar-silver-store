@@ -27,7 +27,7 @@ export function normalizeEgyptianPhone(phone: string): string {
  */
 export function formatWhatsAppOrderMessage(
   order: Order,
-  origin: string = "https://atharsilver.com"
+  origin: string = "https://orma-silver.vercel.app"
 ): string {
   const customerName = order.customerName ? order.customerName.trim() : "عميلنا المميز";
   const orderNum = order.id.startsWith("#") ? order.id : `#${order.id}`;
@@ -73,11 +73,11 @@ export function formatWhatsAppOrderMessage(
   const cleanId = order.id.replace(/^#/, "");
   const portalUrl = `${origin}/confirm-order?id=${encodeURIComponent(cleanId)}`;
 
-  return `👑 *دار أَثَـر للفضة الإسترليني 925* 👑
+  return `👑 *دار أورما للفضة الإسترليني 925* 👑
 ✨ *تأكيد استلام وتجهيز طلبك* ✨
 
 أهلاً بك يا ${customerName}،
-سعداء باختيارك لـ دار أَثَـر للفضة الإيطالية والتركية الأصلية! 💎
+سعداء باختيارك لـ دار أورما للفضة الإيطالية والتركية الأصلية! 💎
 
 📋 *بيانات الطلب:*
 ▫️ رقم الطلب: *${orderNum}*
@@ -96,7 +96,7 @@ ${itemsText}
 🔗 *بوابة متابعة وتفاصيل طلبك:*
 ${portalUrl}
 
-شكراً لثقتك الغالية في دار أَثَـر ✨
+شكراً لثقتك الغالية في دار أورما ✨
 📞 خدمة العملاء والدعم: 01143837730`;
 }
 
@@ -118,7 +118,7 @@ export async function sendWhatsAppOrderConfirmation(
       return { success: false, error: "رقم الهاتف غير صالح للإرسال عبر واتساب" };
     }
 
-    const origin = options?.origin || (process.env.NEXT_PUBLIC_SITE_URL || "https://atharsilver.com");
+    const origin = options?.origin || (process.env.NEXT_PUBLIC_SITE_URL || "https://orma-silver.vercel.app");
     const messageText = options?.customMessage || formatWhatsAppOrderMessage(order, origin);
 
     const ultraMsgInstance = process.env.ULTRAMSG_INSTANCE_ID || "";

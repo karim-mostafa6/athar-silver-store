@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       request.headers.get("origin") ||
       request.headers.get("host")?.startsWith("localhost")
         ? "http://localhost:3000"
-        : `https://${request.headers.get("host") || "atharsilver.com"}`;
+        : `https://${request.headers.get("host") || "orma-silver.vercel.app"}`;
 
     const confirmUrl = `${origin}/confirm-order?id=${encodeURIComponent(orderId)}&action=confirm`;
     const cancelUrl = `${origin}/confirm-order?id=${encodeURIComponent(orderId)}&action=cancel`;
@@ -128,8 +128,8 @@ export async function POST(request: NextRequest) {
     let messageText = customTemplate || "";
 
     if (!messageText.trim()) {
-      messageText = `✨ *طلب شراء جديد من براند أَثَر للفضة 925* ✨
-أهلاً بك يا ${customerName || "عميلنا العزيز"}، شكراً لاختيارك براند أَثَر! 💎
+      messageText = `✨ *طلب شراء جديد من براند أورما للفضة 925* ✨
+أهلاً بك يا ${customerName || "عميلنا العزيز"}، شكراً لاختيارك براند أورما! 💎
 
 رقم طلبك: *#${orderId}*
 

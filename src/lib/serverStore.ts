@@ -615,6 +615,88 @@ export async function saveServerStoreData(
 
 
 // ----------------------------------------------------
+// FAST PATH: save only the orders that changed (status changes, notes, deletions)
+// ----------------------------------------------------
+// The generic saveServerStoreData() re-reads the whole store and re-upserts EVERY order on each
+// call, which made each click in the admin orders screen cost several database round trips and
+// queue up behind the previous click. This path touches only the rows that actually changed.
+// Incoming orders REPLACE the stored row for that id (last write wins per order, not per list),
+// so a stale admin tab can no longer overwrite orders it did not touch (e.g. ones the Telegram
+// bot confirmed in the meantime).
+export async function saveOrdersDelta(input: {
+  orders?: Order[];
+  deletedOrderIds?: string[];
+  lastOrderSeq?: number;
+}): Promise<{ lastOrderSeq: number; savedCount: number }> {
+  if (!isSupabaseConfigured()) {
+    const saved = await saveServerStoreData({
+      orders: input.orders,
+      deletedOrderIds: input.deletedOrderIds,
+      lastOrderSeq: input.lastOrderSeq,
+    });
+    return { lastOrderSeq: saved.lastOrderSeq || 999, savedCount: (input.orders || []).length };
+  }
+
+  return serverStoreSaveLock.acquire(async () => {
+    const supabase = getSupabaseAdminClient();
+    const deleted = Array.from(new Set((input.deletedOrderIds || []).filter(Boolean).map(String)));
+    const deletedSet = new Set(deleted);
+    const incoming = cleanOrders(input.orders || []).filter((o) => !deletedSet.has(o.id));
+
+    // Stored bookkeeping (one small read). Missing table => treated as empty, like before.
+    let storedSeq = 999;
+    let storedDeleted: string[] = [];
+    const metaRes = await supabase.from("store_metadata").select("key, value");
+    if (!metaRes.error && Array.isArray(metaRes.data)) {
+      for (const row of metaRes.data) {
+        if (row.key === "last_order_seq") storedSeq = Number(row.value) || 999;
+        if (row.key === "deleted_order_ids" && Array.isArray(row.value)) storedDeleted = row.value as string[];
+      }
+    }
+
+    const newSeq = calculateHighestOrderSeq(
+      incoming,
+      Math.max(storedSeq, Number(input.lastOrderSeq) || 999),
+      deleted
+    );
+    const mergedDeleted = Array.from(new Set([...storedDeleted, ...deleted]));
+
+    const writes: PromiseLike<{ error: { message: string } | null }>[] = [];
+    if (incoming.length > 0) {
+      writes.push(
+        supabase.from("orders").upsert(incoming.map(mapModelOrderToDb), { onConflict: "id" }) as unknown as PromiseLike<{
+          error: { message: string } | null;
+        }>
+      );
+    }
+    if (deleted.length > 0) {
+      writes.push(
+        supabase.from("orders").delete().in("id", deleted) as unknown as PromiseLike<{ error: { message: string } | null }>
+      );
+    }
+    const results = await Promise.all(writes);
+    const failed = results.find((r) => r.error);
+    if (failed?.error) throw new Error(`خطأ Supabase في جدول الطلبات: ${failed.error.message}`);
+
+    // Bookkeeping only when something actually changed (best effort, never blocks the save).
+    if (newSeq !== storedSeq || mergedDeleted.length !== storedDeleted.length) {
+      const nowIso = new Date().toISOString();
+      const metaWrite = await supabase.from("store_metadata").upsert(
+        [
+          { key: "last_order_seq", value: newSeq, updated_at: nowIso },
+          { key: "deleted_order_ids", value: mergedDeleted, updated_at: nowIso },
+        ],
+        { onConflict: "key" }
+      );
+      if (metaWrite.error) console.warn("Supabase metadata warning:", metaWrite.error.message);
+    }
+
+    return { lastOrderSeq: newSeq, savedCount: incoming.length };
+  });
+}
+
+
+// ----------------------------------------------------
 // UPDATE ORDER STATUS (Used by Telegram Webhook & APIs)
 // ----------------------------------------------------
 export async function updateOrderStatusOnServer(

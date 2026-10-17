@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import {
   getServerStoreData,
   saveServerStoreData,
+  saveOrdersDelta,
   getNextSequentialOrderId,
   extractOrderSequence,
 } from "@/lib/serverStore";
@@ -93,7 +94,7 @@ export async function GET(request: NextRequest) {
       request.headers.get("origin") ||
       (request.headers.get("host")?.startsWith("localhost")
         ? "http://localhost:3000"
-        : `https://${request.headers.get("host") || "atharsilver.com"}`);
+        : `https://${request.headers.get("host") || "orma-silver.vercel.app"}`);
 
     (async () => {
       try {
@@ -396,7 +397,7 @@ export async function POST(request: NextRequest) {
           request.headers.get("origin") ||
           (request.headers.get("host")?.startsWith("localhost")
             ? "http://localhost:3000"
-            : `https://${request.headers.get("host") || "atharsilver.com"}`);
+            : `https://${request.headers.get("host") || "orma-silver.vercel.app"}`);
 
         // Schedule delayed WhatsApp confirmation (3 minutes = 180,000ms)
         scheduleDelayedWhatsAppConfirmation(orderSnapshot, 3 * 60 * 1000, origin);
@@ -462,7 +463,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const saved = await saveServerStoreData({
+    // Only the changed orders are written (see saveOrdersDelta). Orders never affect the
+    // storefront catalog version, so no updatedAt is returned and no page revalidation is needed.
+    const saved = await saveOrdersDelta({
       orders: ordersToUpdate,
       lastOrderSeq: typeof lastOrderSeq === "number" ? lastOrderSeq : undefined,
       deletedOrderIds: Array.isArray(deletedOrderIds) ? deletedOrderIds : undefined,
@@ -471,10 +474,9 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "تم تحديث كافة الطلبات مركزياً في السيرفر بنجاح!",
-        ordersCount: saved.orders.length,
+        message: "تم تحديث الطلبات في السيرفر بنجاح!",
+        ordersCount: saved.savedCount,
         lastOrderSeq: saved.lastOrderSeq,
-        updatedAt: saved.updatedAt,
       },
       { headers: NO_CACHE_HEADERS }
     );

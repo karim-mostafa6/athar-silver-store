@@ -88,7 +88,7 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
           </h2>
         </div>
         <p className="text-xs text-[#6e5d4d] mb-6">
-          تعرف على مقاس إصبعك بدقة تامة لتضمن أن خاتم أَثَر يأتي مناسباً ومريحاً لك 100%.
+          تعرف على مقاس إصبعك بدقة تامة لتضمن أن خاتم أورما يأتي مناسباً ومريحاً لك 100%.
         </p>
 
         {/* Interactive Calculator */}

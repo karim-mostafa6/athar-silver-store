@@ -101,7 +101,7 @@ function ConfirmOrderContent() {
             لم نتمكن من العثور على الطلب
           </h2>
           <p className="text-xs text-[#8c7865] leading-relaxed">
-            يرجى التأكد من الضغط على الرابط الصحيح المرسل لك عبر رسالة الواتساب، أو التواصل مباشرة مع خدمة عملاء براند أَثَر.
+            يرجى التأكد من الضغط على الرابط الصحيح المرسل لك عبر رسالة الواتساب، أو التواصل مباشرة مع خدمة عملاء براند أورما.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
@@ -136,7 +136,7 @@ function ConfirmOrderContent() {
         <div className="text-center space-y-1.5">
           <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
             <h1 className="text-2xl sm:text-3xl font-black font-alexandria tracking-widest text-[#1c1815]">
-              {storeSettings.brandNameArabic || "أَثَر للفضة 925"}
+              {storeSettings.brandNameArabic || "أورما للفضة 925"}
             </h1>
           </Link>
           <span className="text-[11px] text-[#8c7865] block font-medium">
@@ -434,7 +434,7 @@ function ConfirmOrderContent() {
         <div className="p-4 rounded-2xl bg-white border border-[#ebdcca] text-center space-y-2 text-xs text-[#8c7865]">
           <div className="flex items-center justify-center gap-1 font-bold text-[#1c1815]">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>فريق خدمة عملاء أَثَر في خدمتك دائماً</span>
+            <span>فريق خدمة عملاء أورما في خدمتك دائماً</span>
           </div>
           <p className="text-[11px] text-[#8c7865]">
             لأي استفسار أو تعديل على العنوان أو المقاس، يمكنك التواصل معنا مباشرة:

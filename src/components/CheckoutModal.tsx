@@ -404,7 +404,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
         {orderConfirmed ? (
           /* ========================================================
-             ROYAL CONFIRMATION SUCCESS SCREEN (ATHAR 925)
+             ROYAL CONFIRMATION SUCCESS SCREEN (ORMA 925)
              ======================================================== */
           (() => {
             const order = confirmedOrder || {
@@ -425,7 +425,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               paymentMethod: formData.paymentMethod,
             };
 
-            const whatsappMessage = `أهلاً متجر أَثَر، قمت بعمل طلب جديد رقم #${order.orderId} بقيمة ${order.grandTotal.toLocaleString("ar-EG")} ج.م، وأرغب في متابعة تأكيد الشحنة.`;
+            const whatsappMessage = `أهلاً متجر أورما، قمت بعمل طلب جديد رقم #${order.orderId} بقيمة ${order.grandTotal.toLocaleString("ar-EG")} ج.م، وأرغب في متابعة تأكيد الشحنة.`;
             const whatsappUrl = `https://wa.me/201143837730?text=${encodeURIComponent(whatsappMessage)}`;
 
             return (
@@ -439,7 +439,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     تم استلام وتسجيل طلبك بنجاح
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-bold text-[#161412] font-amiri tracking-tight">
-                    شكراً لاختيارك براند أَثَـر
+                    شكراً لاختيارك براند أورما
                   </h3>
                   <p className="text-xs sm:text-sm text-[#756555] font-light max-w-md mx-auto leading-relaxed">
                     تم حفظ طلبك على السيستم وجاري مراجعته وتجهيزه في علبة إهداء مخملية فاخرة تليق بذوقك.

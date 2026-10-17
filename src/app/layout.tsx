@@ -44,7 +44,7 @@ async function loadInitialStore() {
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://athar-silver-store.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://orma-silver.vercel.app"
   ),
   title: "ORMA | Not Given, But Left - مجوهرات فضة إسترليني 925",
   description:

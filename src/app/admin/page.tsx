@@ -730,7 +730,7 @@ export default function AdminPage() {
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="utf-8">
-        <title>بوليصة شحن طلب #${order.id} - دار أَثَر</title>
+        <title>بوليصة شحن طلب #${order.id} - دار أورما</title>
         <style>
           body { font-family: 'Cairo', Tahoma, sans-serif; padding: 30px; color: #161412; background: #fff; }
           .header { text-align: center; border-bottom: 2px solid #161412; padding-bottom: 14px; margin-bottom: 20px; }
@@ -796,7 +796,7 @@ export default function AdminPage() {
           </div>
         </div>
         <div class="footer">
-          ضمان أَثَر المعتمد على الفضة الإسترليني عيار 925 • سياسة استبدال واسترجاع مرنة خلال 14 يوماً<br>
+          ضمان أورما المعتمد على الفضة الإسترليني عيار 925 • سياسة استبدال واسترجاع مرنة خلال 14 يوماً<br>
           خدمة العملاء والدعم: 01143837730
         </div>
         <script>
@@ -814,7 +814,7 @@ export default function AdminPage() {
     const itemsText = order.items
       .map((item) => `• ${item.arabicName} ${item.selectedSize ? `(مقاس: ${item.selectedSize})` : ""} × ${item.quantity} = ${(item.price * item.quantity).toLocaleString("en-US")} ج.م`)
       .join("%0A");
-    const msg = `مرحباً بك في دار أَثَر للفضة 925%0Aيسعدنا إبلاغك بتأكيد طلبك رقم: %23${order.id}%0A%0Aالعميل: ${encodeURIComponent(order.customerName)}%0Aالعنوان: ${encodeURIComponent(order.governorate)} - ${encodeURIComponent(order.address)}%0A%0Aالمنتجات المطلوبة:%0A${itemsText}%0A%0Aرسوم الشحن: ${order.shippingFee} ج.م%0Aإجمالي المبلغ المطلوب عند الاستلام: ${order.total.toLocaleString("en-US")} ج.م%0A%0Aشكراً لاختيارك دار أَثَر.`;
+    const msg = `مرحباً بك في دار أورما للفضة 925%0Aيسعدنا إبلاغك بتأكيد طلبك رقم: %23${order.id}%0A%0Aالعميل: ${encodeURIComponent(order.customerName)}%0Aالعنوان: ${encodeURIComponent(order.governorate)} - ${encodeURIComponent(order.address)}%0A%0Aالمنتجات المطلوبة:%0A${itemsText}%0A%0Aرسوم الشحن: ${order.shippingFee} ج.م%0Aإجمالي المبلغ المطلوب عند الاستلام: ${order.total.toLocaleString("en-US")} ج.م%0A%0Aشكراً لاختيارك دار أورما.`;
     let phone = order.phone.replace(/[^0-9]/g, "");
     if (phone.startsWith("0")) phone = "2" + phone;
     return `https://wa.me/${phone}?text=${msg}`;
@@ -942,7 +942,7 @@ export default function AdminPage() {
             </div>
           </div>
           <div class="footer">
-            ضمان أَثَر المعتمد على الفضة الإسترليني عيار 925 • سياسة استبدال واسترجاع مرنة خلال 14 يوماً<br>
+            ضمان أورما المعتمد على الفضة الإسترليني عيار 925 • سياسة استبدال واسترجاع مرنة خلال 14 يوماً<br>
             خدمة العملاء والدعم: 01143837730
           </div>
         </div>
@@ -954,7 +954,7 @@ export default function AdminPage() {
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="utf-8">
-        <title>طباعة بوالص الشحن المحددة (${ordersToPrint.length} طلب) - دار أَثَر</title>
+        <title>طباعة بوالص الشحن المحددة (${ordersToPrint.length} طلب) - دار أورما</title>
         <style>
           body { font-family: 'Cairo', Tahoma, sans-serif; padding: 25px; color: #161412; background: #fff; }
           .header { text-align: center; border-bottom: 2px solid #161412; padding-bottom: 12px; margin-bottom: 16px; }
@@ -3936,7 +3936,7 @@ export default function AdminPage() {
                                   );
                                   setSettingsForm({ ...settingsForm, heroSlides: updated });
                                 }}
-                                placeholder="الأَثَر لا يُهدى"
+                                placeholder="أورما: لا تُهدى بل تُترك"
                                 className="w-full bg-white border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#161412] focus:outline-none font-bold"
                               />
                             </div>
@@ -4160,7 +4160,7 @@ export default function AdminPage() {
                       rows={2}
                       value={settingsForm.heroTitle || ""}
                       onChange={(e) => setSettingsForm({ ...settingsForm, heroTitle: e.target.value })}
-                      placeholder="الأَثَر لا يُهدى&#10;بل يُترك"
+                      placeholder="أورما: لا تُهدى&#10;بل تُترك"
                       className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none focus:border-[#161412]"
                     />
                   </div>
@@ -8028,7 +8028,7 @@ export default function AdminPage() {
       {selectedOrderForDetails && (() => {
         const order = orders.find((o) => o.id === selectedOrderForDetails.id) || selectedOrderForDetails;
         const whatsappLink = `https://wa.me/20${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-          `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أَثَـر للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
+          `أهلاً بحضرتك يا ${order.customerName}، بنكلمك من متجر أورما للفضة 925 بخصوص طلبك رقم (${order.id}) بقيمة ${order.total} ج.م.`
         )}`;
 
         return (

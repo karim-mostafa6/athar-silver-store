@@ -403,7 +403,7 @@ export async function POST(request: NextRequest) {
             <table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 25px;">
               <tr>
                 <td style="text-align: center;">
-                  <a href="https://wa.me/201143837730?text=${encodeURIComponent(`أهلاً متجر أَثَر، أرغب في متابعة طلبي رقم #${orderId}`)}" style="display: inline-block; background-color: #161412; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-size: 13px; font-weight: bold; border: 1px solid #c5a880;">
+                  <a href="https://wa.me/201143837730?text=${encodeURIComponent(`أهلاً متجر أورما، أرغب في متابعة طلبي رقم #${orderId}`)}" style="display: inline-block; background-color: #161412; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-size: 13px; font-weight: bold; border: 1px solid #c5a880;">
                     متابعة الطلب مباشرة عبر واتساب المتجر
                   </a>
                 </td>

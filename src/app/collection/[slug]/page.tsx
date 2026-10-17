@@ -37,7 +37,7 @@ function CollectionPageContent() {
   // Collection metadata
   const collectionInfo = useMemo(() => {
     let base = {
-      title: "كافة روائع أَثَـر",
+      title: "كافة روائع أورما",
       englishTitle: "THE COMPLETE COLLECTION",
       subtitle: "تشكيلة الفضة الإسترليني عيار 925 الإيطالية والتركية الكاملة",
       bannerImage: "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1600&q=85",
@@ -324,7 +324,7 @@ function CollectionPageContent() {
         <div className="relative w-full h-[280px] sm:h-[380px] overflow-hidden bg-[#1c1815] select-none">
           <img
             src={collectionInfo.bannerImage}
-            alt={collectionInfo.title || "تشكيلة أَثَر"}
+            alt={collectionInfo.title || "تشكيلة أورما"}
             className="w-full h-full object-cover object-center brightness-[0.7] contrast-[1.05]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />

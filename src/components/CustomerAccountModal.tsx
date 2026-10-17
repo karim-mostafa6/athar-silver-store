@@ -431,7 +431,7 @@ export const CustomerAccountModal: React.FC<CustomerAccountModalProps> = ({
                       {/* WhatsApp Help Button */}
                       <a
                         href={`https://wa.me/${(storeSettings.whatsappNumber || "201143837730").replace(/\D/g, "")}?text=${encodeURIComponent(
-                          `مرحباً أَثَر، أود الاستفسار عن طلبي رقم ${trackedOrder.id}`
+                          `مرحباً أورما، أود الاستفسار عن طلبي رقم ${trackedOrder.id}`
                         )}`}
                         target="_blank"
                         rel="noreferrer"

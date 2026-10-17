@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================================
-echo   رفع مشروع براند فضة (ATHAR) على GitHub
+echo   رفع مشروع براند فضة (ORMA) على GitHub
 echo   المستودع: https://github.com/karim-mostafa6/athar-silver-store
 echo ========================================================
 echo.

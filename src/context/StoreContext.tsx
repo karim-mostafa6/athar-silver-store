@@ -1058,6 +1058,11 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
 
   // Background Central Server Sync (Optimized & non-blocking)
   const productSaveInFlightRef = useRef(0);
+  // Ids of orders with changes the server has not confirmed yet (queued OR being sent).
+  // Only these are sent to the server, and the periodic server refresh must not overwrite them.
+  const dirtyOrderIdsRef = useRef<Set<string>>(new Set());
+  const inflightOrderIdsRef = useRef<Set<string>>(new Set());
+  const orderPersistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const syncWithServer = useCallback((force = false) => {
     const now = Date.now();
@@ -1166,6 +1171,16 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
             // Server orders are the single source of truth
             for (const o of serverOrders) {
               if (o && o.id) orderMap.set(o.id, o);
+            }
+            // Orders the admin just changed but the server has not confirmed yet keep their local
+            // version; otherwise a refresh landing mid-save flips them back to the old status.
+            for (const o of prev) {
+              if (
+                o && o.id &&
+                (dirtyOrderIdsRef.current.has(o.id) || inflightOrderIdsRef.current.has(o.id))
+              ) {
+                orderMap.set(o.id, o);
+              }
             }
             // Retain any pending local orders not yet reflected on server
             for (const o of prev) {
@@ -1495,6 +1510,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
     if (!authHeaders["Authorization"] && !authHeaders["x-orma-admin-token"] && !authHeaders["x-athar-admin-token"]) {
       isOrderSyncingRef.current = false;
       hasPendingOrderSyncRef.current = false;
+      dirtyOrderIdsRef.current.clear();
       return;
     }
 
@@ -1503,35 +1519,61 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       return;
     }
 
+    // Send ONLY the orders that changed since the last confirmed save (not the whole list).
+    const ids = Array.from(dirtyOrderIdsRef.current);
+    const deletedArr = Array.from(getDeletedOrderIds());
+    if (ids.length === 0 && deletedArr.length === 0) {
+      hasPendingOrderSyncRef.current = false;
+      return;
+    }
+
     isOrderSyncingRef.current = true;
     hasPendingOrderSyncRef.current = false;
+    dirtyOrderIdsRef.current.clear();
+    inflightOrderIdsRef.current = new Set(ids);
 
-    const currentSnapshot = ordersRef.current;
+    const idSet = new Set(ids);
+    const changedOrders = ordersRef.current.filter((o) => o && idSet.has(o.id));
     const currentSeq = getLastOrderSeq();
-    const deletedArr = Array.from(getDeletedOrderIds());
+    let failed = false;
 
     fetch("/api/orders", {
       method: "PUT",
       headers: authHeaders,
       body: JSON.stringify({
-        orders: currentSnapshot,
+        orders: changedOrders,
         lastOrderSeq: currentSeq,
         deletedOrderIds: deletedArr,
       }),
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.updatedAt) lastServerUpdatedRef.current = data.updatedAt;
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          failed = true;
+          reportSaveFailure("الطلبات", res.status, data?.error);
+          return;
+        }
         if (data.lastOrderSeq) recordLastOrderSeq(data.lastOrderSeq);
       })
-      .catch((err) => console.warn("Could not sync orders to server:", err))
+      .catch((err) => {
+        failed = true;
+        console.warn("Could not sync orders to server:", err);
+        reportSaveFailure("الطلبات", 0);
+      })
       .finally(() => {
+        inflightOrderIdsRef.current = new Set();
         isOrderSyncingRef.current = false;
-        if (hasPendingOrderSyncRef.current) {
+        if (failed) {
+          // Show the truth instead of a phantom state the server never received.
+          dirtyOrderIdsRef.current.clear();
+          syncWithServer(true);
+          return;
+        }
+        if (hasPendingOrderSyncRef.current || dirtyOrderIdsRef.current.size > 0) {
           flushOrdersSync();
         }
       });
-  }, []);
+  }, [syncWithServer]);
 
   const scheduleOrdersSync = useCallback(
     (immediate = false) => {
@@ -1543,10 +1585,10 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
       if (immediate) {
         flushOrdersSync();
       } else {
-        // 180ms debounce coalesces concurrent status updates into a single atomic PUT
+        // Short debounce coalesces rapid-fire status changes into one small PUT
         orderSyncTimeoutRef.current = setTimeout(() => {
           flushOrdersSync();
-        }, 180);
+        }, 80);
       }
     },
     [flushOrdersSync]
@@ -1565,19 +1607,30 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
         const next = mutationFn(prev);
         ordersRef.current = next;
 
-        try {
-          localStorage.setItem("athar_orders", JSON.stringify(next));
-        } catch {}
-
-        try {
-          orderBroadcastChannelRef.current?.postMessage({
-            type: "ORDERS_UPDATE",
-            orders: next,
-          });
-        } catch {}
+        if (!skipPutSync) {
+          // Mark exactly the orders whose object changed (new or replaced) as needing a save.
+          const before = new Map(prev.map((o) => [o.id, o]));
+          for (const o of next) {
+            if (o && o.id && before.get(o.id) !== o) dirtyOrderIdsRef.current.add(o.id);
+          }
+        }
 
         return next;
       });
+
+      // Cross-tab broadcast runs after the UI has updated, never inside the state updater
+      // (localStorage is already persisted by the orders effect).
+      if (orderPersistTimerRef.current === null) {
+        orderPersistTimerRef.current = setTimeout(() => {
+          orderPersistTimerRef.current = null;
+          try {
+            orderBroadcastChannelRef.current?.postMessage({
+              type: "ORDERS_UPDATE",
+              orders: ordersRef.current,
+            });
+          } catch {}
+        }, 0);
+      }
 
       if (!skipPutSync) {
         scheduleOrdersSync(immediateSync);
