@@ -5255,6 +5255,84 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              {/* Paymob Gateway */}
+              <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
+                <div className="text-sm font-bold text-[#161412] flex items-center justify-between border-b border-[#f0e8dc] pb-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-[#c5a880]" />
+                    <span>بوابة الدفع الإلكتروني بالبطاقات (Paymob)</span>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#161412]">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.paymobEnabled || false}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobEnabled: e.target.checked })}
+                      className="rounded border-[#ded2c0] text-[#161412]"
+                    />
+                    <span>تفعيل الدفع بالفيزا / ماستركارد</span>
+                  </label>
+                </div>
+
+                <p className="text-[11px] leading-relaxed text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  تنبيه: ربط بوابة الدفع الإلكتروني لسه مش مفعّل في المتجر، البيانات هنا بتتحفظ فقط لحين تفعيل الدفع بالبطاقات لاحقاً.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      مفتاح الواجهة (Paymob API Key)
+                    </label>
+                    <input
+                      type="password"
+                      value={settingsForm.paymobApiKey || ""}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobApiKey: e.target.value })}
+                      placeholder="ZXlKaGJHY2lPaUpJVXpJMU5p..."
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      وضع التشغيل (Mode)
+                    </label>
+                    <select
+                      value={settingsForm.paymobMode || "test"}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobMode: e.target.value as "test" | "live" })}
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] focus:outline-none"
+                    >
+                      <option value="test">بيئة تجريبية (Test Sandbox)</option>
+                      <option value="live">بيئة حية للإنتاج (Live Production)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      معرف الربط (Integration ID)
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsForm.paymobIntegrationId || ""}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobIntegrationId: e.target.value })}
+                      placeholder="123456"
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#756555] mb-1.5">
+                      معرف الإطار (Iframe ID)
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsForm.paymobIframeId || ""}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, paymobIframeId: e.target.value })}
+                      placeholder="789012"
+                      className="w-full bg-[#f7f4ee] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#161412] dir-ltr focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <button
                 onClick={handleSaveSettings}
                 className="w-full py-3 rounded-xl bg-[#161412] text-[#f7f4ee] hover:bg-[#2e2925] text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
