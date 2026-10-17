@@ -37,14 +37,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
   const headlineLines = headline.split("\n");
   const hasCustomImage = Boolean(storeSettings.heroImageUrl && storeSettings.heroImageUrl.trim());
 
-  // Spotlight card: a real best-selling piece from the catalogue (read-only, no data changes).
-  const featured = products.find((p) => p.isBestSeller && p.inStock !== false) || products.find((p) => p.inStock !== false);
-
-  const stats = [
-    { value: "925", label: "فضة إسترليني أصلية" },
-    { value: String(storeSettings.returnPolicyDays || 14), label: "يوم استرجاع واستبدال" },
-    { value: "24–48", label: "ساعة توصيل للقاهرة والجيزة" },
-  ];
+  // Spotlight card: fully controllable from the dashboard (Hero tab). Without overrides it shows a best seller.
+  const pinned = storeSettings.heroSpotlightProductId
+    ? products.find((p) => p.id === storeSettings.heroSpotlightProductId)
+    : undefined;
+  const featured =
+    pinned || products.find((p) => p.isBestSeller && p.inStock !== false) || products.find((p) => p.inStock !== false);
+  const spotlightShow = storeSettings.heroSpotlightShow !== false;
+  const spotlightLabel = (storeSettings.heroSpotlightLabel || "").trim() || "الأكثر طلباً";
+  const spotlightTitle = (storeSettings.heroSpotlightTitle || "").trim() || featured?.arabicName || "";
+  const spotlightPrice =
+    (storeSettings.heroSpotlightPrice || "").trim() ||
+    (featured ? `${featured.price.toLocaleString("en-US")} ج.م` : "");
+  const spotlightLink =
+    (storeSettings.heroSpotlightLink || "").trim() || (featured ? `/product/${featured.id}` : "");
 
   const item = (i: number) => ({
     initial: reduce ? false : { opacity: 0, y: 28 },
@@ -61,7 +67,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 pt-10 pb-14 sm:pt-14 sm:pb-20 lg:py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center lg:min-h-[680px]">
         {/* Text column */}
         <div className="lg:col-span-6 text-right space-y-5 sm:space-y-7 order-2 lg:order-1">
-          <motion.div {...item(0)} className="eyebrow text-lg sm:text-xl">
+          <motion.div {...item(0)} className="eyebrow text-lg sm:text-xl text-center">
             {slogan}
           </motion.div>
 
@@ -102,18 +108,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
               </a>
             )}
           </motion.div>
-
-          <motion.dl
-            {...item(5)}
-            className="grid grid-cols-3 gap-3 sm:gap-8 pt-6 sm:pt-8 mt-2 sm:mt-4 border-t border-[#292722]/14 max-w-xl"
-          >
-            {stats.map((s) => (
-              <div key={s.label}>
-                <dt className="font-cairo text-2xl sm:text-3xl font-semibold text-[#292722] leading-none">{s.value}</dt>
-                <dd className="text-[11px] sm:text-sm text-[#5c5346] mt-2 leading-snug">{s.label}</dd>
-              </div>
-            ))}
-          </motion.dl>
         </div>
 
         {/* Arched visual column */}
@@ -142,7 +136,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
               )}
             </div>
 
-            {featured && (
+            {spotlightShow && spotlightLink && spotlightTitle && (
               <motion.div
                 initial={reduce ? false : { opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -150,12 +144,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreClick }) => {
                 className="absolute -bottom-5 right-2 sm:right-[-20px] sm:bottom-12"
               >
                 <Link
-                  href={`/product/${featured.id}`}
+                  href={spotlightLink}
                   className="animate-gentle-float block min-w-[200px] rounded-2xl bg-[#F5F0E7] border border-[#292722]/14 px-5 py-4 shadow-[0_20px_44px_-18px_rgba(41,39,34,0.35)] transition-transform hover:scale-[1.03]"
                 >
-                  <div className="text-xs text-[#8E7545] tracking-wider">الأكثر طلباً</div>
-                  <div className="font-cairo font-semibold text-sm mt-1 text-[#292722] line-clamp-1 max-w-[190px]">{featured.arabicName}</div>
-                  <div className="text-sm text-[#5c5346] mt-0.5">{featured.price.toLocaleString("en-US")} ج.م</div>
+                  <div className="text-xs text-[#8E7545] tracking-wider">{spotlightLabel}</div>
+                  <div className="font-cairo font-semibold text-sm mt-1 text-[#292722] line-clamp-1 max-w-[190px]">{spotlightTitle}</div>
+                  <div className="text-sm text-[#5c5346] mt-0.5">{spotlightPrice}</div>
                 </Link>
               </motion.div>
             )}

@@ -67,6 +67,12 @@ export interface StoreSettings {
   heroSubtitle: string;
   heroBadge: string;
   heroTagline?: string;
+  heroSpotlightShow?: boolean;
+  heroSpotlightLabel?: string;
+  heroSpotlightTitle?: string;
+  heroSpotlightPrice?: string;
+  heroSpotlightLink?: string;
+  heroSpotlightProductId?: string;
   heroButtonText: string;
   heroButtonLink?: string;
   heroButtonShow?: boolean;

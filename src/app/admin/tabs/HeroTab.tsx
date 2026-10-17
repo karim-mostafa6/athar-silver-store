@@ -3,6 +3,7 @@
 import { ImageIcon, Save, Trash2, Upload } from "lucide-react";
 import type { StoreSettings } from "@/context/StoreContext";
 import { compressImageFile } from "@/lib/adminImages";
+import { useStore } from "@/context/StoreContext";
 
 interface Props {
   settingsForm: StoreSettings;
@@ -14,8 +15,71 @@ interface Props {
 }
 
 export default function HeroTab({ settingsForm, setSettingsForm, handleSaveSettings, addToast }: Props) {
+  const { products } = useStore();
+  const inputCls = "w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-4 py-2.5 text-xs text-[#292722] focus:outline-none focus:border-[#292722]";
+  const lblCls = "block text-xs font-medium text-[#756555] mb-1.5";
   return (
     <div className="space-y-6 max-w-4xl">
+      {/* Spotlight card ("الأكثر طلباً") on the hero image */}
+      <div className="bg-white rounded-xl border border-[#e8ded0] shadow-sm p-6 space-y-4">
+        <div className="text-sm font-bold text-[#292722] border-b border-[#f0e8dc] pb-3 mb-4">
+          كارت المنتج المميز على صورة البانر (الأكثر طلباً)
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="heroSpotShow"
+            checked={settingsForm.heroSpotlightShow !== false}
+            onChange={(e) => setSettingsForm({ ...settingsForm, heroSpotlightShow: e.target.checked })}
+            className="rounded border-[#ded2c0] text-[#292722]"
+          />
+          <label htmlFor="heroSpotShow" className="text-xs font-medium text-[#292722] cursor-pointer">
+            إظهار الكارت
+          </label>
+        </div>
+        <div>
+          <label className={lblCls}>المنتج المعروض (يملأ الاسم والسعر والرابط تلقائياً)</label>
+          <select
+            value={settingsForm.heroSpotlightProductId || ""}
+            onChange={(e) => setSettingsForm({ ...settingsForm, heroSpotlightProductId: e.target.value })}
+            className={inputCls}
+          >
+            <option value="">تلقائي (أكثر منتج مبيعاً)</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.arabicName} {p.sku ? `(${p.sku})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={lblCls}>النص الصغير فوق (افتراضي: الأكثر طلباً)</label>
+            <input type="text" value={settingsForm.heroSpotlightLabel || ""} onChange={(e) => setSettingsForm({ ...settingsForm, heroSpotlightLabel: e.target.value })} placeholder="الأكثر طلباً" className={inputCls} />
+          </div>
+          <div>
+            <label className={lblCls}>العنوان (فاضي = اسم المنتج)</label>
+            <input type="text" value={settingsForm.heroSpotlightTitle || ""} onChange={(e) => setSettingsForm({ ...settingsForm, heroSpotlightTitle: e.target.value })} className={inputCls} />
+          </div>
+          <div>
+            <label className={lblCls}>السعر أو النص السفلي (فاضي = سعر المنتج)</label>
+            <input type="text" value={settingsForm.heroSpotlightPrice || ""} onChange={(e) => setSettingsForm({ ...settingsForm, heroSpotlightPrice: e.target.value })} placeholder="1,250 ج.م" className={inputCls} />
+          </div>
+          <div>
+            <label className={lblCls}>الرابط عند الضغط (فاضي = صفحة المنتج)</label>
+            <input type="text" value={settingsForm.heroSpotlightLink || ""} onChange={(e) => setSettingsForm({ ...settingsForm, heroSpotlightLink: e.target.value })} placeholder="/collection/rings" className={`${inputCls} dir-ltr`} />
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleSaveSettings}
+          className="inline-flex items-center gap-2 bg-[#292722] text-[#F5F0E7] rounded-lg px-5 py-2.5 text-xs font-bold hover:bg-[#3a352d]"
+        >
+          <Save className="w-4 h-4" />
+          <span>حفظ</span>
+        </button>
+      </div>
+
       {/* ===============================================
           SINGLE CLASSIC HERO BANNER FALLBACK
           =============================================== */}
