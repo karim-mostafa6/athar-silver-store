@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Ruler, Check, Circle, Scissors, MoveHorizontal, Lightbulb } from "lucide-react";
+import { X, Ruler, Check, Circle, Scissors, Lightbulb, ChevronDown, ImageIcon } from "lucide-react";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { OrmaLogo } from "./OrmaLogo";
+import { IllustrationPrepare, IllustrationWrap, IllustrationRead } from "./RingMeasureIllustrations";
 
 // Egyptian rulers are in cm, so everything the customer sees or types is in cm.
 const toLatinNumber = (raw: string) =>
@@ -30,11 +31,10 @@ const sizeTable = [
 ];
 
 type Tab = "calc" | "table" | "how";
-type Mode = "circ" | "diam";
 
 export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, onClose }) => {
   const [tab, setTab] = useState<Tab>("calc");
-  const [mode, setMode] = useState<Mode>("circ");
+  const [openStep, setOpenStep] = useState<number | null>(0);
   const [value, setValue] = useState("");
   const [result, setResult] = useState<(typeof sizeTable)[number] | null>(null);
 
@@ -55,7 +55,7 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
     const cm = toLatinNumber(value);
     if (!cm || isNaN(cm)) return;
     const val = cm * 10; // table is stored in mm
-    const key = mode === "circ" ? "mmCircumference" : "mmDiameter";
+    const key = "mmCircumference" as const;
     let closest = sizeTable[0];
     for (const row of sizeTable) {
       if (Math.abs(val - row[key]) < Math.abs(val - closest[key])) closest = row;
@@ -127,34 +127,9 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
           {/* ───────── Calculator ───────── */}
           {tab === "calc" && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: "circ" as Mode, label: "محيط الإصبع", sub: "قياس بالخيط ثم المسطرة", Icon: MoveHorizontal },
-                  { id: "diam" as Mode, label: "قطر خاتم عندك", sub: "القطر الداخلي بالسنتيمتر", Icon: Circle },
-                ].map(({ id, label, sub, Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => {
-                      setMode(id);
-                      setResult(null);
-                      setValue("");
-                    }}
-                    className={`text-right p-3 rounded-2xl border transition-all active:scale-[0.98] ${
-                      mode === id
-                        ? "bg-white border-[#8E7545] shadow-sm ring-1 ring-[#8E7545]/30"
-                        : "bg-white/50 border-[#292722]/12 hover:bg-white"
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 mb-1.5 ${mode === id ? "text-[#8E7545]" : "text-[#292722]/45"}`} />
-                    <div className="text-[13px] font-bold">{label}</div>
-                    <div className="text-[11px] text-[#292722]/55">{sub}</div>
-                  </button>
-                ))}
-              </div>
-
               <form onSubmit={handleCalculate} className="space-y-3">
                 <p className="text-[12px] text-[#292722]/60 -mb-1">
-                  اكتبي الرقم بالسنتيمتر زي ما بتقرأيه من المسطرة، مثلاً <b className="text-[#292722]">5.4</b> يعني 5 سم و4 مم.
+                  اكتبي محيط إصبعك بالسنتيمتر زي ما بتقرأيه من المسطرة، مثلاً <b className="text-[#292722]">5.4</b> يعني 5 سم و4 مم.
                 </p>
                 <div className="relative">
                   <input
@@ -163,7 +138,7 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
                     dir="ltr"
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    placeholder={mode === "circ" ? "مثال: 5.4" : "مثال: 1.7"}
+                    placeholder="مثال: 5.4"
                     className="w-full bg-white border border-[#292722]/15 rounded-2xl py-3.5 pl-4 pr-14 text-lg text-left font-bold text-[#292722] placeholder:text-[#292722]/30 placeholder:font-normal focus:outline-none focus:border-[#8E7545] focus:ring-2 focus:ring-[#8E7545]/20"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8E7545]">سم</span>
@@ -175,6 +150,15 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
                   احسبي مقاسي
                 </button>
               </form>
+
+              <button
+                type="button"
+                onClick={() => setTab("how")}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-[#8E7545]/60 text-[13px] font-bold text-[#8E7545] hover:bg-white/60 transition-colors"
+              >
+                <ImageIcon className="w-4 h-4" />
+                مش عارفة تقيسي؟ شوفي الطريقة بالصور
+              </button>
 
               {result && (
                 <div className="rounded-2xl bg-gradient-to-br from-[#292722] to-[#3b362e] text-[#F5F0E7] p-5 text-center shadow-lg animate-pop">
@@ -224,14 +208,13 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
                       <div className="text-[11px] text-[#292722]/60 truncate">{row.note}</div>
                     </div>
                     <div className="text-left shrink-0 font-mono text-[11px] leading-5 text-[#292722]/75" dir="ltr">
-                      <div>Ø {(row.mmDiameter / 10).toFixed(2)} سم</div>
-                      <div>⟲ {(row.mmCircumference / 10).toFixed(2)} سم</div>
+                      <div>{(row.mmCircumference / 10).toFixed(2)} سم</div>
                     </div>
                   </li>
                 );
               })}
               <li className="text-[11px] text-[#292722]/55 text-center pt-1" dir="rtl">
-                Ø القطر الداخلي · ⟲ محيط الإصبع
+                الرقم المعروض هو محيط الإصبع بالسنتيمتر
               </li>
             </ul>
           )}
@@ -240,23 +223,43 @@ export const RingSizeGuideModal: React.FC<RingSizeGuideModalProps> = ({ isOpen, 
           {tab === "how" && (
             <div className="space-y-3">
               {[
-                { Icon: Scissors, t: "جهّزي خيطاً أو شريطاً ورقياً", d: "قصّي شريطاً رفيعاً غير قابل للتمدد (خيط أو شريط ورقي)، وجهّزي مسطرة عادية بالسنتيمتر." },
-                { Icon: Circle, t: "لفّيه حول قاعدة الإصبع", d: "حول الإصبع الذي سترتدين فيه الخاتم، وعلّمي مكان التقاء الطرفين بالقلم." },
-                { Icon: Ruler, t: "قيسي الطول بالمسطرة", d: "هذا هو محيط إصبعك بالسنتيمتر (مثلاً 5.4 سم). اكتبيه في «احسب مقاسي» أو طابقيه مع الجدول." },
-              ].map(({ Icon, t, d }, i) => (
-                <div key={i} className="flex gap-3.5 p-3.5 rounded-2xl bg-white/80 border border-[#292722]/10">
-                  <div className="w-10 h-10 rounded-full bg-[#292722] text-[#B7A078] flex items-center justify-center shrink-0 relative">
-                    <Icon className="w-4 h-4" />
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#8E7545] text-white text-[9px] font-black flex items-center justify-center">
-                      {i + 1}
-                    </span>
+                { Icon: Scissors, t: "جهّزي خيطاً أو شريطاً ورقياً", d: "قصّي شريطاً رفيعاً غير قابل للتمدد (خيط أو شريط ورقي)، وجهّزي مسطرة عادية بالسنتيمتر.", Img: IllustrationPrepare },
+                { Icon: Circle, t: "لفّيه حول قاعدة الإصبع", d: "حول الإصبع الذي سترتدين فيه الخاتم، وعلّمي مكان التقاء الطرفين بالقلم.", Img: IllustrationWrap },
+                { Icon: Ruler, t: "قيسي الطول بالمسطرة", d: "هذا هو محيط إصبعك بالسنتيمتر (مثلاً 5.4 سم). اكتبيه في «احسب مقاسي» أو طابقيه مع الجدول.", Img: IllustrationRead },
+              ].map(({ Icon, t, d, Img }, i) => {
+                const open = openStep === i;
+                return (
+                  <div key={i} className="rounded-2xl bg-white/80 border border-[#292722]/10 overflow-hidden">
+                    <div className="flex gap-3.5 p-3.5">
+                      <div className="w-10 h-10 rounded-full bg-[#292722] text-[#B7A078] flex items-center justify-center shrink-0 relative">
+                        <Icon className="w-4 h-4" />
+                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#8E7545] text-white text-[9px] font-black flex items-center justify-center">
+                          {i + 1}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-bold">{t}</div>
+                        <div className="text-[12px] text-[#292722]/65 leading-relaxed mt-0.5">{d}</div>
+                        <button
+                          type="button"
+                          onClick={() => setOpenStep(open ? null : i)}
+                          aria-expanded={open}
+                          className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold text-[#8E7545] active:scale-95 transition-transform py-1"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          {open ? "إخفاء الصورة" : "شوف الصورة"}
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+                        </button>
+                      </div>
+                    </div>
+                    {open && (
+                      <div className="px-3.5 pb-3.5 animate-fadeIn">
+                        <Img />
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <div className="text-[13px] font-bold">{t}</div>
-                    <div className="text-[12px] text-[#292722]/65 leading-relaxed mt-0.5">{d}</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               <div className="flex gap-2.5 p-3.5 rounded-2xl bg-[#D8C8B3]/45 border border-[#B7A078]/50 text-[12px] leading-relaxed">
                 <Lightbulb className="w-4 h-4 text-[#8E7545] shrink-0 mt-0.5" />
                 <span>
