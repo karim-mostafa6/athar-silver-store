@@ -841,6 +841,7 @@ export default function AdminPage() {
       gender: prod.gender,
       price: prod.price,
       originalPrice: prod.originalPrice,
+      costPrice: prod.costPrice,
       purity: prod.purity,
       images: prod.images && prod.images.length > 0 ? prod.images : [""],
       description: prod.description || "",
@@ -1898,7 +1899,7 @@ export default function AdminPage() {
           {/* ========================================================
               TAB: ANALYTICS & REPORTS (التقارير والإحصائيات)
               ======================================================== */}
-          {activeTab === "analytics" && canViewOrders && <AnalyticsTab orders={orders} orderMetrics={orderMetrics} />}
+          {activeTab === "analytics" && canViewOrders && <AnalyticsTab orders={orders} orderMetrics={orderMetrics} products={products} />}
 
           {/* ========================================================
               TAB 2: PRODUCTS
@@ -2399,6 +2400,17 @@ export default function AdminPage() {
                     value={productForm.originalPrice || ""}
                     onChange={(e) => setProductForm({ ...productForm, originalPrice: Number(e.target.value) || undefined })}
                     placeholder="1550"
+                    className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-[#756555] mb-1">سعر التكلفة (ج.م) — لحساب هامش الربح</label>
+                  <input
+                    type="number"
+                    value={productForm.costPrice || ""}
+                    onChange={(e) => setProductForm({ ...productForm, costPrice: e.target.value === "" ? 0 : Number(e.target.value) })}
+                    placeholder="مثال: 600 (يظهر لك فقط)"
                     className="w-full bg-[#F5F0E7] border border-[#ded2c0] rounded-lg px-3 py-2 text-xs text-[#292722] focus:outline-none"
                   />
                 </div>

@@ -14,6 +14,7 @@ import { Toast } from "@/components/Toast";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import { Footer } from "@/components/Footer";
 import { MobileSafariCacheBuster } from "@/components/MobileSafariCacheBuster";
+import { initTracking } from "@/lib/clientTracking";
 
 const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const store = useStore();
@@ -21,6 +22,13 @@ const ShellInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const isAdmin = pathname?.startsWith("/admin");
   const isCheckout = pathname === "/checkout" || pathname === "/cart";
+
+  // Anonymous first-party visit source + funnel "view" event (skipped in the dashboard and its live preview)
+  React.useEffect(() => {
+    if (isAdmin) return;
+    if (typeof window !== "undefined" && window.self !== window.top) return;
+    initTracking();
+  }, [isAdmin]);
 
   // Auto-scroll listener for Shopify Live Split Preview
   React.useEffect(() => {

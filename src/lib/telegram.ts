@@ -69,8 +69,12 @@ export function formatOrderInvoiceTelegramMessage(order: Order): string {
     paymentLine = `\n💳 طريقة الدفع: بطاقة بنكية`;
   }
 
+  const reviewLine = order.needsReview
+    ? `\n⚠️ يحتاج مراجعة: ${order.reviewReasons || "راجع بيانات الطلب"}\n`
+    : "";
+
   return `🟢🟢 طلب جديد | ${orderNum} 🟢🟢
-📅 ${dateStr}
+📅 ${dateStr}${reviewLine}
 
 👤 العميل: ${order.customerName}
 📞 الهاتف: ${order.phone}

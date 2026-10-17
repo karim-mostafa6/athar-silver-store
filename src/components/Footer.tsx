@@ -63,6 +63,7 @@ export const Footer: React.FC<FooterProps> = () => {
             <Link href="/collection/women" className="py-2 hover:text-[#F5F0E7] transition-colors">تشكيلة نسائية</Link>
             <Link href="/collection/men" className="py-2 hover:text-[#F5F0E7] transition-colors">تشكيلة رجالية</Link>
             <Link href="/collection/all" className="py-2 hover:text-[#F5F0E7] transition-colors">كل القطع</Link>
+            <Link href="/track" className="py-2 hover:text-[#F5F0E7] transition-colors">تتبّع طلبك</Link>
           </nav>
 
           {/* Help */}

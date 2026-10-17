@@ -73,7 +73,8 @@ export function mapModelProductToDb(p: Product): Record<string, unknown> {
     purity: p.purity || "فضة إسترليني عيار 925 معتمدة",
     price: p.price,
     original_price: p.originalPrice || null,
-    cost_price: p.costPrice || null,
+    // cost_price is private: omit when unknown (e.g. public snapshot without it) so it is never wiped; 0 = clear
+    ...(p.costPrice === undefined ? {} : { cost_price: p.costPrice > 0 ? p.costPrice : null }),
     sku: p.sku || null,
     stock_quantity: p.stockQuantity ?? null,
     stone_type: p.stoneType || null,
@@ -125,6 +126,12 @@ export function mapDbOrderToModel(row: Record<string, unknown>): Order {
     cancellationReason: row.cancellation_reason ? String(row.cancellation_reason) : undefined,
     cancelledAt: row.cancelled_at ? String(row.cancelled_at) : undefined,
     createdAt: row.created_at ? String(row.created_at) : new Date().toISOString(),
+    source: row.source ? String(row.source) : undefined,
+    waStatus: row.wa_status ? (String(row.wa_status) as Order["waStatus"]) : undefined,
+    waSentAt: row.wa_sent_at ? String(row.wa_sent_at) : undefined,
+    waError: row.wa_error ? String(row.wa_error) : undefined,
+    needsReview: Boolean(row.needs_review),
+    reviewReasons: row.review_reasons ? String(row.review_reasons) : undefined,
   };
 }
 
@@ -158,6 +165,12 @@ export function mapModelOrderToDb(o: Order): Record<string, unknown> {
     cancellation_reason: o.cancellationReason || null,
     cancelled_at: o.cancelledAt || null,
     created_at: o.createdAt || new Date().toISOString(),
+    source: o.source || null,
+    // NOTE: wa_status / wa_sent_at / wa_error are intentionally NOT written here.
+    // They are owned by the WhatsApp dispatcher (patchOrderFields) so a stale admin
+    // client can never revert "sent" back to "pending" and trigger a duplicate message.
+    needs_review: Boolean(o.needsReview),
+    review_reasons: o.reviewReasons || null,
   };
 }
 
@@ -260,6 +273,13 @@ export async function getCatalogVersion(): Promise<string> {
  * Storefront snapshot: products + settings only (no orders / customers), straight from the
  * database on every call. Used by the server-rendered layout on each request.
  */
+/** Cost price is private business data: never ship it to visitors. */
+export function toPublicProduct(p: Product): Product {
+  const { costPrice, ...rest } = p;
+  void costPrice;
+  return rest as Product;
+}
+
 export async function getPublicStoreSnapshot(): Promise<{ products: Product[]; settings: Partial<StoreSettings>; updatedAt: string }> {
   if (isSupabaseConfigured()) {
     try {
@@ -273,7 +293,7 @@ export async function getPublicStoreSnapshot(): Promise<{ products: Product[]; s
       const rows = (productsRes.data || []) as Array<Record<string, unknown>>;
       if (rows.length > 0 && settingsRes.data && settingsRes.data.settings) {
         return {
-          products: rows.map(mapDbProductToModel),
+          products: rows.map(mapDbProductToModel).map(toPublicProduct),
           settings: settingsRes.data.settings as Partial<StoreSettings>,
           updatedAt:
             maxIsoDate([
@@ -287,7 +307,7 @@ export async function getPublicStoreSnapshot(): Promise<{ products: Product[]; s
     }
   }
   const full = await getServerStoreData();
-  return { products: full.products, settings: full.settings, updatedAt: full.updatedAt };
+  return { products: full.products.map(toPublicProduct), settings: full.settings, updatedAt: full.updatedAt };
 }
 
 // One read per request: the root layout and page-level metadata share the same snapshot.
@@ -800,5 +820,37 @@ export async function updateOrderStatusOnServer(
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : "Error updating order status";
     return { success: false, error: errorMsg };
+  }
+}
+
+
+// ----------------------------------------------------
+// Targeted order field patch (does not touch other columns / other orders)
+// ----------------------------------------------------
+export async function patchOrderFields(
+  orderId: string,
+  fields: Partial<Pick<Order, "waStatus" | "waSentAt" | "waError" | "needsReview" | "reviewReasons" | "adminNotes" | "source">>
+): Promise<boolean> {
+  try {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdminClient();
+      const row: Record<string, unknown> = {};
+      if (fields.waStatus !== undefined) row.wa_status = fields.waStatus;
+      if (fields.waSentAt !== undefined) row.wa_sent_at = fields.waSentAt;
+      if (fields.waError !== undefined) row.wa_error = fields.waError;
+      if (fields.needsReview !== undefined) row.needs_review = fields.needsReview;
+      if (fields.reviewReasons !== undefined) row.review_reasons = fields.reviewReasons;
+      if (fields.adminNotes !== undefined) row.admin_notes = fields.adminNotes;
+      if (fields.source !== undefined) row.source = fields.source;
+      const { error } = await supabase.from("orders").update(row).eq("id", orderId);
+      return !error;
+    }
+    const current = await getServerStoreData();
+    const existing = current.orders.find((o) => o.id === orderId);
+    if (!existing) return false;
+    await saveServerStoreData({ orders: [{ ...existing, ...fields }] });
+    return true;
+  } catch {
+    return false;
   }
 }

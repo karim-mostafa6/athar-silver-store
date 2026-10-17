@@ -1,5 +1,7 @@
 "use client";
 
+import { trackEvent } from "@/lib/clientTracking";
+
 import React, { createContext, useContext, useState, useEffect, useMemo, useRef, useCallback, ReactNode } from "react";
 import { Product, CartItem, PRODUCTS, StoreCategory, DEFAULT_CATEGORIES, CustomPage, DEFAULT_CUSTOM_PAGES } from "@/data/products";
 import { ToastMessage } from "@/components/Toast";
@@ -162,6 +164,9 @@ export interface StoreSettings {
   // Standalone Shopify-Style Checkout Customizer
   checkoutHeaderTitle?: string;
   checkoutShippingMethodTitle?: string;
+  waTemplateName?: string;
+  waTemplateLang?: string;
+  highValueReviewThreshold?: number;
   checkoutSecurityBadgeText?: string;
   checkoutEnableCOD?: boolean;
   checkoutEnableWallets?: boolean;
@@ -306,6 +311,7 @@ export interface OrderItem {
   price: number;
   selectedSize?: string;
   image?: string;
+  costPrice?: number; // snapshot of the product cost at order time (for profit margin)
 }
 
 export interface Order {
@@ -344,6 +350,12 @@ export interface Order {
   whatsappConfirmed?: boolean;
   whatsappConfirmedAt?: string;
   whatsappCancellation?: boolean;
+  source?: string; // instagram | tiktok | facebook | google | whatsapp | direct | other
+  waStatus?: "pending" | "sending" | "sent" | "failed" | "not_configured";
+  waSentAt?: string;
+  waError?: string;
+  needsReview?: boolean;
+  reviewReasons?: string;
 }
 
 interface StoreContextType {
@@ -363,7 +375,7 @@ interface StoreContextType {
   orders: Order[];
   refreshOrders: () => Promise<void>;
   addOrder: (orderData: Omit<Order, "id" | "createdAt" | "status">, skipApiPost?: boolean) => string;
-  submitOrder: (orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string }) => Promise<{ success: boolean; orderId?: string; error?: string }>;
+  submitOrder: (orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string; sid?: string }) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrder: (orderId: string, updates: Partial<Order>) => void;
   bulkUpdateOrderStatus: (orderIds: string[], status: Order["status"]) => void;
   updateOrderStatus: (orderId: string, status: Order["status"], cancellationReason?: string) => void;
@@ -1903,7 +1915,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
   };
 
   const submitOrder = async (
-    orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string }
+    orderData: Omit<Order, "id" | "createdAt" | "status"> & { promoCode?: string; honeypot?: string; sid?: string }
   ): Promise<{ success: boolean; orderId?: string; error?: string }> => {
     try {
       const res = await fetch("/api/orders", {
@@ -2088,6 +2100,7 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
 
   // Cart operations
   const addToCart = (product: Product, size?: string, quantity: number = 1) => {
+    trackEvent("add_to_cart");
     setCartItems((prev) => {
       const existing = prev.find(
         (item) => item.product.id === product.id && item.selectedSize === size

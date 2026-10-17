@@ -1,442 +1,348 @@
 import { Order } from "@/context/StoreContext";
-import { getServerStoreData, saveServerStoreData } from "./serverStore";
+import { getServerStoreData, patchOrderFields } from "./serverStore";
+import { getSupabaseAdminClient, isSupabaseConfigured } from "./supabase";
 
-/**
- * Clean and normalize Egyptian phone numbers to international WhatsApp format (201XXXXXXXXX)
- */
+/** Clean and normalize Egyptian phone numbers to international WhatsApp format (201XXXXXXXXX) */
 export function normalizeEgyptianPhone(phone: string): string {
   if (!phone) return "";
   let cleaned = phone.replace(/[^0-9]/g, "");
-  if (cleaned.startsWith("002")) {
-    cleaned = cleaned.substring(3);
-  }
-  if (cleaned.startsWith("20")) {
-    return cleaned;
-  }
-  if (cleaned.startsWith("01")) {
-    return "2" + cleaned;
-  }
-  if (cleaned.startsWith("1") && cleaned.length === 10) {
-    return "20" + cleaned;
-  }
+  if (cleaned.startsWith("002")) cleaned = cleaned.substring(3);
+  if (cleaned.startsWith("20")) return cleaned;
+  if (cleaned.startsWith("01")) return "2" + cleaned;
+  if (cleaned.startsWith("1") && cleaned.length === 10) return "20" + cleaned;
   return cleaned;
 }
 
-/**
- * Build professional, luxury Arabic WhatsApp confirmation message
- */
-export function formatWhatsAppOrderMessage(
-  order: Order,
-  origin: string = "https://orma-silver.vercel.app"
-): string {
-  const customerName = order.customerName ? order.customerName.trim() : "عميلنا المميز";
-  const orderNum = order.id.startsWith("#") ? order.id : `#${order.id}`;
+const SITE = () => process.env.NEXT_PUBLIC_SITE_URL || "https://orma-silver.vercel.app";
 
-  let itemsText = "";
-  if (Array.isArray(order.items) && order.items.length > 0) {
-    itemsText = order.items
-      .map((item, idx) => {
-        const sizePart = item.selectedSize ? ` (مقاس: ${item.selectedSize})` : "";
-        const priceTotal = (Number(item.price) || 0) * (Number(item.quantity) || 1);
-        return `  ${idx + 1}. *${item.arabicName || item.name}*${sizePart} × ${item.quantity} = ${priceTotal.toLocaleString("ar-EG")} ج.م`;
-      })
-      .join("\n");
-  } else {
-    itemsText = "  • تشكيلة مصوغات فضة إسترليني عيار 925 معتمدة";
-  }
-
-  const shippingText =
-    order.shippingFee === 0
-      ? "شحن مجاني 🎁"
-      : `${Number(order.shippingFee || 0).toLocaleString("ar-EG")} ج.م شحن`;
-
-  const discountText =
-    order.discount && order.discount > 0
-      ? ` | خصم: -${Number(order.discount).toLocaleString("ar-EG")} ج.م`
-      : "";
-
-  const totalFormatted = Number(order.total || 0).toLocaleString("ar-EG");
-
-  const paymentLabel =
-    order.paymentMethod === "wallet"
-      ? `محفظة إلكترونية (إنستاباي / فودافون كاش)${order.senderWalletNumber ? ` - رقم المحوّل: ${order.senderWalletNumber}` : ""}`
-      : order.paymentMethod === "card"
-      ? "بطاقة دفع بنكية (Paymob)"
-      : "الدفع نقداً عند الاستلام (COD)";
-
-  const giftNote = order.isGift
-    ? `\n🎁 *تغليف إهداء فاخر:* ${order.giftMessage ? `"${order.giftMessage}"` : "مطلوب تغليف ملكي مجاني"}`
-    : "";
-
-  const notesText = order.notes ? `\n📝 *ملاحظاتك:* ${order.notes}` : "";
-
-  const cleanId = order.id.replace(/^#/, "");
-  const portalUrl = `${origin}/confirm-order?id=${encodeURIComponent(cleanId)}`;
-
-  return `👑 *دار أورما للفضة الإسترليني 925* 👑
-✨ *تأكيد استلام وتجهيز طلبك* ✨
-
-أهلاً بك يا ${customerName}،
-سعداء باختيارك لـ دار أورما للفضة الإيطالية والتركية الأصلية! 💎
-
-📋 *بيانات الطلب:*
-▫️ رقم الطلب: *${orderNum}*
-▫️ حالة الطلب: *قيد التجهيز والتغليف الفاخر 📦*
-
-🛍️ *تفاصيل القطع المختارة:*
-${itemsText}
-
-💰 *الإجمالي للدفع:* *${totalFormatted} ج.م* (شامل ${shippingText}${discountText})
-📍 *عنوان التوصيل:* ${order.governorate} - ${order.address}
-💳 *طريقة الدفع:* ${paymentLabel}${giftNote}${notesText}
-
-🚚 *موعد الشحن والتسليم:*
-طلبك قيد التجهيز والتغليف الملكي الآن، وسيتواصل معك مندوب شركة الشحن خلال 24 - 48 ساعة لتسليمك الشحنة بأمان ومعاينة القطع قبل الاستلام.
-
-🔗 *بوابة متابعة وتفاصيل طلبك:*
-${portalUrl}
-
-شكراً لثقتك الغالية في دار أورما ✨
-📞 خدمة العملاء والدعم: 01143837730`;
+function paymentLabelOf(order: Order): string {
+  return order.paymentMethod === "wallet"
+    ? "محفظة إلكترونية (إنستاباي / فودافون كاش)"
+    : order.paymentMethod === "card"
+    ? "بطاقة دفع بنكية"
+    : "الدفع عند الاستلام";
 }
 
-/**
- * Dispatches WhatsApp message directly via configured provider or smart simulation
- */
+export function trackUrlFor(order: Pick<Order, "id">, origin?: string): string {
+  const clean = order.id.replace(/^#/, "");
+  return `${origin || SITE()}/track?id=${encodeURIComponent(clean)}`;
+}
+
+/** Friendly, short Arabic confirmation (free-text). The "silence = approval" policy. */
+export function formatWhatsAppOrderMessage(order: Order, origin: string = SITE()): string {
+  const name = (order.customerName || "").trim().split(/\s+/)[0] || "عميلنا";
+  const num = order.id.startsWith("#") ? order.id : `#${order.id}`;
+  const items =
+    Array.isArray(order.items) && order.items.length > 0
+      ? order.items
+          .map((i) => `• ${i.arabicName || i.name}${i.selectedSize ? ` (مقاس ${i.selectedSize})` : ""} × ${i.quantity}`)
+          .join("\n")
+      : "• قطع فضة إسترليني 925";
+  const ship = Number(order.shippingFee || 0) === 0 ? "الشحن مجاني" : `الشحن ${Number(order.shippingFee).toLocaleString("en-US")} ج.م`;
+
+  return `أهلاً ${name} 🤍
+وصلنا طلبك رقم *${num}* من *أورما* وبنجهّزه دلوقتي ✨
+
+🛍️ *القطع:*
+${items}
+
+💰 *الإجمالي:* ${Number(order.total || 0).toLocaleString("en-US")} ج.م (${ship})
+📍 *التوصيل:* ${order.governorate} - ${order.address}
+💳 *الدفع:* ${paymentLabelOf(order)}
+
+🚚 هيوصلك خلال 2–4 أيام عمل، ومندوب الشحن هيتصل بيك قبل التسليم.
+لو في أي تعديل في العنوان أو المقاس، رد على الرسالة دي 🤍
+
+تابع طلبك: ${trackUrlFor(order, origin)}
+
+أورما | Not Given, But Left`;
+}
+
+// ---------------------------------------------------------------------------------
+// Provider resolution (accepts the env names already used on Vercel: META_*)
+// ---------------------------------------------------------------------------------
+type Provider =
+  | { kind: "ultramsg"; instance: string; token: string }
+  | { kind: "greenapi"; instance: string; token: string }
+  | { kind: "cloud"; phoneId: string; token: string };
+
+const env = (...names: string[]) => {
+  for (const n of names) {
+    const v = process.env[n];
+    if (v && v.trim()) return v.trim().replace(/^["']|["']$/g, "");
+  }
+  return "";
+};
+
+export function resolveProvider(): Provider | null {
+  const ui = env("ULTRAMSG_INSTANCE_ID");
+  const ut = env("ULTRAMSG_TOKEN");
+  if (ui && ut) return { kind: "ultramsg", instance: ui, token: ut };
+  const gi = env("GREENAPI_INSTANCE_ID");
+  const gt = env("GREENAPI_TOKEN");
+  if (gi && gt) return { kind: "greenapi", instance: gi, token: gt };
+  const cp = env("WHATSAPP_CLOUD_PHONE_ID", "META_PHONE_NUMBER_ID");
+  const ct = env("WHATSAPP_CLOUD_TOKEN", "META_WHATSAPP_TOKEN");
+  if (cp && ct) return { kind: "cloud", phoneId: cp, token: ct };
+  return null;
+}
+
+export function providerSummary() {
+  const p = resolveProvider();
+  return p ? p.kind : "none";
+}
+
+export interface WaSendResult {
+  ok: boolean;
+  provider: string;
+  messageId?: string;
+  error?: string;
+  notConfigured?: boolean;
+}
+
+function explainMetaError(code?: number, msg?: string): string {
+  switch (code) {
+    case 190:
+      return "توكن ميتا (META_WHATSAPP_TOKEN) منتهي أو غلط. اعمل توكن دائم من System User في Meta Business.";
+    case 131047:
+    case 131051:
+      return "واتساب بيمنع الرسالة الحرة لعميل جديد (برا نافذة 24 ساعة). لازم قالب رسالة معتمد: اكتب اسمه في الداشبورد.";
+    case 132001:
+      return "اسم القالب أو لغته مش موجودين/غير معتمدين في Meta.";
+    case 132000:
+    case 132005:
+    case 132012:
+      return "عدد/شكل متغيرات القالب مش مطابق للقالب المعتمد.";
+    case 131030:
+      return "الرقم مش في قائمة الأرقام المسموحة (حساب تجريبي). ضيف الرقم أو فعّل الحساب الرسمي.";
+    case 131026:
+      return "الرقم ده مش على واتساب أو مش بيستقبل رسايل.";
+    case 130429:
+    case 131048:
+      return "تجاوزت حد الرسائل المسموح مؤقتاً.";
+    default:
+      return msg || "خطأ غير معروف من واتساب";
+  }
+}
+
+async function getTemplateConfig(): Promise<{ name: string; lang: string }> {
+  let name = env("WHATSAPP_TEMPLATE_NAME");
+  let lang = env("WHATSAPP_TEMPLATE_LANG");
+  try {
+    const data = await getServerStoreData();
+    const s = (data.settings || {}) as { waTemplateName?: string; waTemplateLang?: string };
+    if (s.waTemplateName && s.waTemplateName.trim()) name = s.waTemplateName.trim();
+    if (s.waTemplateLang && s.waTemplateLang.trim()) lang = s.waTemplateLang.trim();
+  } catch {}
+  return { name, lang: lang || "ar" };
+}
+
+/** Low-level send. `template` params are used for Meta Cloud when a template name is configured. */
+export async function sendWhatsAppRaw(
+  phone: string,
+  text: string,
+  templateParams?: string[]
+): Promise<WaSendResult> {
+  const to = normalizeEgyptianPhone(phone);
+  if (!to) return { ok: false, provider: "none", error: "رقم الهاتف غير صالح" };
+  const provider = resolveProvider();
+  if (!provider) {
+    return {
+      ok: false,
+      provider: "none",
+      notConfigured: true,
+      error: "واتساب غير مفعّل: مفيش بيانات ربط (META_WHATSAPP_TOKEN و META_PHONE_NUMBER_ID أو UltraMsg/Green-API).",
+    };
+  }
+
+  try {
+    if (provider.kind === "ultramsg") {
+      const res = await fetch(`https://api.ultramsg.com/${provider.instance}/messages/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ token: provider.token, to: `+${to}`, body: text }),
+      });
+      const data = (await res.json().catch(() => null)) as { sent?: string | boolean; id?: string; error?: string } | null;
+      const sent = data && (data.sent === "true" || data.sent === true);
+      return sent
+        ? { ok: true, provider: "ultramsg", messageId: String(data?.id || "") }
+        : { ok: false, provider: "ultramsg", error: data?.error || `UltraMsg HTTP ${res.status}` };
+    }
+
+    if (provider.kind === "greenapi") {
+      const res = await fetch(
+        `https://api.green-api.com/waInstance${provider.instance}/sendMessage/${provider.token}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chatId: `${to}@c.us`, message: text }),
+        }
+      );
+      const data = (await res.json().catch(() => null)) as { idMessage?: string; message?: string } | null;
+      return res.ok && data?.idMessage
+        ? { ok: true, provider: "greenapi", messageId: data.idMessage }
+        : { ok: false, provider: "greenapi", error: data?.message || `Green-API HTTP ${res.status}` };
+    }
+
+    // Meta WhatsApp Cloud API
+    const tpl = await getTemplateConfig();
+    const useTemplate = Boolean(tpl.name && templateParams && templateParams.length > 0);
+    const payload = useTemplate
+      ? {
+          messaging_product: "whatsapp",
+          to,
+          type: "template",
+          template: {
+            name: tpl.name,
+            language: { code: tpl.lang },
+            components: [
+              { type: "body", parameters: (templateParams as string[]).map((t) => ({ type: "text", text: t })) },
+            ],
+          },
+        }
+      : { messaging_product: "whatsapp", to, type: "text", text: { body: text, preview_url: true } };
+
+    const res = await fetch(`https://graph.facebook.com/v21.0/${provider.phoneId}/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${provider.token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = (await res.json().catch(() => null)) as {
+      messages?: { id?: string }[];
+      error?: { code?: number; message?: string; error_data?: { details?: string } };
+    } | null;
+    const id = data?.messages?.[0]?.id;
+    if (res.ok && id) return { ok: true, provider: "meta_cloud", messageId: id };
+    return {
+      ok: false,
+      provider: "meta_cloud",
+      error: explainMetaError(data?.error?.code, data?.error?.error_data?.details || data?.error?.message),
+    };
+  } catch (err) {
+    return { ok: false, provider: provider.kind, error: err instanceof Error ? err.message : "فشل الاتصال بخدمة واتساب" };
+  }
+}
+
+/** Sends the order confirmation (template params + free-text fallback body). */
 export async function sendWhatsAppOrderConfirmation(
   order: Order,
-  options?: { origin?: string; customMessage?: string }
-): Promise<{ success: boolean; mode?: string; error?: string; provider?: string; gatewayResponse?: unknown }> {
+  options?: { origin?: string }
+): Promise<WaSendResult> {
+  const phone = order.whatsapp?.trim() || order.phone?.trim();
+  if (!phone) return { ok: false, provider: "none", error: "رقم هاتف العميل غير متوفر" };
+  const origin = options?.origin || SITE();
+  const name = (order.customerName || "").trim().split(/\s+/)[0] || "عميلنا";
+  const num = order.id.startsWith("#") ? order.id : `#${order.id}`;
+  return sendWhatsAppRaw(phone, formatWhatsAppOrderMessage(order, origin), [
+    name,
+    num,
+    Number(order.total || 0).toLocaleString("en-US"),
+    trackUrlFor(order, origin),
+  ]);
+}
+
+// ---------------------------------------------------------------------------------
+// Delayed dispatch (3 minutes) — driven by an external clock (Supabase pg_cron, every minute)
+// so it survives serverless cold starts. Orders are marked wa_status='pending' on creation.
+// ---------------------------------------------------------------------------------
+export const WA_DELAY_MS = 3 * 60 * 1000;
+const WA_MAX_AGE_MS = 48 * 60 * 60 * 1000;
+
+async function finish(order: Order, r: WaSendResult) {
+  if (r.ok) {
+    const notes = order.adminNotes || "";
+    await patchOrderFields(order.id, {
+      waStatus: "sent",
+      waSentAt: new Date().toISOString(),
+      waError: "",
+      adminNotes: notes.includes("[whatsapp_sent]") ? notes : `${notes} [whatsapp_sent]`.trim(),
+    });
+  } else {
+    await patchOrderFields(order.id, {
+      waStatus: r.notConfigured ? "not_configured" : "failed",
+      waSentAt: new Date().toISOString(),
+      waError: r.error || "فشل غير معروف",
+    });
+  }
+}
+
+export async function processDueWhatsApp(origin?: string): Promise<{
+  processed: number;
+  sent: number;
+  failed: number;
+}> {
+  const out = { processed: 0, sent: 0, failed: 0 };
   try {
-    const phone = order.whatsapp?.trim() || order.phone?.trim();
-    if (!phone) {
-      return { success: false, error: "رقم هاتف العميل غير متوفر" };
-    }
+    const now = Date.now();
+    const dueBefore = new Date(now - WA_DELAY_MS).toISOString();
+    const oldest = new Date(now - WA_MAX_AGE_MS).toISOString();
+    let due: Order[] = [];
 
-    const normalizedPhone = normalizeEgyptianPhone(phone);
-    if (!normalizedPhone) {
-      return { success: false, error: "رقم الهاتف غير صالح للإرسال عبر واتساب" };
-    }
-
-    const origin = options?.origin || (process.env.NEXT_PUBLIC_SITE_URL || "https://orma-silver.vercel.app");
-    const messageText = options?.customMessage || formatWhatsAppOrderMessage(order, origin);
-
-    const ultraMsgInstance = process.env.ULTRAMSG_INSTANCE_ID || "";
-    const ultraMsgToken = process.env.ULTRAMSG_TOKEN || "";
-
-    const greenApiInstance = process.env.GREENAPI_INSTANCE_ID || "";
-    const greenApiToken = process.env.GREENAPI_TOKEN || "";
-
-    const cloudPhoneId = process.env.WHATSAPP_CLOUD_PHONE_ID || "";
-    const cloudToken = process.env.WHATSAPP_CLOUD_TOKEN || "";
-
-    const storeSenderNumber = "01143837730";
-
-    // 1. UltraMsg Gateway
-    if (ultraMsgInstance && ultraMsgToken) {
-      try {
-        const res = await fetch(`https://api.ultramsg.com/${ultraMsgInstance}/messages/chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            token: ultraMsgToken,
-            to: `+${normalizedPhone}`,
-            body: messageText,
-          }),
-        });
-        const data = await res.json().catch(() => null);
-        return {
-          success: true,
-          mode: "real_gateway",
-          provider: "ultramsg",
-          gatewayResponse: data,
-        };
-      } catch (ultraErr) {
-        console.error("[WhatsApp Provider Error] UltraMsg dispatch failed:", ultraErr);
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdminClient();
+      const staleClaim = new Date(now - 10 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .or(`wa_status.eq.pending,and(wa_status.eq.sending,wa_sent_at.lt.${staleClaim})`)
+        .neq("status", "cancelled")
+        .lte("created_at", dueBefore)
+        .gte("created_at", oldest)
+        .limit(15);
+      const { mapDbOrderToModel } = await import("./serverStore");
+      due = (data || []).map((r) => mapDbOrderToModel(r as Record<string, unknown>));
+      // Claim each row atomically so concurrent ticks can never double-send
+      const claimed: Order[] = [];
+      for (const o of due) {
+        const { data: got } = await supabase
+          .from("orders")
+          .update({ wa_status: "sending", wa_sent_at: new Date().toISOString() })
+          .eq("id", o.id)
+          .or(`wa_status.eq.pending,and(wa_status.eq.sending,wa_sent_at.lt.${staleClaim})`)
+          .select("id");
+        if (got && got.length > 0) claimed.push(o);
       }
-    }
-
-    // 2. Green API Gateway
-    if (greenApiInstance && greenApiToken) {
-      try {
-        const res = await fetch(
-          `https://api.green-api.com/waInstance${greenApiInstance}/sendMessage/${greenApiToken}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chatId: `${normalizedPhone}@c.us`,
-              message: messageText,
-            }),
-          }
-        );
-        const data = await res.json().catch(() => null);
-        return {
-          success: true,
-          mode: "real_gateway",
-          provider: "greenapi",
-          gatewayResponse: data,
-        };
-      } catch (greenErr) {
-        console.error("[WhatsApp Provider Error] Green API dispatch failed:", greenErr);
-      }
-    }
-
-    // 3. Meta Cloud API Gateway
-    if (cloudPhoneId && cloudToken) {
-      try {
-        const res = await fetch(`https://graph.facebook.com/v18.0/${cloudPhoneId}/messages`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${cloudToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            to: normalizedPhone,
-            type: "text",
-            text: { body: messageText },
-          }),
-        });
-        const data = await res.json().catch(() => null);
-        return {
-          success: true,
-          mode: "real_gateway",
-          provider: "cloud_api",
-          gatewayResponse: data,
-        };
-      } catch (cloudErr) {
-        console.error("[WhatsApp Provider Error] Meta Cloud API dispatch failed:", cloudErr);
-      }
-    }
-
-    // 4. Smart Simulation & Safe Log (Used when API gateway credentials are not yet configured)
-    console.log(
-      `[WhatsApp Auto-Dispatch] [Sender: ${storeSenderNumber}] -> [To: +${normalizedPhone}] Order #${order.id} Confirmation Dispatched Successfully!`
-    );
-
-    return {
-      success: true,
-      mode: "simulation",
-      provider: "internal_dispatcher",
-    };
-  } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : "Error sending WhatsApp notification";
-    console.error("[WhatsApp Dispatch Exception]:", error);
-    return { success: false, error: errorMsg };
-  }
-}
-
-// ==============================================================================
-// ISOLATED BACKGROUND QUEUE (3-MINUTE DELAY)
-// ==============================================================================
-
-interface WhatsAppDelayedJob {
-  orderId: string;
-  orderSnapshot: Order;
-  scheduledAt: number;
-  sendAt: number;
-  timerId: NodeJS.Timeout;
-}
-
-// In-memory job registry indexed by exact order ID
-const delayedWhatsAppJobs = new Map<string, WhatsAppDelayedJob>();
-
-/**
- * Schedules an automated WhatsApp confirmation message to be sent to the customer
- * with an intentional delay (default: 3 minutes = 180,000ms).
- * Strictly non-blocking, isolated, and safe under high concurrency.
- */
-export function scheduleDelayedWhatsAppConfirmation(
-  order: Order,
-  delayMs: number = 3 * 60 * 1000,
-  origin?: string
-): void {
-  if (!order || !order.id) return;
-
-  const orderId = order.id;
-
-  // Create an immutable, isolated deep clone to prevent variable leaking or mutation
-  const snapshot: Order = JSON.parse(JSON.stringify(order));
-
-  // If a job is already queued for this order, cancel old timer to guarantee single execution
-  if (delayedWhatsAppJobs.has(orderId)) {
-    const existing = delayedWhatsAppJobs.get(orderId);
-    if (existing) clearTimeout(existing.timerId);
-    delayedWhatsAppJobs.delete(orderId);
-  }
-
-  const scheduledAt = Date.now();
-  const sendAt = scheduledAt + delayMs;
-
-  console.log(
-    `[WhatsApp Background Queue] Order #${orderId} scheduled for customer confirmation in ${Math.round(
-      delayMs / 1000
-    )}s (at ${new Date(sendAt).toLocaleTimeString("ar-EG")}).`
-  );
-
-  const timerId = setTimeout(async () => {
-    try {
-      delayedWhatsAppJobs.delete(orderId);
-
-      // 1. Double Verification: Check latest order state in database
-      const currentStore = await getServerStoreData();
-      const liveOrder = currentStore.orders.find(
-        (o) => o.id === orderId || o.id === snapshot.id || o.id.replace(/^#/, "") === orderId.replace(/^#/, "")
+      due = claimed;
+    } else {
+      const store = await getServerStoreData();
+      due = store.orders.filter(
+        (o) =>
+          o.waStatus === "pending" &&
+          o.status !== "cancelled" &&
+          now - new Date(o.createdAt || 0).getTime() >= WA_DELAY_MS &&
+          now - new Date(o.createdAt || 0).getTime() <= WA_MAX_AGE_MS
       );
-
-      // If order was cancelled by owner or customer during the 3 minutes, abort cleanly!
-      if (liveOrder && liveOrder.status === "cancelled") {
-        console.log(
-          `[WhatsApp Background Queue] Order #${orderId} was cancelled during the 3-minute wait. Aborting confirmation message.`
-        );
-        return;
-      }
-
-      // If already sent previously, prevent duplicate dispatch
-      if (liveOrder && liveOrder.adminNotes?.includes("[whatsapp_sent]")) {
-        console.log(
-          `[WhatsApp Background Queue] Order #${orderId} has already received WhatsApp confirmation. Skipping duplicate.`
-        );
-        return;
-      }
-
-      // 2. Dispatch WhatsApp Confirmation
-      const targetOrder = liveOrder || snapshot;
-      const sendResult = await sendWhatsAppOrderConfirmation(targetOrder, { origin });
-
-      if (sendResult.success) {
-        console.log(
-          `[WhatsApp Background Queue] Successfully delivered 3-minute delayed confirmation for #${orderId} via ${sendResult.provider || "dispatcher"}!`
-        );
-
-        // 3. Permanently record [whatsapp_sent] in database and server store
-        try {
-          const currentNotes = targetOrder.adminNotes || "";
-          const updatedNotes = currentNotes.includes("[whatsapp_sent]")
-            ? currentNotes
-            : `${currentNotes} [whatsapp_sent]`.trim();
-
-          await saveServerStoreData({
-            orders: [{ ...targetOrder, adminNotes: updatedNotes }],
-          });
-        } catch (saveErr) {
-          console.warn(`[WhatsApp Background Queue] Notice updating note for #${orderId}:`, saveErr);
-        }
-      } else {
-        console.error(
-          `[WhatsApp Background Queue] Dispatch failed for #${orderId}:`,
-          sendResult.error
-        );
-      }
-    } catch (err) {
-      console.error(`[WhatsApp Background Queue] Exception processing order #${orderId}:`, err);
     }
-  }, delayMs);
 
-  // Allow process to exit cleanly if necessary in Node.js
-  if (typeof timerId === "object" && "unref" in timerId && typeof timerId.unref === "function") {
-    timerId.unref();
+    for (const order of due) {
+      out.processed++;
+      const r = await sendWhatsAppOrderConfirmation(order, { origin });
+      await finish(order, r);
+      if (r.ok) out.sent++;
+      else out.failed++;
+    }
+  } catch (err) {
+    console.error("[WhatsApp processDue]", err);
   }
-
-  delayedWhatsAppJobs.set(orderId, {
-    orderId,
-    orderSnapshot: snapshot,
-    scheduledAt,
-    sendAt,
-    timerId,
-  });
+  return out;
 }
 
-/**
- * Cancel a pending scheduled WhatsApp job (e.g. when an order is cancelled immediately)
- */
-export function cancelDelayedWhatsAppJob(orderId: string): boolean {
-  if (!orderId) return false;
-  const cleanId = orderId.replace(/^#/, "");
+/** Immediate send (admin "resend" button), ignores the delay. */
+export async function resendWhatsAppNow(orderId: string, origin?: string): Promise<WaSendResult> {
+  const store = await getServerStoreData();
+  const order = store.orders.find((o) => o.id === orderId || o.id === orderId.replace(/^#/, ""));
+  if (!order) return { ok: false, provider: "none", error: "الطلب غير موجود" };
+  const r = await sendWhatsAppOrderConfirmation(order, { origin });
+  await finish(order, r);
+  return r;
+}
 
-  let foundKey: string | null = null;
-  for (const key of Array.from(delayedWhatsAppJobs.keys())) {
-    if (key === orderId || key === cleanId || key.replace(/^#/, "") === cleanId) {
-      foundKey = key;
-      break;
-    }
-  }
-
-  if (foundKey) {
-    const job = delayedWhatsAppJobs.get(foundKey);
-    if (job) {
-      clearTimeout(job.timerId);
-      delayedWhatsAppJobs.delete(foundKey);
-      console.log(`[WhatsApp Background Queue] Cancelled pending WhatsApp job for order #${orderId}.`);
-      return true;
-    }
-  }
-
+// Backwards-compatible no-ops (old in-memory queue was removed; cancelled orders are skipped by the dispatcher)
+export function cancelDelayedWhatsAppJob(_orderId: string): boolean {
+  void _orderId;
   return false;
 }
-
-/**
- * Get count of currently scheduled pending WhatsApp jobs
- */
-/**
- * Vercel Serverless Auto-Reconciliation:
- * Periodically or on request, scans orders created >= 3 minutes ago that have NOT yet received
- * WhatsApp confirmation ([whatsapp_sent] missing) and are NOT cancelled, and dispatches them.
- * Guarantees zero missed customer notifications even across Vercel cold starts.
- */
-export async function reconcilePendingWhatsAppConfirmations(origin?: string): Promise<{
-  processed: number;
-  successes: number;
-  errors: number;
-}> {
-  try {
-    const store = await getServerStoreData();
-    const now = Date.now();
-    const THREE_MINUTES = 3 * 60 * 1000;
-    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-
-    let processed = 0;
-    let successes = 0;
-    let errors = 0;
-
-    const ordersToNotify = store.orders.filter((o) => {
-      if (!o || !o.id) return false;
-      if (o.status === "cancelled") return false;
-      if (o.adminNotes?.includes("[whatsapp_sent]")) return false;
-
-      const createdTime = new Date(o.createdAt || 0).getTime();
-      const ageMs = now - createdTime;
-
-      // Order must be older than 3 minutes, but within the last 24 hours
-      return ageMs >= THREE_MINUTES && ageMs <= TWENTY_FOUR_HOURS;
-    });
-
-    for (const order of ordersToNotify) {
-      processed++;
-      try {
-        const sendRes = await sendWhatsAppOrderConfirmation(order, { origin });
-        if (sendRes.success) {
-          successes++;
-          const curNotes = order.adminNotes || "";
-          const newNotes = curNotes.includes("[whatsapp_sent]")
-            ? curNotes
-            : `${curNotes} [whatsapp_sent]`.trim();
-
-          await saveServerStoreData({
-            orders: [{ ...order, adminNotes: newNotes }],
-          });
-        } else {
-          errors++;
-        }
-      } catch {
-        errors++;
-      }
-    }
-
-    return { processed, successes, errors };
-  } catch (err) {
-    console.error("[WhatsApp Reconcile Error]:", err);
-    return { processed: 0, successes: 0, errors: 0 };
-  }
+export async function reconcilePendingWhatsAppConfirmations(origin?: string) {
+  const r = await processDueWhatsApp(origin);
+  return { processed: r.processed, successes: r.sent, errors: r.failed };
 }

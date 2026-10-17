@@ -10,10 +10,10 @@ import {
 import { Order, OrderItem } from "@/context/StoreContext";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { sendTelegramOrderNotification } from "@/lib/telegram";
-import {
-  scheduleDelayedWhatsAppConfirmation,
-  reconcilePendingWhatsAppConfirmations,
-} from "@/lib/whatsapp";
+import { reconcilePendingWhatsAppConfirmations, normalizeEgyptianPhone } from "@/lib/whatsapp";
+import { evaluateOrderReview } from "@/lib/orderReview";
+import { patchOrderFields } from "@/lib/serverStore";
+import { recordFunnelEvent, markCartRecovered, sanitizeSource } from "@/lib/funnel";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -257,6 +257,7 @@ export async function POST(request: NextRequest) {
         price: verifiedPrice,
         selectedSize: item.selectedSize || undefined,
         image: realProduct.images?.[0] || item.image || "",
+        costPrice: realProduct.costPrice ? Number(realProduct.costPrice) : undefined,
       });
     }
 
@@ -336,7 +337,17 @@ export async function POST(request: NextRequest) {
         cardDetails: rawOrder.cardDetails || undefined,
         adminNotes: rawOrder.adminNotes || undefined,
         createdAt: new Date().toISOString(),
+        source: sanitizeSource(rawOrder.source),
+        waStatus: "pending",
       };
+
+      const review = evaluateOrderReview(
+        finalOrder,
+        freshData.orders,
+        Number(settings.highValueReviewThreshold) || 4000
+      );
+      finalOrder.needsReview = review.needsReview;
+      finalOrder.reviewReasons = review.reasons.length ? review.reasons.join(" • ") : undefined;
 
       // Automated Inventory Management: Deduct purchased quantity and auto-mark SOLD OUT if stock reaches 0
       const updatedProducts = freshData.products.map((p) => {
@@ -390,20 +401,19 @@ export async function POST(request: NextRequest) {
       })();
     }
 
-    // B) Automated WhatsApp Confirmation with 3-Minute Intentional Delay
-    if (!isExisting && !orderSnapshot.adminNotes?.includes("[whatsapp_sent]")) {
-      try {
-        const origin =
-          request.headers.get("origin") ||
-          (request.headers.get("host")?.startsWith("localhost")
-            ? "http://localhost:3000"
-            : `https://${request.headers.get("host") || "orma-silver.vercel.app"}`);
+    // B) WhatsApp confirmation is sent ~3 minutes later by the external scheduler (pg_cron -> /api/cron/tick).
+    //    wa_status is owned by the dispatcher, so mark it "pending" explicitly here.
+    if (!isExisting) {
+      await patchOrderFields(finalOrder.id, { waStatus: "pending" });
+      finalOrder.waStatus = "pending";
 
-        // Schedule delayed WhatsApp confirmation (3 minutes = 180,000ms)
-        scheduleDelayedWhatsAppConfirmation(orderSnapshot, 3 * 60 * 1000, origin);
-      } catch (waErr) {
-        console.error(`[Orders Route] Error scheduling delayed WhatsApp confirmation for #${orderSnapshot.id}:`, waErr);
-      }
+      // C) Funnel + abandoned-cart bookkeeping (best effort, never blocks the customer)
+      (async () => {
+        try {
+          await recordFunnelEvent(String(rawOrder.sid || ""), "purchase", finalOrder.source);
+          await markCartRecovered(normalizeEgyptianPhone(finalOrder.phone));
+        } catch {}
+      })();
     }
 
     // 9. Instant Path Revalidation to keep admin and customer views completely fresh

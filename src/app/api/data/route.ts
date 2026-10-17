@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { getServerStoreData, saveServerStoreData } from "@/lib/serverStore";
+import { getServerStoreData, saveServerStoreData, toPublicProduct } from "@/lib/serverStore";
 import { isAuthorizedAdmin } from "@/lib/adminAuth";
 import { BUILD_ID, BUILD_TIMESTAMP, STORE_VERSION } from "@/lib/version";
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       {
         success: true,
         isDefault: Boolean(data.isDefault),
-        products: data.products,
+        products: isAdmin ? data.products : data.products.map(toPublicProduct),
         settings: safeSettings,
         orders: safeOrders,
         lastOrderSeq: data.lastOrderSeq || 999,

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Calendar, Download, Eye, MessageCircle, Printer, RotateCw, Search, ShoppingBag, UserPlus } from "lucide-react";
 import type { Order } from "@/context/StoreContext";
 import type { OrderDatePreset, ManualOrderForm } from "./types";
@@ -31,6 +32,43 @@ interface Props {
   handlePrintMultipleOrders: (orders: Order[]) => void;
   exportOrdersToCSV: (orders: Order[]) => void;
 
+}
+
+function WaChip({ order }: { order: Order }) {
+  const [busy, setBusy] = React.useState(false);
+  const st = order.waStatus || (order.adminNotes?.includes("[whatsapp_sent]") ? "sent" : undefined);
+  if (!st) return null;
+  const time = order.waSentAt
+    ? new Date(order.waSentAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })
+    : "";
+  const resend = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBusy(true);
+    try {
+      await fetch("/api/whatsapp/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+  const base = "text-[10px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap inline-flex items-center gap-1";
+  if (st === "sent")
+    return <span className={`${base} bg-emerald-50 text-emerald-800 border-emerald-300`}>✓ تأكيد واتساب اتبعت{time ? ` ${time}` : ""}</span>;
+  if (st === "pending")
+    return <span className={`${base} bg-sky-50 text-sky-800 border-sky-300`}>⏳ واتساب هيتبعت بعد 3 دقايق</span>;
+  if (st === "sending")
+    return <span className={`${base} bg-sky-50 text-sky-800 border-sky-300`}>جاري إرسال واتساب…</span>;
+  return (
+    <span title={order.waError || ""} className={`${base} bg-rose-50 text-rose-800 border-rose-300`}>
+      {st === "not_configured" ? "واتساب غير مفعّل" : "⚠ واتساب فشل"}
+      <button type="button" onClick={resend} disabled={busy} className="underline disabled:opacity-50">
+        {busy ? "..." : "إعادة الإرسال"}
+      </button>
+    </span>
+  );
 }
 
 export default function OrdersTab({ orders, filteredOrders, selectedOrderIds, setSelectedOrderIds, orderDatePreset, setOrderDatePreset, orderCustomDate, setOrderCustomDate, isRefreshingOrders, bulkStatusToApply, setBulkStatusToApply, orderStatusFilter, setOrderStatusFilter, orderSearchQuery, setOrderSearchQuery, setSelectedOrderForDetails, setManualOrderForm, setIsCreateOrderModalOpen, formatOrderDateYMD, updateOrderStatus, bulkUpdateOrderStatus, handleManualRefreshOrders, handlePrintMultipleOrders, exportOrdersToCSV }: Props) {
@@ -356,6 +394,15 @@ export default function OrdersTab({ orders, filteredOrders, selectedOrderIds, se
                       <span className="text-[10px] font-bold bg-[#F5F0E7] text-[#292722] px-1.5 py-0.5 rounded border border-[#ded2c0] whitespace-nowrap">
                         {totalItemsCount} {totalItemsCount === 1 ? "قطعة" : "قطع"}
                       </span>
+                      {order.needsReview && (
+                        <span
+                          title={order.reviewReasons || "راجع بيانات الطلب"}
+                          className="text-[10px] font-bold bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300 whitespace-nowrap"
+                        >
+                          ⚠ يحتاج مراجعة{order.reviewReasons ? `: ${order.reviewReasons}` : ""}
+                        </span>
+                      )}
+                      <WaChip order={order} />
                     </div>
                   </div>
 

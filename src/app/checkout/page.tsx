@@ -32,6 +32,7 @@ import {
   Mail,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { getSid, getSource, trackEvent } from "@/lib/clientTracking";
 
 export default function CheckoutPage() {
   const {
@@ -223,6 +224,39 @@ export default function CheckoutPage() {
     addToast("تم النسخ", "تم نسخ الرقم إلى الحافظة بنجاح", "info");
   };
 
+  // Funnel: customer reached checkout with items
+  useEffect(() => {
+    if (isStorageLoaded && cartItems.length > 0 && !orderConfirmed) trackEvent("checkout_start");
+  }, [isStorageLoaded, cartItems.length, orderConfirmed]);
+
+  // Abandoned-cart capture: once a valid phone is typed, remember the cart (debounced).
+  useEffect(() => {
+    if (orderConfirmed || cartItems.length === 0) return;
+    const digits = phone.replace(/\D/g, "");
+    if (!/^(?:20|0)?1[0125][0-9]{8}$/.test(digits)) return;
+    const t = setTimeout(() => {
+      fetch("/api/abandoned-cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: digits,
+          name: `${firstName} ${lastName}`.trim(),
+          email: email.trim(),
+          source: getSource(),
+          items: cartItems.map((i) => ({
+            productId: i.product.id,
+            arabicName: i.product.arabicName,
+            quantity: i.quantity,
+            price: i.product.price,
+            selectedSize: i.selectedSize,
+          })),
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [phone, firstName, lastName, email, cartItems, orderConfirmed]);
+
   // 3-stage navigation
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const fullNameStr = `${firstName.trim()} ${lastName.trim()}`.trim();
@@ -338,6 +372,8 @@ export default function CheckoutPage() {
       shippingFee,
       discount: discountAmount,
       total: grandTotal,
+      source: getSource(),
+      sid: getSid(),
       paymentMethod,
       senderWalletNumber: paymentMethod === "wallet" ? senderWalletNumber : undefined,
       paymentReceiptImage: paymentMethod === "wallet" ? receiptImage : undefined,
