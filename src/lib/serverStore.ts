@@ -332,13 +332,24 @@ export async function getServerStoreData(): Promise<ServerStoreData> {
       let products: Product[] = [];
       if (productsRes.data && Array.isArray(productsRes.data) && productsRes.data.length > 0) {
         products = productsRes.data.map(mapDbProductToModel);
+      } else if (productsRes.error) {
+        // Transient read error: never seed or wipe anything because of it.
+        console.warn("Supabase products query warning/error:", productsRes.error);
+        products = [];
       } else {
-        // If Supabase products table is empty (fresh project), seed with default catalog
-        products = PRODUCTS;
-        const dbProducts = PRODUCTS.map(mapModelProductToDb);
-        try {
-          await supabase.from("products").upsert(dbProducts, { onConflict: "id" });
-        } catch {}
+        // Empty table. Seed the sample catalog ONLY on the very first run of a brand-new project.
+        // Once the catalog has been initialised (flag below), an empty table means the owner
+        // deleted everything on purpose, so it must stay empty (previously the samples came back).
+        const initialised = Array.isArray(metaRes.data) && metaRes.data.some((r) => r.key === "catalog_initialized");
+        if (initialised) {
+          products = [];
+        } else {
+          products = PRODUCTS;
+          try {
+            await supabase.from("products").upsert(PRODUCTS.map(mapModelProductToDb), { onConflict: "id" });
+            await supabase.from("store_metadata").upsert({ key: "catalog_initialized", value: true });
+          } catch {}
+        }
       }
 
       let settings: Partial<StoreSettings> = {};
