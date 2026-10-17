@@ -867,8 +867,13 @@ export default function AdminPage() {
   // Open New Product Modal
   const handleOpenNewProduct = () => {
     setEditingProductId(null);
+    const maxCode = products.reduce((m, pr) => {
+      const n = /^ORM-(\d+)$/i.exec(pr.sku || "");
+      return n ? Math.max(m, parseInt(n[1], 10)) : m;
+    }, 99);
     setProductForm({
       ...initialProductForm,
+      sku: `ORM-${maxCode + 1}`,
       collections: ["rings"],
     });
     setProductFeaturesText(initialProductForm.features.join("\n"));
@@ -3439,6 +3444,13 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
+
+              {order.needsReview && (
+                <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900 leading-relaxed">
+                  <div className="font-bold mb-1">⚠ الطلب ده محتاج مراجعة</div>
+                  <div>{(order.reviewReasons || "راجع بيانات الطلب").split("•").map((r) => r.trim()).filter(Boolean).join(" • ")}</div>
+                </div>
+              )}
 
               {/* Customer & Delivery Information Card with Inline Edit Mode */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8ded0] space-y-3">

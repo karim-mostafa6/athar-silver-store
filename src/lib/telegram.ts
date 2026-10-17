@@ -45,7 +45,8 @@ export function formatOrderInvoiceTelegramMessage(order: Order): string {
       const sizeText = item.selectedSize ? ` | المقاس: ${item.selectedSize}` : "";
       const priceText = Number(item.price || 0).toLocaleString("en-US");
 
-      return `▫️ ${itemName}\n   (الكمية: ${item.quantity}${sizeText} | السعر: ${priceText} ج.م)`;
+      const codeText = item.sku ? `[${item.sku}] ` : "";
+      return `▫️ ${codeText}${itemName}\n   (الكمية: ${item.quantity}${sizeText} | السعر: ${priceText} ج.م)`;
     })
     .join("\n");
 
@@ -97,7 +98,7 @@ export function formatOrderCompactTelegramMessage(order: Order): string {
   const orderNum = order.id ? (order.id.startsWith("#") ? order.id : `#${order.id}`) : "#ORM";
   const total = Number(order.total || 0).toLocaleString("en-US");
   const codes = (order.items || [])
-    .map((i) => `${i.sku || (i.arabicName || i.name || "قطعة").slice(0, 14).trim()}${i.quantity > 1 ? ` ×${i.quantity}` : ""}${i.selectedSize ? ` (${String(i.selectedSize).replace(/^مقاس\s*/, "")})` : ""}`)
+    .map((i) => `${i.sku || String(i.productId || "؟").toUpperCase()}${i.quantity > 1 ? ` ×${i.quantity}` : ""}${i.selectedSize ? ` (${String(i.selectedSize).replace(/^مقاس\s*/, "")})` : ""}`)
     .join(" · ");
   const pay = order.paymentMethod === "wallet" ? "محفظة" : order.paymentMethod === "card" ? "بطاقة" : "";
   const lines = [
@@ -111,7 +112,7 @@ export function formatOrderCompactTelegramMessage(order: Order): string {
 }
 
 /** Inline keyboard shared by the new-order message and the status-update edit. */
-export function buildOrderKeyboard(order: Order, active?: Order["status"]) {
+export function buildOrderKeyboard(order: Order, active?: Order["status"], expanded = false) {
   const id = order.id;
   const mark = (s: Order["status"], on: string, off: string) => (active === s ? `✅ ${on}` : off);
   const rows: Array<Array<Record<string, string>>> = [];
@@ -124,7 +125,11 @@ export function buildOrderKeyboard(order: Order, active?: Order["status"]) {
     { text: mark("shipped", "🚚 تم الشحن", "🚚 تم الشحن"), callback_data: `status:shipped:${id}` },
     { text: mark("cancelled", "❌ ملغي", "❌ إلغاء"), callback_data: `status:cancelled:${id}` },
   ]);
-  rows.push([{ text: "📋 التفاصيل الكاملة", callback_data: `details:${id}` }]);
+  rows.push([
+    expanded
+      ? { text: "🔼 إخفاء التفاصيل", callback_data: `compact:${id}` }
+      : { text: "📋 التفاصيل الكاملة", callback_data: `details:${id}` },
+  ]);
   return rows;
 }
 

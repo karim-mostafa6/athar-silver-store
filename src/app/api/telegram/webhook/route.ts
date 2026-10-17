@@ -10,7 +10,7 @@ import {
 import { getSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase";
 import { Order } from "@/context/StoreContext";
 import { cancelDelayedWhatsAppJob } from "@/lib/whatsapp";
-import { buildOrderKeyboard, formatOrderInvoiceTelegramMessage } from "@/lib/telegram";
+import { buildOrderKeyboard, formatOrderCompactTelegramMessage, formatOrderInvoiceTelegramMessage } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -350,26 +350,32 @@ export async function POST(request: NextRequest) {
       const messageId = message?.message_id;
       const currentText = String(message?.text || "");
 
-      if (dataStr.startsWith("details:")) {
-        const found = await findOrderById(dataStr.slice("details:".length));
+      if (dataStr.startsWith("details:") || dataStr.startsWith("compact:")) {
+        const expand = dataStr.startsWith("details:");
+        const found = await findOrderById(dataStr.slice(dataStr.indexOf(":") + 1));
         if (!found) {
           await answerCallbackQuery(botToken, queryId, "⚠️ الطلب غير موجود");
           return NextResponse.json({ ok: true });
         }
-        await answerCallbackQuery(botToken, queryId, "📋 تفاصيل الطلب");
+        await answerCallbackQuery(botToken, queryId, expand ? "📋 التفاصيل" : "🔼 تم الإخفاء");
+        // Edit the SAME message in place (keeps the chat short); keep any status banner already on it.
+        const bannerIdx = currentText.indexOf("\n\n📌 الحالة الحالية:");
+        const banner = bannerIdx >= 0 ? currentText.slice(bannerIdx) : "";
+        const active = ["processing", "shipped", "cancelled"].includes(found.status) ? found.status : undefined;
         try {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               chat_id: chatId,
-              text: formatOrderInvoiceTelegramMessage(found),
-              reply_to_message_id: messageId,
+              message_id: messageId,
+              text: `${expand ? formatOrderInvoiceTelegramMessage(found) : formatOrderCompactTelegramMessage(found)}${banner}`,
               disable_web_page_preview: true,
+              reply_markup: { inline_keyboard: buildOrderKeyboard(found, active as Order["status"] | undefined, expand) },
             }),
           });
         } catch (e) {
-          console.error("[Telegram Webhook] details send failed:", e);
+          console.error("[Telegram Webhook] details edit failed:", e);
         }
         return NextResponse.json({ ok: true });
       }
@@ -431,7 +437,7 @@ export async function POST(request: NextRequest) {
         const baseText = currentText.split("\n\n📌 الحالة الحالية:")[0].trim();
         const updatedText = `${baseText}${statusBanner}`;
 
-        const keyboard = buildOrderKeyboard(updatedOrder, newStatus);
+        const keyboard = buildOrderKeyboard(updatedOrder, newStatus, currentText.includes("📦 القطع المطلوبة"));
 
         try {
           await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {

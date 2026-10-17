@@ -77,9 +77,8 @@ function WaChip({ order }: { order: Order }) {
   if (st === "manual")
     return (
       <span className={`${base} bg-amber-50 text-amber-900 border-amber-300`}>
-        📲 تأكيد واتساب لسه
-        <button type="button" onClick={sendManual} disabled={busy} className="underline disabled:opacity-50">
-          {busy ? "..." : "ابعت دلوقتي"}
+        <button type="button" onClick={sendManual} disabled={busy} className="disabled:opacity-50" title="افتح واتساب برسالة التأكيد جاهزة">
+          {busy ? "..." : "📲 ابعت واتساب"}
         </button>
       </span>
     );
@@ -424,10 +423,10 @@ export default function OrdersTab({ orders, filteredOrders, selectedOrderIds, se
                       </span>
                       {order.needsReview && (
                         <span
-                          title={order.reviewReasons || "راجع بيانات الطلب"}
-                          className="text-[10px] font-bold bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300 whitespace-nowrap"
+                          title={`يحتاج مراجعة: ${order.reviewReasons || "راجع بيانات الطلب"} (افتح التفاصيل)`}
+                          className="text-xs font-bold bg-amber-100 text-amber-900 w-6 h-6 inline-flex items-center justify-center rounded-full border border-amber-300 shrink-0 cursor-help"
                         >
-                          ⚠ يحتاج مراجعة{order.reviewReasons ? `: ${order.reviewReasons}` : ""}
+                          ⚠
                         </span>
                       )}
                       <WaChip order={order} />
