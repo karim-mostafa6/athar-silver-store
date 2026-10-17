@@ -279,3 +279,19 @@ html { -webkit-text-size-adjust: 100%; }
 a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 /* Keep fixed bars clear of the iPhone notch / home indicator. */
 .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+
+/* Admin dashboard: comfortable touch targets on phones (icon-only buttons, checkboxes). */
+@media (max-width: 767px) {
+  .admin-root button:has(> svg:only-child) {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .admin-root input[type="checkbox"],
+  .admin-root input[type="radio"] {
+    width: 20px;
+    height: 20px;
+  }
+}

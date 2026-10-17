@@ -8,6 +8,7 @@ import { OrmaLogo } from "@/components/OrmaLogo";
 import { getAdminAuthHeaders } from "@/lib/clientAdmin";
 import { printOrderInvoice, printOrdersInvoices } from "@/lib/printInvoices";
 import AnalyticsTab from "./tabs/AnalyticsTab";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { AdminMobileNav, groupNavItems, type NavItem } from "./AdminNav";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
@@ -773,6 +774,17 @@ export default function AdminPage() {
   };
 
   const handlePrintMultipleOrders = (ordersToPrint: Order[]) => printOrdersInvoices(ordersToPrint);
+
+  // On phones the live preview is a full-screen overlay: lock the page behind it.
+  const [isSmallViewport, setIsSmallViewport] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const update = () => setIsSmallViewport(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  useBodyScrollLock(isPreviewOpen && isSmallViewport);
 
   // Auto-scroll the live preview iframe whenever activeTab changes (Shopify Customizer behavior)
   useEffect(() => {
@@ -1681,7 +1693,7 @@ export default function AdminPage() {
   // MAIN DASHBOARD INTERFACE
   // ========================================================
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f7f4ee] text-[#161412] flex flex-col font-cairo selection:bg-[#dfd2bf]">
+    <div dir="rtl" className="admin-root min-h-screen bg-[#f7f4ee] text-[#161412] flex flex-col font-cairo selection:bg-[#dfd2bf]">
       {/* TOP HEADER */}
       <header className="sticky top-0 z-30 bg-[#f7f4ee]/95 backdrop-blur-md border-b border-[#e4dcce] px-4 sm:px-6 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2780,7 +2792,7 @@ export default function AdminPage() {
                                 inStock: next > 0,
                               });
                             }}
-                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] flex items-center justify-center text-xs font-bold hover:bg-gray-100"
+                            className="w-9 h-9 md:w-5 md:h-5 rounded bg-white border border-[#ded2c0] flex items-center justify-center text-sm md:text-xs font-bold hover:bg-gray-100"
                             title="خصم 1 من المخزون"
                           >
                             -
@@ -2795,7 +2807,7 @@ export default function AdminPage() {
                                 inStock: true,
                               });
                             }}
-                            className="w-5 h-5 rounded bg-white border border-[#ded2c0] flex items-center justify-center text-xs font-bold hover:bg-gray-100"
+                            className="w-9 h-9 md:w-5 md:h-5 rounded bg-white border border-[#ded2c0] flex items-center justify-center text-sm md:text-xs font-bold hover:bg-gray-100"
                             title="إضافة 1 للمخزون"
                           >
                             +
@@ -2816,7 +2828,7 @@ export default function AdminPage() {
                           });
                           addToast("تم التحديث", `تم تعديل حالة توفر "${product.arabicName}"`, "info");
                         }}
-                        className={`text-[11px] font-bold px-2.5 py-1 rounded transition-colors ${
+                        className={`text-[11px] font-bold px-3 py-2 md:px-2.5 md:py-1 rounded transition-colors ${
                           product.inStock && (product.stockQuantity === undefined || product.stockQuantity > 0)
                             ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             : "bg-rose-50 text-rose-700 hover:bg-rose-100"
@@ -6604,7 +6616,7 @@ export default function AdminPage() {
 
         {/* SHOPIFY-STYLE LIVE PREVIEW PANEL (Split Screen) */}
         {isPreviewOpen && (
-          <div className="flex-1 bg-[#ede4d5]/40 flex flex-col sticky top-[65px] h-[calc(100vh-65px)] overflow-hidden border-t lg:border-t-0 border-[#ded2c0] z-20">
+          <div className="fixed inset-0 z-[70] h-[100dvh] bg-[#f1e9dc] lg:bg-[#ede4d5]/40 flex flex-col lg:static lg:flex-1 lg:z-20 lg:sticky lg:top-[65px] lg:h-[calc(100vh-65px)] overflow-hidden lg:border-t-0 border-[#ded2c0]">
             {/* Preview Toolbar */}
             <div className="bg-white/95 backdrop-blur-md border-b border-[#ded2c0] px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs shadow-sm">
               <div className="flex items-center gap-2">

@@ -1396,6 +1396,9 @@ export const StoreProvider: React.FC<{ children: ReactNode; initialStore?: Initi
   // Live cross-frame preview synchronization (Shopify Model: instant 0ms preview updates)
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
+      // Only the admin page of this same site may drive the preview. Without this check any other
+      // website that embeds the store in an iframe could push fake settings into a visitor's browser.
+      if (e.origin !== window.location.origin || e.source !== window.parent) return;
       if (
         (e.data?.type === "ORMA_SETTINGS_UPDATE" || e.data?.type === "ATHAR_SETTINGS_UPDATE") &&
         e.data.settings &&
